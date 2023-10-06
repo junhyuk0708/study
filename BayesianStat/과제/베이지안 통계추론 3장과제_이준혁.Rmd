@@ -1,0 +1,244 @@
+---
+title: "베이지안 통계추론 3장 과제"
+author: "응용통계학과 이준혁"
+date: "2023-09-15"
+output:
+  html_document:
+    css: styles.css
+    #code_folding: show
+    fig_caption: yes
+    fig_height: 7.5
+    fig_width: 10
+    fig_retina: null
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+    fig_dpi: 300
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+    font-weight: bold;
+  }
+  h1{
+    font-size: 18pt;
+  }
+  h2{
+    font-size: 16pt;
+  }
+  h3{
+    font-size: 14pt;
+  }
+</style>
+
+---
+```{r}
+library(ggplot2)
+```
+
+# 3번 문제
+
+결합 확률 밀도 함수 \( f_{XY}(x, y) = x - y \) , \( 1 \leq x \leq 2 \) , \( 0 \leq y \leq 1 \)
+
+\[
+f_X(x) = \int_{0}^{1} (x - y) \, dy = \left[ xy - \frac{y^2}{2} \right]_{0}^{1} = x - \frac{1}{2}
+\]
+,\( 1 \leq x \leq 2 \)
+
+\[
+f_Y(y) = \int_{1}^{2} (x - y) \, dx = \left[ \frac{x^2}{2} - xy \right]_{1}^{2} = \frac{3}{2} - y
+\]
+,\( 0 \leq y \leq 1 \)
+
+
+\[
+f_{XY}(x, y) = f_X(x) \times f_Y(y)
+\]를 만족해야 X와 Y는 독립적인데
+
+여기서 \( f_X(x) = x - \frac{1}{2} \), \( f_Y(y) = \frac{3}{2} - y \), 그리고 \( f_{XY}(x, y) = x - y \)
+
+\[
+(x - \frac{1}{2}) \times (\frac{3}{2} - y) = \frac{3}{2}x - xy - \frac{1}{2} + \frac{1}{2}y \neq x - y
+\]
+
+따라서, \( f_{XY}(x, y) \)는 \( f_X(x) \times f_Y(y) \)와 같지 않으므로, \( X \)와 \( Y \)는 독립적이지 않다.
+
+# 4번 문제
+```{r}
+# 데이터와 가능한 세타 값 설정
+x <- c(1, 1, 0, 0, 1)
+theta <- seq(0.1, 0.9 , by=0.1)
+
+# 사전확률 설정
+prior <- rep(1/length(theta), length(theta))
+
+# 가능도 계산
+likelihood <- dbinom(sum(x), length(x), theta)
+
+# 사후확률 계산
+posterior <- likelihood * prior
+
+# 정규화 (사후확률이 모두 합쳐서 1이 되게 만듦)
+posterior <- posterior / sum(posterior)
+
+# 결과 출력
+data.frame(theta=theta,prior=prior,
+           likelihood=likelihood,
+           posterior=posterior)
+
+
+
+df_posterior <- data.frame(theta=theta,prior=prior,
+                           likelihood=likelihood,
+                           posterior=posterior)
+
+ggplot(df_posterior,aes(x=theta))+
+  geom_line(aes(y=posterior,color='Posterior'))+
+  geom_line(aes(y=prior,color='Prior'))+
+  geom_line(aes(y=likelihood/max(likelihood),color='Likelihood'))+
+  scale_color_manual(values=c('blue','red','green'))+
+  theme_minimal() +
+  ylab('Density') + 
+  guides(color = guide_legend(title=NULL))
+```
+
+# 5번 문제
+```{r}
+#(1)
+0.5^5
+
+#(2)
+result <- 0
+
+for(i in 1:9) {
+  theta <- i / 10
+  term <- (theta^3) * ((1 - theta)^2) * (1/9)
+  result <- result + term
+}
+
+print(result)
+```
+
+
+```{r}
+#(3)
+```
+동일한 범위의 가능성을 가진 독립적인 시행 결과로 볼 수 있으므로 \( X_{i} \)들은 교환 가능하다고 할 수 있습니다.
+
+교환 가능성은 주어진 분포에 대해 관측값의 순서가 중요하지 않음을 의미합니다. 즉 \( X_{i} \)들의 분포는 같고 서로 독립적이기 때문에 이들은 교환 가능합니다.
+
+# 6번 문제
+```{r}
+x_cont <- seq(-16, 16, by = 0.01)
+
+# 연속변수의 확률밀도함수
+pdf_cont <- (1 / (2 * sqrt(2 * pi))) * exp(-0.5 * x_cont^2) * 0.5
+
+# 이산변수의 x 값과 확률밀도함수
+x_disc <- 0
+pdf_disc <- 0.5
+
+df_cont <- data.frame(x = x_cont, pdf = pdf_cont, type = "Continuous")
+df_disc <- data.frame(x = x_disc, pdf = pdf_disc, type = "Discrete")
+df <- rbind(df_cont, df_disc)
+
+ggplot(df, aes(x = x, y = pdf, color = type)) +
+  geom_line(data = df[df$type == "Continuous", ], size = 1) +
+  geom_point(data = df[df$type == "Discrete", ], size = 4) +
+  scale_color_manual(values = c("Continuous" = "blue", "Discrete" = "red")) +
+  labs(
+    title = "Probability Density Function of X",
+    x = "x",
+    y = "Probability Density",
+    color = "Type"
+  )
+
+```
+
+
+
+# 7번 문제
+## (1)B(10, 0.7)
+```{r}
+n <- 10
+p <- 0.7
+
+# 이항분포의 평균과 분산
+mean_binom <- n * p
+var_binom <- n * p * (1 - p)
+
+# x 값의 범위
+x <- 0:n
+
+# 이항분포의 확률.
+binom_prob <- dbinom(x, size = n, prob = p)
+
+# 정규분포의 확률
+norm_prob <- dnorm(x, mean = mean_binom, sd = sqrt(var_binom))
+
+df <- data.frame(x, binom_prob, norm_prob)
+ggplot(df, aes(x = x)) +
+  geom_line(aes(y = binom_prob, color = "Binomial"), size = 1) +
+  geom_line(aes(y = norm_prob, color = "Normal"), size = 1) +
+  scale_color_manual(values = c("Binomial" = "blue", "Normal" = "red")) +
+  labs(
+    title = "Binomial and Normal Distributions",
+    x = "x",
+    y = "Probability",
+    color = "Distribution"
+  )
+```
+
+## (2)B(100, 0.7)
+```{r}
+n <- 100
+p <- 0.7
+
+# 이항분포의 평균과 분산
+mean_binom <- n * p
+var_binom <- n * p * (1 - p)
+
+# x 값의 범위
+x <- 0:n
+
+# 이항분포의 확률.
+binom_prob <- dbinom(x, size = n, prob = p)
+
+# 정규분포의 확률
+norm_prob <- dnorm(x, mean = mean_binom, sd = sqrt(var_binom))
+
+df <- data.frame(x, binom_prob, norm_prob)
+ggplot(df, aes(x = x)) +
+  geom_line(aes(y = binom_prob, color = "Binomial"), size = 1) +
+  geom_line(aes(y = norm_prob, color = "Normal"), size = 1) +
+  scale_color_manual(values = c("Binomial" = "blue", "Normal" = "red")) +
+  labs(
+    title = "Binomial and Normal Distributions",
+    x = "x",
+    y = "Probability",
+    color = "Distribution"
+  )
+```
+
+## (3)
+n이 커짐에 따라서 이항분포가 정규 분포로 근사함을 알 수 있다.

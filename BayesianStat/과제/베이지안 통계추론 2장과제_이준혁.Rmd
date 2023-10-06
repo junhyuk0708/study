@@ -1,0 +1,88 @@
+---
+title: "베이지안 통계추론 2장 과제"
+author: "응용통계학과 이준혁"
+date: "2023-09-08"
+output:
+  html_document:
+    css: styles.css
+    #code_folding: show
+    fig_caption: yes
+    fig_height: 7.5
+    fig_width: 10
+    fig_retina: null
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+    fig_dpi: 300
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+    font-weight: bold;
+  }
+  h1{
+    font-size: 18pt;
+  }
+  h2{
+    font-size: 16pt;
+  }
+  h3{
+    font-size: 14pt;
+  }
+</style>
+
+---
+
+# 1번 문제
+
+```{r}
+x = 0.002 #랜덤으로 선택된 사람이 색맹일 확률
+xx = 0.998 #랜덤으로 선택된 사람이 색맹이 아닐 확률
+yx = 0.98 #색맹인 사람이 검사에서 색맹으로 판정될 확률
+yyxx=0.001 #색맹이 아닌 사람이 검사에서 색맹으로 잘못 판정될 확률
+
+
+x2 = x*yx / (x*yx + xx*yyxx) #두 번째 검사에서 사람이 색맹일 사전확률
+print(x2) #(1)답
+xx2 = (1-x2) #두 번째 검사에서 사람이 색맹이 아닐 사전확률
+yx2 = 0.98 #색맹인 사람이 두 번째 검사에서도 색맹으로 판정될 확률
+yyxx2 = 0.001 #색맹이 아닌 사람이 두 번째 검사에서 색맹으로 잘못 판정될 확률
+
+x3 = x2*yx2 / (x2*yx2 + xx2*yyxx2)
+print(x3) #(2)답
+
+```
+
+# 4번 문제
+(1)
+P(BB|M) = 1/2
+P(GG|M) = 1/2
+P(GB|M) = 0
+
+(2)
+P(BB|D) = 1/3
+P(GG|D) = 1/3
+P(GB|D) = 1/3
+
+(3)
+P(GG)= (1/2)xP(M) + (1/3)x(1−P(M))

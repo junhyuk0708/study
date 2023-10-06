@@ -1,0 +1,173 @@
+---
+title: "베이지안 통계추론 과제"
+author: "응용통계학과 이준혁"
+date: "2023-09-08"
+output:
+  html_document:
+    css: styles.css
+    #code_folding: show
+    fig_caption: yes
+    fig_height: 7.5
+    fig_width: 10
+    fig_retina: null
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+    fig_dpi: 300
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+    font-weight: bold;
+  }
+  h1{
+    font-size: 18pt;
+  }
+  h2{
+    font-size: 16pt;
+  }
+  h3{
+    font-size: 14pt;
+  }
+</style>
+
+
+---
+
+# 3번 문제
+```{r}
+x <- c(12, 13, 9, 4, 4, 7, 10, 3, 8, 3, 5, 9, 14, 10, 3, 6, 6, 8, 9)
+y <- c(97, 90, 89, 85, 63, 75, 80, 55, 78, 42, 63, 78, 88, 92, 82, 72, 45, 72, 80)
+
+# 선형 회귀 모델 적합
+linear_model <- lm(y ~ x)
+
+# 요약 정보
+summary(linear_model)
+
+# 산점도 및 선형회귀직선
+plot(x, y, pch = 19, xlab = "x", ylab = "y", main = "Linear Regression of y on x")
+abline(linear_model, col = "red")
+
+# 직선의 방정식 표시
+coef <- coef(linear_model)
+legend("topleft", legend = paste("y = ",
+                                 round(coef[1], 2), " + ",
+                                 round(coef[2], 2), "x"),
+                                 col = "red", lty = 1)
+
+```
+
+# 4번 문제
+```{r}
+x <- c("A", "A", "B", "C", "B", "A", "A", "A", "B", "B", "C", "B", "C", "A", "C", "B", "A", "C", "C", "B", "A", "A", "B", "A", "C", "B", "A", "B", "B", "A")
+library(ggplot2)
+
+df <- data.frame(Category = x)
+
+ggplot(df, aes(x=Category)) +
+  geom_bar() +
+  ggtitle("이동통신사 조사 현황") +
+  xlab("Category") +
+  ylab("Frequency")
+
+```
+
+# 5번 문제
+```{r}
+x_values <- seq(0, 1, by = 0.01)
+y_values <- dbeta(x_values, 2, 7)
+
+# 95% 신뢰구간
+alpha <- 0.05
+lower <- qbeta(alpha / 2, 2, 7)
+upper <- qbeta(1 - alpha / 2, 2, 7)
+
+# 그래프
+ggplot(data.frame(x = x_values, y = y_values), aes(x = x, y = y)) +
+  geom_line() +
+  geom_ribbon(aes(
+    ymin = 0,
+    ymax = ifelse(x > lower & x < upper, y, 0)
+  ), fill = "blue", alpha = 0.4) +
+  ggtitle("Beta(2, 7) Density with 95% CI") +
+  xlab("x") +
+  ylab("Density") +
+  geom_segment(aes(x = lower, y = 0, xend = lower, yend = dbeta(lower, 2, 7)), color = "red", linetype = "dashed") +
+  geom_segment(aes(x = upper, y = 0, xend = upper, yend = dbeta(upper, 2, 7)), color = "red", linetype = "dashed") +
+  annotate("text", x = lower, y = 0, label = paste("Lower = ", round(lower, 3)), vjust = -1) +
+  annotate("text", x = upper, y = 0, label = paste("Upper = ", round(upper, 3)), vjust = -1)
+
+```
+
+# 6번 문제
+```{r}
+x_values <- seq(-5, 5, by = 0.01)
+t_values <- dt(x_values, df = 4)  # 자유도 4인 t-분포
+norm_values <- dnorm(x_values)  # 표준 정규 분포
+
+# 데이터 프레임 생성
+df <- data.frame(x = c(x_values, x_values),
+                 y = c(t_values, norm_values),
+                 distribution = factor(rep(c("t-distribution", "Normal distribution"), each = length(x_values))))
+
+# 그래프 그리기
+ggplot(df, aes(x = x, y = y, color = distribution)) +
+  geom_line() +
+  ggtitle("t-distribution (df=4) vs Normal Distribution") +
+  xlab("x") +
+  ylab("Density")
+```
+
+# 7번 문제
+```{r}
+a <- matrix(c(1:35), nrow=3, ncol=7, byrow=T)
+a[3, 6]
+```
+
+# 9번 문제
+```{r}
+# x와 y의 값 범위 설정
+x_seq <- seq(-10, 10, length = 100)
+y_seq <- seq(-10, 10, length = 100)
+
+# 격자(grid) 생성
+grid <- expand.grid(x = x_seq, y = y_seq)
+
+# f(x, y) 계산
+grid$z <- 2 * grid$x^2 + 3 * grid$y^2
+
+# 계산한 값을 행렬(matrix) 형태로 변환
+z_matrix <- matrix(grid$z, nrow = length(x_seq), ncol = length(y_seq))
+
+# 등고선도 그리기
+contour(x_seq, y_seq, z_matrix,
+        main = "Contour Plot of f(x, y) = 2x^2 + 3y^2",
+        xlab = "x",
+        ylab = "y",
+        levels = 50,  # 등고선 레벨 수
+        col = "blue"  # 등고선 색
+)
+
+```
+
