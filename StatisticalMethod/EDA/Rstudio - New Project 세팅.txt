@@ -1,5 +1,0 @@
-1. Rstudio -> New Project
-2. 폴더 설정
-3. .Rprofile
-- source("swap.R")
-- source("eda-funs.R")
