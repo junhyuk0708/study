@@ -1,0 +1,119 @@
+---
+title: "통계 방법론 I"
+author: "홍길동순, 가천대학교 응용통계학과 대학원"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: show
+    fig_caption: yes
+    fig_height: 7
+    fig_width: 10
+    highlight: haddock
+    number_sections: yes
+    pandoc_args:
+    - --number-sections
+    - --number-offset=0
+    self_contained: no
+    theme: cosmo
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+  word_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+  }
+  h1{
+    font-size: 22pt;
+  }
+  h2{
+    font-size: 20pt;
+  }
+  h3{
+    font-size: 18pt;
+  }
+</style>
+
+<br>
+
+
+# R의 아주 기초 
++ 폴더 생성/project 생성/"*.rmd" 이동 
++ 새로운 Chunk 생성: shift + ctrl + i
++ Make Snippets
++ code와 설명을 항상 함께 기록합시다. 
+```{r}
+data(mtcars)
+str(mtcars)
+```
+```{r}
+# install.packages("tidyverse")
+library(tidyverse)
+pairs(mtcars)
+```
+
+
+
+## Second Level
+
+### Third Level
+
+```{r}
+
+head(iris)
+summary(iris)
+
+```
+
+<br>
+
+# Second Chapter
+
+## Second level
+
+```{r}
+library(ggplot2)
+ggplot(iris, aes(x=Sepal.Length, y=Sepal.Width, color=Species)) + geom_point(size=4)
+
+```
+
+<br>
+
+
+# Summary {-}
+
+* Summary 1
+* Summary 2
+* Summary 3
+
+
+# References {-}
+
+[R tutorial](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)
+
+
+--------------------------------------------------------------------------------------------------
+
+ⓒ Statistical Methods, Gachon University
+
+--------------------------------------------------------------------------------------------------

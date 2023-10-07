@@ -1,0 +1,210 @@
+---
+title: "통계 방법론1 chap3"
+author: "응용통계학과 이준혁"
+date: "2023-09-23(토)"
+output:
+  html_document:
+    css: styles.css
+    #code_folding: show
+    fig_caption: yes
+    fig_height: 7.5
+    fig_width: 10
+    fig_retina: null
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+    fig_dpi: 300
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+    font-weight: bold;
+  }
+  h1{
+    font-size: 18pt;
+  }
+  h2{
+    font-size: 16pt;
+  }
+  h3{
+    font-size: 14pt;
+  }
+  table{
+    font-size: 20px;
+  }
+</style>
+<br><br><br><br>
+
+---
+
+# 실습 7. 범주형 데이터의 Wrangling/Munging: C-T-F customer.sat.csv
+
+```{r}
+customer <- read.csv(paste0(data_path, "customer.sat.csv"))
+str(customer)
+```
+```{r}
+head(customer, 5)
+```
+-   Case to Table/Frequency
+    -   **[stats::xtabs(formula, data)]{style="color: blue;"}**: 교차표 작성
+    -   **[as.data.frame(table object)]{style="color: blue;"}**: 변수 중심 전환
+
+## individual to table
+
+```{r}
+cas_to_tab <- xtabs(~ item + group, customer)
+head(cas_to_tab, 5)
+```
+## individual to count
+
+```{r}
+temp <- xtabs(~ item + group, customer)
+cas_to_freq <- as.data.frame(temp)
+head(cas_to_freq, 5)
+```
+-   Table to Case/Frequency
+    -   **[tidyr::uncount(dataframe, weights)]{style="color: blue;"}**
+    -   **[as.data.frame(table object)]{style="color: blue;"}**
+
+## table to individuals
+
+```{r}
+temp <- as.data.frame(cas_to_tab)
+tab_to_cas <- tidyr::uncount(temp, weights = Freq)
+head(tab_to_cas, 5)
+```
+
+## table to count
+
+```{r}
+tab_to_freq <- as.data.frame(cas_to_tab)
+head(tab_to_freq, 5)
+```
+
+-   Frequency to Table/Case
+    -   **[stats::xtabs(Freq ~ variables, data)]{style="color: blue;"}**
+    -   **[tidyr::uncount(dataframe, weights)]{style="color: blue;"}**
+
+## count to table
+
+```{r}
+freq_to_tab <- xtabs(Freq ~ item + group,
+                     tab_to_freq)
+head(freq_to_tab, 5)
+```
+
+## count to individuals
+
+```{r}
+freq_to_cas <- tidyr::uncount(
+                cas_to_freq,
+                weights = Freq)
+head(freq_to_cas, 5)
+```
+
+-   단일 모비율
+    -   **[stats::prop.test(x, n, p, alternative = c("less", "greater", "two sided"))]{style="color: blue;"}**
+    
+-   두 집단의 모비율 비교
+    -   **[stats::prop.test(x, y, n, p, alternative = c("less", "greater", "two.sided"))]{style="color: blue;"}**
+
+# 실습8. 모비율의 검정
+
+```{r}
+
+```
+
+# 실습 12. 정규성 검정 Normality Test
+mid.measure.csv
+
+```{r}
+check <- read.csv(paste0(data_path, "mid.measure.csv"))
+str(check)
+
+mean(check$length)
+sd(check$length)
+```
+분포 확인
+
+```{r}
+check %>% 
+  ggplot(aes(length, y = ..density..)) +
+  geom_histogram(color = "white", fill = "gray") +
+  geom_density(color = "red") +
+  geom_density(color = "blue", adjust = 2) +
+  geom_density(color = "green", adjust = 0.5) +
+  theme_bw()
+```
+
+
+```{r}
+check %>% 
+  ggplot(aes(sample = length)) +
+  stat_qq(color = "blue") +
+  stat_qq_line(color = "red") +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  labs(title = "Probability(Q-Q) plot",
+       x = "Theoretical quantiles(Standard Normal)",
+       y = "Sample quantiles(Data)"
+       ) +
+  theme_bw()
+```
+
+```{r}
+ad.test(check$length)
+pearson.test(check$length)
+ks.test(check$length, "pnorm")
+```
+그룹 별 정규성 검정
+
+```{r}
+ad_tests <- lapply(split(check$length, check$set), ad.test)
+p_values <- sapply(ad_tests, function(x) x$p.value)
+p_values
+
+check %>% 
+  ggplot(aes(sample = length, color = set)) +
+  geom_qq() +
+  stat_qq_line(aes(color = set)) +
+  labs(title = "Q-Q plot by sets",
+       x = "Standard Normal", y = "Data") +
+  theme_bw()
+```
+
+그룹 별 모수(들) 추정
+
+```{r}
+check$set
+
+mid <- pars_group(check, length, set, "normal")
+
+mid %>% 
+  bind_rows() %>% 
+  mutate(mean = purrr::map_dbl(fit, "mean"),
+         sd = purrr::map_dbl(fit, "sd")
+         ) %>% 
+  select(-fit)
+```
+

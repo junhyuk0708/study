@@ -1,0 +1,4853 @@
+---
+title: "통계 방법론Ⅱ - 탐색적 데이터 분석"
+author: "응용통계학과 이준혁"
+date: "2023-06-10(토)"
+output:
+  html_document:
+    css: styles.css
+    #code_folding: show
+    fig_caption: yes
+    fig_height: 7.5
+    fig_width: 10
+    fig_retina: null
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+    fig_dpi: 300
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+    font-weight: bold;
+  }
+  h1{
+    font-size: 18pt;
+  }
+  h2{
+    font-size: 16pt;
+  }
+  h3{
+    font-size: 14pt;
+  }
+  table{
+    font-size: 20px;
+  }
+</style>
+<br><br><br><br>
+
+---
+
+가천대학교 일반대학원 응용통계학과 고승곤 교수님의 통계 방법론Ⅱ 대학원
+수업 내용과 추가로 학습한 내용을 정리한 R Markdown이다.
+
+R Markdown의 목차는 다음과 같다.
+
+---
+
+# !목차
+
+## Is it not time to seek out novelty in data analysis?
+
+-   Chapter1 EDA 개요\
+-   Chapter2 R 유용한 기능 및 시각화 관련 TIP\
+-   Chapter3 R 언어의 특징\
+-   Chapter4 줄기-잎 그림(Stem-and-Leaf Plot)\
+-   Chapter5 문자 값 요약(Letter Value Summaries)\
+-   Chapter6 박스 그림과 그 응용(Box Plots & Their Applications)\
+-   Chapter7 데이터 재표현(Re-expression)
+-   Chapter8. 저항선과 강건 회귀(Resistance Line & Robust Regression)
+-   Chapter9. 중앙값 정제(Median Polish)
+-   Chapter10. 평활화(Smoothing)
+-   Chapter11. 시각화(Visualization)
+
+---
+
+# Ch1. EDA 개요
+
+EDA는 CDA를 적용하기 전에 데이터에 내재한 기본 패턴과 구조를 탐색하고
+CDA를 통하여 실증해야할 정보와 가설을 도출하는 것을 목적으로 적용된다.\
+데이터 분석의 해석에서 수리적 결과는 입증의 근거가 아닌 [**판단의
+근거**]{style="color: red;"}로 사용해야 한다.
+
+**4가지 핵심 개념(4R's)**\
+1. 저항성(Resistance)\
+- 분석의 결과는 정확하지 못한 관찰 또는 이상점(outliers)에 robust해야 한다.\
+2. 잔차(Residuals) 고찰\
+- 대부분의 중요한 근거는 **[잔차]{style="color: red;"} = 데이터 - 적합**\
+3. 재표현(Re-expression)\
+- 데이터에 사용된 unit Or scale은 실무적인 측정 용이성에 기초하므로 데이터 요약하거나 분석할 때 적합하다는 보보장이 없다. 재표현의 사다리는 **어떤 변환을 사용할 것인가?**에 대한 기준과 방법을 제시해준다.\
+4. 현시성(Revelation)\
+- EDA는 패턴을 찾거나 적합도를 표시하기 위하여 그래프 사용을 강조한다.
+
+| 목적 | 중요 방법                                     |
+|:----:|:----------------------------------------------|
+| 요약 | 중앙값(median), 순서 통계량(order statistics) |
+|      | 문자 값 요약(letter value summaries)          |
+|      | 다섯 숫자 요약(five-number summaries)         |
+|      | 삼 평균(tri-mean)                             |
+|      | 사분위수 범위(Inter Quartile Range)           |
+|      | 펜스(fences), 스텝(step)                      |
+| 비교 | 박스 그림(Box Plot)                           |
+|      | 문자 값 그림(letter value plot)               |
+|      | 산포-수준 그림(spread-level plot)             |
+|      | 중앙값 정제(median polish)                    |
+| 관계 | 대칭도(symmetry plot)                         |
+|      | 3-요약점(three-summary points)                |
+|      | 직선화(streightening)                         |
+|      | 저항선(resistance line)                       |
+|      | 평활화(smoothing)                             |
+| 변환 | 재표현의 사다리(ladder of re-expression)      |
+
+<br>
+
+---
+
+# Ch2. R 유용한 기능 및 시각화 관련 TIP
+
+## Snippets
+
+-   R 스니펫(Snippets)은 RStudio와 같은 통합 개발 환경(IDE)에서 사용할
+    수 있는 프로그래밍 도구로, 빠르게 코드를 작성할 수 있도록 도움을
+    주는 기능이다.
+
+-   스니펫은 자주 사용하는 코드 조각이나 구문을 미리 정의해두고, 이를
+    키워드나 약어를 통해 빠르게 입력할 수 있도록 해준다.
+    
+-   시각화 챕터에 있는 반복적인 그래프나 나에게 맞는 시각화 분석 기법들을 스니펫으로 설정하면 유용하게 사용가능하다.
+
+-   `좌측 상단` -\> `Tools` -\> `Edit Snippets`에서 원하는 **Snippet**
+    작성
+
+    -   **snippet 작성 예시**\
+        snippet fun\
+        name \<- function(variables) {
+
+        }\
+
+    -   R Source 창에서 `fun`작성 후 (`Shift` + `Tab`)
+
+## 메모리(memory)의 확인
+
+-   메모리 관리는 프로그램의 성능, 안정성 및 데이터 처리 능력을
+    향상시키는 중요한 요소이다.\
+-   메모리를 확인하고 정리하는 방법은 다음과 같다.
+    -   memory.limit() #사용 가능한 메모리의 양 확인
+    -   memory.size() #현재 사용중인 메모리 양 확인
+    -   gc(reset=TRUE) #불필요한 메모리를 정리
+-   아무리 높은 용량의 ram을 PC에 장착한다고 해도 메모리 누수가 일어나게
+    될 경우에는 한계가 오게 되기 때문에 효율적인 데이터 분석을 위해서는
+    메모리 관리가 중요하다.
+    
+## 변수명을 알고 있는 경우, 특정 변수를 지정하고자 할 때 유용
+
+- **[options(warnPartialMatchDollar = TRUE)]{style="color: #FAB23D;"}**: 부분 일치가 적용되면 경고 메시지를 제공한다.
+
+## 회사의 로고 색깔을 따라서 그래프 색깔을 적용하면 크게 도움이 된다.
+
+-   예를 초록색하면 스타벅스의 초록색, 코카콜라의 빨간색 등 유명 기업들의 대표 색깔은 이미 미적으로 고심을 한 결과이기 때문에 이를 나의 시각화에 적용하면 미적으로 좋은 그래프가 나올 수 있다.
+    -   sgr <- "#00704A" #Sbucks green
+    -   ngr <- "#2DB400" #naver green
+    -   ccr <- "#FE001A" #Coca Cola
+
+-   BUT, 색은 목적에 맞고, 명료하며, 산만하지 않게 사용해야 완성도가 높아질 수 있다.
+    -   더욱 디테일하게 접근하려면 색각 이상자들을 고려해보면 좋다
+        -   색각 이상 시뮬레이션을 돌려서 시각화한 그래프를 확인해보면 GOOD!
+
+---
+
+# Ch3. R언어의 특징
+
+-   R에서 모든 것은 object(객체)이다.\
+-   R에서 모든 것은 function calls(함수 호출)이다.\
+
+```{r}
+y <- 0 #<-는 할당 연산자 
+X <- y #x는 object(객체) y를 얻음
+x = y  #x는 y로 정의된다. function의 인수 정의에서 사용
+x == y #만일 x가 y와 일치한다면 TRUE, 그렇지 않으면 FALSE
+```
+
+## 3.1. 기초연산
+
+-   R에서는 자연 로그 함수인 ln() 기호가 없고, **log()**가 자연 로그 함수를
+    의미한다.
+
+```{r}
+1 + 2   #덧셈(addition)
+2 - 1   #뺄셈(subtraction)
+2*2     #곱셈(multiplication)
+2/2     #나눗셈(division)
+5 %/% 2 #정수 나눗셈(integer division)
+5 %% 2  #나머지 연산(MOD)
+3^2     #지수(exponent)
+sqrt(4) #제곱근(squre root)
+log(exp(1)) #로그(logarithm)
+k = 4       
+log(4, base = k)  #log(4, 4) = 1
+sin(pi/2) #삼각함수(trigonometry), 사인
+cos(90)   #삼각함수(trigonometry), 코사인
+pi #파이 상수(pi constant)
+exp(1) #자연상수(e constant)
+```
+
+---
+
+
+## 3.2. 데이터의 유형
+
+-   R에서 모든 입력은 **vector(벡터)**로 가정한다.
+-   **논리형**은 반드시 **대문자** 입력을 해야 한다.
+
+```{r}
+typeof(1.5 + 2.5) #숫자형 double
+typeof(1L+2L)     #정수형 integer
+typeof("Study")   #문자형 character
+typeof(TRUE)      #논리형 logical, 참
+typeof(FALSE)      #논리형 logical, 거짓
+#typeof(True)     #논리형은 반드시 대문자로 표시
+```
+
+-   factor는 사전에 정의된 제한된 수의 값만을 갖는다.
+
+    -   일부 package의 함수에서는 factor가 character로 간주되기도
+        하지만, 기본적으로 **정수형 vector**로 생성된다. 따라서
+        **[as.character()]{style="color: red;"}**을 이용하여 **문자형 vector**로 전환한 후
+        적용해야 한다.
+
+```{r}
+x <- factor(c("A1", "A2", "A3"))
+levels(x)
+x[3] <- "A4"
+```
+
+-   factor 범주에 설정하지 않은 "A4"를 할당해서 생기는 문제이다.
+
+```{r}
+x
+is.character(x)
+```
+
+-   명목형(nominal)이 아닌 [순서형(ordinal)]{style="color: blue;"}척도로 정의하기
+
+    -   순서를 **역순**으로 하기 위해서는 levels를 **[rev()]{style="color: red;"}**를 적용하여 표현한다.
+
+```{r}
+degree <- ordered(c("low", "medium", "medium", "high"),
+                  levels = c("low", "medium", "high")
+                  )
+degree
+
+degree_rev <- ordered(c("low", "medium", "medium", "high"),
+                      levels = rev(c("low", "medium", "high"))
+                      )
+degree_rev
+
+degree_un <- factor(c("low", "medium", "medium", "high"),
+                    levels = c("low", "medium", "high")
+                    )
+degree_un
+```
+
+-   Date는 1970-01-01로 부터의 시간(초)의 수로 정의
+    -   **typeof()** 함수를 사용하면 Sys.Date()의 내부 표현을 반영하기 때문에 Double을 반환한다.
+    -   **class()** 함수를 사용하면 객체의 고차원적인 타입을 반환하기 때문에 Date로 반환한다.
+
+```{r}
+today <- Sys.Date()
+today
+typeof(today)
+class(today)
+```
+
+-   date-time 정보
+    -   POSIX(Portable Operating System Interface): 플랫폼간 표준 중의 하나이다.
+    -   UTC(Universal Time Coordinated)는 그리니치 평균시에 기반한 국제 표준 시간으로 한국은 UTC+9 이다.
+    -   tz는 date-time 정보의 형식만을 제공한다.
+```{r}
+now_ct <- as.POSIXct("2022-07-01 15:00", tz="UTC")
+now_ct
+typeof(now_ct)
+
+local_ct <- as.POSIXct(("2022-07-01 15:00"))
+local_ct
+```
+
+-   모든 object는 attributes(속성)을 갖는다.
+
+    -   **[attr()]{style="color: blue;"}**을 이용하여 속성을 부여한다.
+    -   **[attributes()]{style="color: blue;"}**를 이용하여 속성을 확인한다.
+    -   **[str()]{style="color: blue;"}**를 이용하여 object의 유형, 구조, 속성을 확인한다.
+
+```{r}
+x <- 1:10
+attr(x, "x_attr") <- "길이 10인벡터"
+attributes(x)
+str(x)
+```
+-   test
+```{r}
+x <- "apple"
+attr(x, "x_test") <- 1:5
+str(x)
+```
+
+-   결측값은 반드시 **NA**(Not Applicable)로 입력되어야 한다.
+
+```{r}
+NA > 1
+10 * NA
+!NA
+```
+
+```{r}
+x <- c(1L, NA, 2L)
+x[2]
+typeof(x[2])
+x <- c(NA, 1, NA, "Son")
+x == NA
+typeof(x[1])
+x <- c("son")
+```
+
+-   NA로 안 나오는 특수한 경우
+
+```{r}
+NA ^ 0
+NA | TRUE
+NA & FALSE
+
+```
+
+-   결측값 모두 0으로 할당하는 방법
+    -   x[is.na(x)] <- 0
+
+```{r}
+x <- c(1, 2, NA, 4, 5)
+is.na(x)
+x[is.na(x)] <- 0
+x
+```
+
+## 3.3. 데이터의 구조
+
+-   차원과 유형별 R의 데이터 구조
+
+| 차원 | 동일한 유형 | 상이한 유형|
+|:----:|:-----:|:-----:|
+| 1 | vector | list |
+| 2 | matrix | dataframe |
+| ≥3 | array | |
+
+### 3.3.1. 벡터 Vectors
+
+-   vector의 유연성은 **[character \> double \> integer \> logical]{style="color: blue;"}**의 순서로
+    높다.
+-   2개 이상의 원소로 구성된 vector는 반드시 **[c()]{style="color: blue;"}**을 사용한다.
+
+```{r}
+mean(2, 100, -4, 3, 230, 5)   #잘못된 예
+mean(c(2, 100, -4, 3, 230, 5))
+```
+
+-   vector는 다음 함수를 이용하여 생성할 수 있다.
+
+```{r}
+c(1, 2, 3, 4, 5)
+c(1:30)
+seq(1, 2, 0.1) #seq(from = , to = , by = )
+```
+
+**[강제 전환 coercion]{style="color: red;"}**
+
+-   서로 다른 데이터 유형을 갖는 vector들을 통합하는 경우, 가장 유연성이
+    높은 유형으로 변환된다.
+
+```{r}
+c(1, 2, 3, "study", TRUE)
+typeof(c(1, 2, 3, "study", TRUE)) #문자형으로 모두 변환됨
+rep("K", 10)  #rep( , time = )
+```
+
+-   생성된 vector는 names()를 통하여 개별 원소에 이름을 부여할 수 있다.
+    -   **length()**와 **str()**로 확인 가능
+-   vector는 **dim()**을 이용하여 matrix와 array로 확장할 수 있다.
+
+```{r}
+x <- c(1, 2, 3, 4, 5)
+rep(x, 3)
+vec <- c(x, rep(1:3, 2), c(10, 20, 30), rep(seq(1,5,2), 2), 17)
+vec
+length(vec)
+names(vec) <- LETTERS[1:21]
+vec
+attr(vec, "vec") <- "이름이 부여된 벡터"
+vec
+str(vec)
+```
+
+-   벡터 속성의 확장과 관련 함수들
+
+|| 벡터 vector | 행렬 matrix | 배열 array |
+|:---:|:-----:|:-----:|:-----:|
+|이름| names() | rownames(), colnames()| dimnames()|
+|길이|length()| nrow(), ncol()| dim()|
+|확장|c()|rbind(), cbind()|abind:abind()|
+|전치|--|t()|aperm()|
+|확인|is.null(dim())|is.matrix()|is.array()|
+
+
+### 3.3.2. 행렬 Matrics
+
+-   matrix(행렬)는 [행의 수, 열의 수]로 정의된다.
+-   matrix는 생성 또는 통합되는 데이터 유형이 모두 동일해야 한다.
+
+```{r}
+values <- seq(1, 12, by=2)
+mat <- matrix(values, nrow=2, ncol=3)
+mat
+```
+
+-   **[matrix()]{style="color: blue;"}**를 이용하여 생성하거나 사전 정의된 vector를 대상으로 cbind(), rbind()를 적용하여 생성할 수 있다.cbind는 column, rbind는 row 기준을 의미한다.
+
+```{r}
+x <- c(1, 5, 9)
+y <- c(3, 7, 11)
+mat_2 <- rbind(x, y)
+mat_2
+mat_3 <- cbind(x, y)
+```
+
+-   **[t()]{style="color: blue;"}**는 transposed matrix(전치 행렬)을 의미한다.
+
+```{r}
+t(mat)
+```
+
+-   **[colnames()]{style="color: blue;"}**, **[rownames()]{style="color: blue;"}**을 이용하여 각각 열이름, 행이름을 지정할 수 있다.
+
+```{r}
+colnames(mat) <- c("X", "Y", "Z")
+rownames(mat) <- c("A", "B")
+mat
+```
+
+-  **[ncol()]{style="color: blue;"}**: 열의 수 파악
+
+```{r}
+ncol(mat)
+```
+
+-   **[nrow()]{style="color: blue;"}**: 행의 수 파악
+
+```{r}
+nrow(mat)
+```
+
+-   **[length()]{style="color: blue;"}**: matrix의 모든 원소의 수를 파악
+
+```{r}
+length(mat)
+```
+
+-   **[is.matrix()]{style="color: blue;"}**: object가 matrix인지 {TRUE, FALSE}로 알 수 있다.
+
+```{r}
+is.matrix(mat)
+is.matrix(mat_2)
+mat_3 <- cbind(c(1, 2), c("a", "b"))
+```
+
+-   **[as.matrix()]{style="color: blue;"}**: 다른 데이터 구조를 matrix로 변환한다.
+    -   유형이 서로 다른 경우에는 가장 유연성이 높은 유형으로 **[강제 전환]{style="color: red;"}**한다.
+
+```{r}
+as.matrix(mat_3)
+```
+
+### 3.3.3. 배열 Arrays
+
+-   배열(array)이란 **[1개 이상의 배열 index로 구별 가능한 원소들로 구성된 데이터 구조]{style="color: #383838;"}**를 말한다.
+
+```{r}
+arr_1 <- seq(1, 18, by = 1)
+arr_1
+```
+
+- **[array()]{style="color: blue;"}** Or **[dim()]{style="color: blue;"}**을 이용하여 생성할 수 있다.
+    -   차원은 **[(행, 열, 층)]{style="color: #383838;"}**의 순서로 지정된다.
+
+```{r}
+dim(arr_1) <- c(2,3,3)
+arr_1
+```
+
+-   3차원 배열**[(행, 열, 층)]{style="color: #383838;"}**!!!
+```{r}
+arr_2 <- array(1:48, dim = c(3, 8, 2))
+dimnames(arr_2) <- list(
+        c("id1", "id2", "id3"),
+        c("A", "B", "C", "D", "E", "F", "G", "H"),
+        c("L1", "L2")
+        )
+arr_2
+```
+-   생성된 array의 transpose(전치) **[aperm( , c(1,2,3,...))]{style="color: blue;"}**을 이용한다.
+    -   **[aperm()]{style="color: blue;"}**의 두 번째 인자를 이용해 특정 차원의 순서를 지정한다.
+```{r}
+dim(arr_2)
+aperm(arr_2)
+dim(aperm(arr_2))
+arr_3 <- aperm(arr_2, c(2, 1, 3)) # 두번째 인자를 지정하여 행과 열만 바뀜
+dim(arr_3)
+```
+
+### 3.3.4. 리스트 Lists
+
+-   list는 서로 다른 data type으로 구성될 수 있고 key-value 구조를 갖는다.
+    -   **[list()]{style="color: blue;"}**: list 구조 생성
+    -   **[unlist()]{style="color: blue;"}**: list 구조를 해체
+        -   가장 유연성 높은 유형의 vector로 **[강제 전환]{style="color: red;"}**된다.
+```{r}
+lst_a <- list(c(1,2), "study", TRUE)
+lst_b <- list(
+  a = c(3, "check"),
+  b = "study",
+  c = TRUE
+)
+lst_a
+lst_b
+```
+
+```{r}
+unlist(lst_a) #가장 유연성이 높은 문자형으로 해체됨
+```
+
+### 3.3.5. 데이터프레임 Dataframe
+
+-   matrix와 동일한 [행, 열] 구조를 갖지만, matrix와 달리 각 열(column)별로 서로 다른 data type으로 구성될 수 있다.
+    -   따라서, 데이터프레임이 matrix보다 더 많은 유연성을 제공한다.
+    -   데이터 크기가 매우 크고 선형 대수 계산이 필요한 경우에는 matrix가 더 효율적이다.
+    
+-   **[data.frame()]{style="color: blue;"}**: 데이터 프레임 정의
+-   **[as.data.frame()]{style="color: blue;"}**: 데이터 프레임으로 **[강제 전환]{style="color: red;"}**
+-   dataframe으로 불러들이는 경우, character vector는 **[factor로 강제 전환]{style="color: red;"}**하기 때문에 옵션을 추가한다.
+    -   **[stringsAsFactors = FALSE]{style="color: #FAB23D;"}**
+
+```{r}
+student <- c("kim", "Park", "ko")
+test.result <- c(76, 80, 50)
+test.grade <- c("B", "A", "A")
+#
+class.df <- data.frame(student, test.result, test.grade, stringsAsFactors = FALSE)
+str(class.df)
+```
+-   **[cbind()]{style="color: blue;"}**를 이용하여 합칠 수 있다.
+
+```{r}
+student_ID <- c("20232040338", "202340339", "202340337")
+class.df <- cbind(student_ID, class.df)
+class.df
+```
+
+-   단순히 vector들을 **[cbind()]{style="color: blue;"}**하게 되면 가장 유용성이 높은 data type으로 **[강제전환]{style="color: red;"}**되어 matrix로 정의된다.
+-   **[cbind()]{style="color: blue;"}**를 적용하는 경우, 결합하고자 하는 대상들 중에서 1개 이상의 dataframe이 존재해야 한다.
+
+```{r}
+class.df2 <- cbind(student, test.grade, test.result, student_ID)
+class.df2
+```
+```{r}
+str(class.df2)  #가장 유연성이 높은 문자형 character으로 강제 전환
+```
+
+
+## 3.4. object의 부분 선택
+
+-   R은 [], [[]] 그리고 $의 부분 선택 연산자를 갖는다.
+-   []는 모든 object에 적용이 가능하다.
+-   부분 선택 결과는 vector, list, matrix, dataframe 그리고 facotr에서 서로 다를 수 있다.
+    -   x[["var"]]은 x$var와 동일한 결과를 제공한다.
+
+### 3.4.1. 벡터 Vectors
+
+-   양의 정수를 이용한 특정 위치의 원소를 선택한다.
+    -   중복된 index는 반복된 값을 반환한다.
+```{r}
+x <- c(2.1, 4.2, 3.3, 5.4)
+x[c(1, 3)]
+```
+
+-   음의 정수를 이용한 특정 위치의 원소를 배제한다.
+    -   양/음의 정수를 동시에 사용할 수 없다.
+
+```{r}
+x[-c(1, 3)]
+```
+-   논리형 vector에서 TRUE인 위치의 원소를 선택한다.
+    -   길이가 짧은 경우에는 재사용되고 index의 NA는 결과에서도 NA로 반환된다.
+
+```{r}
+x[c(TRUE, FALSE, TRUE, FALSE)]
+x[c(TRUE, FALSE)]
+x[c(TRUE, FALSE, TRUE, NA)]
+```
+-   문자형 vector와 일치하는 name의 원소를 선택한다.
+
+```{r}
+y <- setNames(x, c("a", "b", "c", "d"))
+y[c("a", "b")]
+
+y[c("a", "a", "a")]
+
+z <- c(abc = 1, def =2)
+z
+z[c("a", "b")]
+```
+-   factor의 경우 **[levels()]{style="color: blue;"}**에서 정의된 문자열이 아니라 factor를 정의한 정수형 vector를 이용하여 선택한다.
+
+```{r}
+x <- factor(c("A1", "A2", "A3"))
+levels(x)
+x["A1"]
+x[1]
+```
+-   공백([])을 이용하여 원래의 vector 전체를 선택할 수 있고, [0]를 이용하여 길이가 0인 vector를 정의할 수 있다.
+
+```{r}
+x <- c(2, 5, 3, 4, 9)
+x[]
+x[0]
+```
+
+### 3.4.2. 행렬/배열 Matrix/Array
+
+-   **[dim()]{style="color: blue;"}**은 **[row(행), column(열), layer(층)]{style="color: #383838;"}**의 순서로 정의된다.
+
+```{r}
+mat <- matrix(1:9, nrow = 3)
+colnames(mat) <- c("A", "B", "C")
+mat[1:2, ]  #행 선택
+mat[c(TRUE, FALSE, TRUE), c("B", "A")] #(1, 3)행, ("B", "A")열 선택
+mat[0, -1]  #행 원소X, "A"열 제외
+```
+
+### 3.4.3. 리스트 Lists
+
+-   vector와 동일한 방법으로 부분 선택할 수 있으며, 그 결과는 항상 list로 반환한다.
+-   list 내의 개별 구성 원소를 선택하기 위해서는 반드시 "[[]]"연산자를 적용해야 한다.
+
+```{r}
+lst_a <- list(c(1, 2), "study", TRUE)
+lst_b <- list(
+  a = c(3, "check"),
+  b = "study",
+  c = TRUE
+  )
+#
+lst_a
+lst_b
+```
+
+```{r}
+lst_a[1]
+str(lst_a[1]) #list_a의 첫번째 원소: list
+str(lst_a[[1]]) #list_a의 첫번째 원소의 구성 요소들은 numeric
+lst_a[[1]][2] #list_a의 첫번째 원소의 구성 요소의 2번째 값은 numeric
+lst_b$a #lst_b["a"] 역시 동일한 결과 제공
+lst_b[["a"]][1]
+```
+-   계층적 구조를 갖는 list에서의 구성 원소의 선택과 반환된 결과
+
+```{r}
+lst_c <- list(1, list(2, list(3)), lst_a)
+lst_c[1:2]
+lst_c[3]
+lst_c[[3]]
+lst_c[[3]][2]
+lst_c[[3]][[2]]
+```
+
+-   list에서 구성 원소를 제거하기 위해서는 **[x[[i]] <- NULL]{style="color: #383838;"}**을 사용한다.
+-   NULL로 대체하기 위해서는 **[x[i] <- list(NULL)]{style="color: #383838;"}**을 사용한다.
+
+```{r}
+x <- list(a = 1, b =2)
+x[[1]] <- NULL #원소 제거
+x
+str(x)
+
+y <- list(a = 1, b =2)
+y
+y["b"] <- list(NULL) #NULL로 대체
+str(y)
+```
+### 3.4.4. 데이터프레임 Dataframe
+
+-   dataframe은 list와 matrix의 특성을 공유한다.
+-   dataframe은 열로 구성된 list이므로 list와 동일한 방법을 적용할 수 있다.
+
+```{r}
+df <- data.frame(x = 1:3, y = 3:1, z = letters[1:3])
+#행의 선택
+df[df$x ==2, ]
+#행의 선택
+df[c(1, 3), ]
+#열의 선택
+df[c("x", "z")]
+#방금 실행한 결과와 동일
+df[, c("x", "z")]
+```
+
+-   단일 index로 부분 선택을 하는 경우에는 list와 동일하게 적용되며 column 중심으로 반환된다.
+
+```{r}
+str(df["x"])
+str(df[, "x"])
+```
+
+-     `x$y`는 `x[["y"]]`와 동일한 결과를 제공한다.
+    -   `x$y`는 왼쪽으로 부터의 부분일치 방법으로 변수를 선택할 수 있다.
+    -   **[options(warnPartialMatchDollar = TRUE)]{style="color: #FAB23D;"}**을 설정해야, 부분 일치가 적용될 때마다 경고메시지를 제공한다.
+
+```{r}
+x <- list(abc = 1)
+x$a
+x[["a"]]
+options(warnPartialMatchDollar = TRUE)
+x$a
+```
+
+-   만일 변수명을 새로운 변수로 저장했다면, 반드시 x[[var]]을 사용해야 한다.
+
+```{r}
+var <- "cyl"
+mtcars$var
+mtcars[[var]]
+```
+
+-   공백([])을 이용한 선택 또는 처리는 원래의 dataframe을 그대로 유지한다.
+-   그렇지 않은 경우에는 list로 전환된다.
+
+```{r}
+mtcars[] <- lapply(mtcars, function(x) round(x, digits = 2))
+head(mtcars)
+is.data.frame(mtcars)
+
+mtcars <- lapply(mtcars, function(x) round(x, digits = 2))
+is.data.frame(mtcars)
+#리스트로 반환됨
+head(mtcars)
+is.list(mtcars)
+```
+### 3.4.5. 논리연산자와 함수의 활용
+
+-   논리 연산자가 적용된 결과는 원소별 논리값(TRUE 또는 FALSE)을 갖는 논리형 vector로 반환된다.
+    -   **[isTRUE()]{style="color: blue;"}**: 주어진 값이 TRUE인지 아닌지 확인 
+    -   **[as.numeric()]{style="color: blue;"}**: numeric vector로 전환
+
+```{r}
+x <- c(10, 20, 30, 40, 50)
+x > 30
+
+as.numeric(x > 30)
+isTRUE(sum(x > 40))
+isTRUE(sum(x > 30))
+isTRUE(x[5] > 30)
+```
+-   논리 연산자는 부분 선택 연산자([])와 함께 사용하여 특정 원소들을 선택할 수 있다.
+    -   이때 index 확인을 위하여 **[which()]{style="color: blue;"}**를 함께 사용할 수 있다.
+    -   which는 위치를 나타낸다!
+
+```{r}
+x
+which(x == max(x))
+x[which(x == max(x))]
+```
+
+
+## 3.5. 함수 Functions
+
+-   R에서의 모든 함수는 다음의 구조를 갖는다.
+    -   body는 반드시 1개 이상의 명령을 포함해야 한다.
+    -   arguments(인수) 그리고/또는 결과값(return values)은 포함되지 않을 수도 있다.
+        - return을 지정하지 않으면, function내에서 연산된 마지막 값을 반환한다.
+
+```{r}
+#arguments: x, y
+#body: x + y
+#return: 지정X
+fun_sum <- function(x, y) {
+  x + y
+}
+fun_sum(1, 2)
+```
+
+### 3.5.1. 내장함수 built-in function
+
+-   function의 구조는 function_name을 입력하면 확인할 수 있다.
+
+```{r}
+sd
+```
+### 3.5.2. 사용자 정의 함수 user-defined function
+
+-   function name은 내장 함수의 name과 동일하지 않아야 한다.
+-   정의된 function은 어느 곳에서나 사용할 수 있고, 필요한 경우 **[rm()]{style="color: blue;"}**을 이용하여 제거 가능하다.
+-   arguments가 2개 이상인 경우에는 반드시 순서(order)를 고려해야 한다.
+
+```{r}
+square <- function(n){
+  n^2
+}
+square(4)
+square(matrix(1:9, 3, 3))
+```
+
+
+## 3.6. 흐름 제어 Control Flows
+
+- 흐름 제어는 **선택(choice)**과 **반복(loop)**으로 구분된다.
+
+### 3.6.1. 조건별 action 선택: if-else, ifelse, switch
+
+-   if-else로 정의된 조건은 반드시 TRUE 또는 FALSE 중의 1개로 결정되어야 한다.
+
+```{r}
+grade <- function(x) {
+  if (x >= 90) {
+    "A"
+  } else if (x >= 80){
+    "B"
+  }
+    else {
+      "F"
+    }
+}
+
+grade_2 <- function(x) {
+  ifelse(x >= 60, "Pass", "Fail")
+}
+grade(79)
+grade_2(29)
+```
+-   **[switch()]{style="color: blue;"}**는 **특정한 문자열들의 모임**으로 조건이 주어진 경우 유용하다.
+
+```{r}
+games <- function(x){
+  switch(x,
+         "가렌" = "강하다",
+         "베인" = "약하다",
+         "준혁" = "바보다",
+         stop("Unknown input")
+  )
+}
+
+games("준혁")
+# games("철수") #Unknown input 발생
+```
+
+### 3.6.2. 반복 실행: for, while, repeat
+
+-   loop의 유연성은 **[for < while < repeat]{style="color: #383838;"}**의 순서로 높다.
+-   반복되는 **원소**의 수를 알고 있는 경우에는 for가 유용하다.
+-   **[next]{style="color: #FAB23D;"}** 또는 **[break]{style="color: #FAB23D;"}** 명령을 사용하여 인위적으로 **[for]{style="color: blue;"}**의 실행을 종료할 수 있다.
+
+```{r}
+for(i in 1:10){
+  if (i < 3) next
+  else
+    print(i)
+  if (i >=5) break
+}
+```
+-   만일 사전에 반복되는 원소의 수를 알지 못하면 **[while]{style="color: blue;"}** 또는 **[repeat]{style="color: blue;"}**을 사용한다.
+
+```{r}
+set.seed(119)
+test <- function(n){
+  sample(x = c(1:10), n, replace = T, prob = rep(0.1, 10))
+}
+x <- test(10)
+i <- 1
+while(x[i] < 8){
+  print(x[i])
+  i <- i + 1
+}
+
+i <- 1
+repeat{
+  print(x[i])
+  i <- i + 1
+  if(x[i] >= 8){
+    break
+  }
+}
+```
+## 3.7. 범함수 Functionals
+
+-   범함수(functionals)란 입력으로 function 취하고 출력으로 vector를 반환하는 함수를 말한다.
+-   apply 계열의 함수들의 핵심 아이디어는 loop-hiding이다.
+    -   실제로는 for-loop를 적용한 것이다.
+
+### 3.7.1. lapply()
+
+-   **[lapply()]{style="color: blue;"}**: 구성 원소에 반복적인 작업을 하는 함수
+
+```{r}
+#dataframe에 -99로 입력된 결측값을 NA로 전환하는 방법
+df <- list(c(1, 2, 3, -99), c(2, 3, 4, -99))
+fix_missing <- function(x, na.value) {
+ x[x == na.value] <- NA
+ x
+}
+fix_missing(df, "-99")
+```
+
+```{r}
+#정의된 function을 이용하여 lapply() 적용한 결과
+df[] <- lapply(df, fix_missing, na.value = -99)
+df
+```
+-   **[lapply()]{style="color: blue;"}**는 **[list()]{style="color: blue;"}**로 출력하므로, vector로 정의하기 위해서는 **[unlist()]{style="color: blue;"}**를 적용해야 한다.
+
+```{r}
+my_summary <- function(x){
+  funs <- c(mean, median, sd, mad, IQR)
+  lapply(funs, function(f) f(x, na.rm = T))
+}
+unlist(lapply(df, my_summary)[1])
+unlist(lapply(df, my_summary)[2])
+```
+
+### 3.7.2. sapply()
+
+-   **[sapply()]{style="color: blue;"}**, **[vapply()]{style="color: blue;"}**vapply()는 출력을 vector로 반환한다는 점을 제외하면 lapply()와 유사하다.
+-   **[sapply()]{style="color: blue;"}**: 리스트보다 간단한 형태로 반환한다(vector Or Matrix)
+
+```{r}
+# 벡터에 sapply() 사용
+vec <- c(1, 2, 3, 4, 5)
+sapply(vec, function(x) x^2)
+```
+```{r}
+# 데이터 프레임에 sapply() 사용
+df <- data.frame(a = 1:5, b = 6:10, c = 11:15)
+sapply(df, mean)
+```
+
+### 3.7.3. vapply()
+
+-   **[vapply()]{style="color: blue;"}**: **[sapply()]{style="color: blue;"}**보다 더 안정적인 출력을 제공한다.
+-   **[vapply(X, FUN, FUN.VALUE)]{style="color: blue;"}**
+    -   **[X]{style="color: #FAB23D;"}**는 리스트, 데이터 프레임, 벡터 등의 입력 데이터
+    -   **[FUN]{style="color: #FAB23D;"}**은 **[X]{style="color: #FAB23D;"}**에 적용할 함수
+    -   **[FUN.VALUE]{style="color: #FAB23D;"}**는 **[FUN]{style="color: #FAB23D;"}**의 결과에 대한 템플릿을 제공
+        -   반환되는 값의 타입과 길이를 보장
+
+-   FUN.VALUE에 numeric(2)를 지정함으로써, vapply에게 각 함수 적용의 결과는 길이가 2인 숫자형 벡터임을 알려준다.
+    -   FUN.VALUE를 설정하여 예기치 않은 결과를 방지할 수 있는 효과가 있다.
+```{r}
+double <- function(x) {
+  return(c(x, x))
+}
+# 길이가 2인 숫자형 벡터 예시
+vapply(c(1:10), double, numeric(2))
+```
+
+```{r}
+# 벡터에 vapply() 사용
+vec <- c(1, 2, 3, 4, 5)
+vapply(vec, function(x) x^2, numeric(1))
+```
+```{r}
+# 데이터 프레임에 vapply() 사용
+df <- data.frame(a = 1:5, b = 6:10, c = 11:15)
+vapply(df, mean, numeric(1))
+```
+
+- mtcars 데이터셋에 **[lapply()]{style="color: blue;"}**, **[sapply()]{style="color: blue;"}**, **[vapply()]{style="color: blue;"}** 적용하기
+
+```{r}
+unlist(lapply(mtcars, is.numeric))
+sapply(mtcars, is.numeric)
+vapply(mtcars, is.numeric, logical(1))
+```
+
+
+## 3.8. Tidyverse 통합 패키지
+
+-   tidyverse::는 Data Analysis Workflow 구현을 위한 통합 package이다.
+
+```{r}
+library(tidyverse)
+```
+
+-   tidy data set
+    -   모든 column(열)은 variable(변수)이다.
+        -   변수는 1개의 column(열)에 저장된다.
+    -   모든 row(행)은 case(관찰값)dlek.
+        -   관찰값은 고유의 단일 행에 저장된다.
+    -   모든 cell(셀)에는 오직 1개의 값만 갖는다.
+
+-   **[pipe operator %>%]{style="color: blue;"}**
+    -   h(g(f(x)))는 x %>% f %>% g %>% h와 동일
+    -   f(x)는 x %>% f와 동일
+    -   f(x, y)는 x %>% f(y)와 동일
+    -   f(y, x)는 x %>% f(y, .)와 동일
+
+### 3.8.1. mtcars 데이터셋(ft. dplyr::의 function)
+
+-   R에서 제공하는 내장 데이터셋으로, 1974년 미국 자동차 잡지인 Motor Trend에서 측정한 32가지 자동차 모델의 연비, 실린더 수, 마력 등 다양한 특성 정보를 담고 있다.
+-   **mtcars** 데이터셋을 이용하여 dplyr::의 function 적용하기
+
+| 변수명 | 설명 | Data 유형 |
+|:----|:--------:|:----:|
+| mpg | Miles/Gallon, 연비 | 연속형 |
+| cyl | No. of Cyclinders, 엔진의 기통수 | 이산형 |
+| disp | 배기량($inch^3$) | 연속형 |
+| hp | Gross Horsepower, 마력 | 연속형 |
+| drat | Rear axle ratio, 뒤차축비 | 연속형 |
+| wt | Weight(1000lbs), 무게 | 연속형 |
+| qsec | 1/4 Mile time, 402m 도달 시간 | 연속형 |
+| vs | V or Straight Engine, 엔진형태 | 범주형 |
+| am | 0 = auto, 1 = manual, 변속 기어 종류 | 범주형 |
+| gear | No. of Forward Gears, 전진 기어 단계의 수 | 이산형 |
+| carb | No. of Carburetors, 기화기의 수 | 이산형 |
+
+```{r}
+data(mtcars)
+str(mtcars)
+dim(mtcars)
+```
+-   **[filter()]{style="color: blue;"}**: 데이터 프레임의 특정 조건을 충족하는 행을 필터링
+```{r}
+#mpg 값이 20보다 큰 행들만을 선택
+mtcars %>% 
+  filter(mpg > 20)
+```
+
+-   **[select()]{style="color: blue;"}**: 데이터 프레임에서 특정 열을 선택
+```{r}
+#mpg와 cyl 열만을 선택
+mtcars %>% 
+  select(mpg, cyl)
+```
+-   **[mutate()]{style="color: blue;"}**: 새로운 열을 추가하거나 기존 열을 변형
+
+```{r}
+#mpg를 L/100km 단위로 변환하여 새로운 열 mpg_to_lkm을 추가
+mtcars %>% 
+  mutate(mpg_to_lkm = 235.21 / mpg)
+```
+
+-   **[summarise()]{style="color: blue;"}**: 특정 요약 통계를 계산
+
+```{r}
+#mpg의 평균과 표준편차를 계산
+mtcars %>% 
+  summarise(avg_mpg = mean(mpg), sd_mpg = sd(mpg))
+```
+-   **[group_by()]{style="color: blue;"}**: 특정 열을 기준으로 데이터를 그룹화
+
+```{r}
+#cyl을 기준으로 그룹화하고, 각 그룹에서 mpg의 평균과 표준편차를 계산
+mtcars %>% 
+  group_by(cyl) %>% 
+  summarise(avg_mpg = mean(mpg), sd_mpg = sd(mpg))
+```
+
+
+
+## 3.9. 행 중심 함수 row-wise function
+
+-   행 중심 함수는 데이터 프레임의 각 행을 독립적인 단위로 처리하는 함수를 의미한다.
+-   **[filter()]{style="color: blue;"}**: row 기준의 subset(부분 집합)을 추출할 때 사용
+
+```{r}
+cyl_4 <- mtcars %>%
+  filter(cyl == 4 & am == 1)
+dim(cyl_4)
+```
+-   **[arrange()]{style="color: blue;"}**: 특정 변수에서 row(행)들의 순서(order)를 재정렬할 때 사용
+
+```{r}
+#mpg 변수의 오름차순 정렬
+cyl_4_mpg <- mtcars %>%
+  arrange(mpg)
+head(cyl_4_mpg, 3)
+```
+```{r}
+#mpg 변수의 내림차순 정렬
+cyl_4_mpg <- mtcars %>%
+  arrange(desc(mpg))
+head(cyl_4_mpg, 3)
+```
+
+
+## 3.10. 열 중심 함수 Column-wise function
+
+-   열 중심 함수는 각 열을 독립적인 단위로 취급한다.
+-   **[select()]{style="color: blue;"}**: variable name으로 원하는 변수들을 선택
+
+```{r}
+perform_1 <- mtcars %>%
+  select(mpg, cyl, hp) # 선택할 변수 지정
+head(perform_1, 3)
+```
+
+```{r}
+perform_1 <- mtcars %>%
+  select(-c(mpg, cyl, hp)) # 제외할 변수 지정
+head(perform_1, 3)
+```
+
+-   **[rename()]{style="color: blue;"}**: variable name 변경할 때 사용
+
+```{r}
+str(mtcars)
+perform_2 <- mtcars %>% 
+  rename(cylinder = cyl, horse_power = hp) %>% 
+  select(mpg, cylinder, horse_power)
+
+head(perform_2, 3)
+```
+
+-   **[mutate()]{style="color: blue;"}**: 변수들의 연산/변환을 통하여 새로운 변수를 생성
+    -   생성된 변수들은 dataframe의 마지막 변수 뒤에 추가된다.
+
+## 3.11 부분군(subgroup) 정의 및 요약
+
+-   **[group_by()]{style="color: blue;"}**: 변수들의 범주로 정의되는 층별된 부분군을 정의함
+-   **[summarize()]{style="color: blue;"}**: 변수들의 통계량 그리고/또는 함수 적용 값을 연산하여, 계산된 변수들만 반환
+
+```{r}
+perform_3 <- mtcars %>% 
+  group_by(cyl) %>% 
+  summarize(mean_mpg = mean(mpg, na.rm = TRUE))
+head(perform_3, 3)
+```
+
+## 3.12. 그래프의 생성(ft. ggplot2 패키지)
+
+-   그래프(graph)는 현상에 대한 시각적 이해를 돕고 분석을 통하여 발견된 다양한 정보들을 함축적으로 표현할 수 있다.
+
+### 3.12.1. ggplot2::
+
+-   **[ggplot2::]{style="color: blue;"}**는 통계 이론을 기반으로 하는 계산 시스템인 Grammar of Graphics(**[GG]{style="color: red;"}**)에 기초한다.
+    -   그래프를 구성할 때 기본 그림과 함꼐 통계적 변환과 모형(model)을 표현할 수 있도록 다양한 개념을 포함하고 있는 **[그래픽 패키지]{style="color: #383838;"}**이다.
+    -   **[기본구조-추가요소-변경/조정 요소]{style="color: #383838;"}**를 적용하여 다양한 유연성을 허용한다.
+    -   기본 구조는 **[ggplot(data)]{style="color: blue;"}**
+ + **[aes(x, y)]{style="color: blue;"}**
+이며 + 또는 %>% 를 이용하여 다양한 요소들을 추가하고 변경 가능하다.
+        -   최종 결과는 **[ggsave()]{style="color: blue;"}**
+를 이용하여 원하는 형식(jpg, png, pdf) 등으로 저장한다.
+            -   `ggsave("auto.cc.pdf")`
+            -   `ggsave("auto.cc.png")`
+
+-   **[ggplot2::]{style="color: #383838;"}** 패키지를 사용하여 쉽고 직관적인 그래프를 생성할 수 있다.
+    -   **[ggplot()]{style="color: blue;"}** 자체는 빈 plot이고, **[geom_point()]{style="color: blue;"}**를 통해서 점을 추가할 수 있다.
+    -   **[xlim(c())]{style="color: blue;"}**
+, **[ylim(c())]{style="color: blue;"}**을 이용하여 x, y 한계 지정도 넣을 수 있다.
+    -   이와 같이 **[ggplot()]{style="color: blue;"}** 원하는 형태와 모형 적합을 결과를 동시에
+        표현할 수 있다.
+    -   기본적인 ggplot에 대한 개념과 ChatGPT를 활용하면 원하는 그래프를
+        표현할 수 있는 좋은 패키지이다.
+
+-   **[facet_wrap( )]{style="color: blue;"}**: 주어진 변수에 따라 데이터를 여러 서브플롯으로 분할
+    -   **[facet_wrap(~변수명)]{style="color: blue;"}**
+
+-   **[ggplot()]{style="color: blue;"}**에서 사용하는 **[데이터의 class()는 반드시 data.frame]{style="color: red;"}**이어야 한다.
+
+-   **[ggplot()]{style="color: blue;"}**의 중요 구성요소
+
+| 요소 | 설명 |
+|:--:|:-------|
+| `ggplot()` | ggplot을 생성하는 기본 함수. `aes()` 함수와 함께 사용하여 데이터와 aesthetic 매핑을 지정한다. |
+| `aes()` | aesthetic 매핑을 설정하는 함수. 데이터의 변수를 시각적 표현으로 변환한다(x, y, fill, size, color, shape 등). |
+| `geom_*` | 특정 형태의 그래픽 요소를 그리는 함수(points, lines, polygons 등). |
+|`stat_*`|데이터를 요약하는 통계적 변환(transformations)과 모형(model)을 정의.|
+| `scale_*` | 각 aes()에서 시각적 특성을 표현하는 방식을 정의.(log, sqrt, continuous, discrete 등) |
+|`coordinate system`|데이터를 투영하는 2차원 공간의 형식을 정의.(cartesian, polar, map 등)|
+| `labs()` | 플롯의 제목, 축 레이블, 범례 제목 등을 설정하는 함수. |
+| `facet()`| 데이터의 하위 집합 분할과 그래프 표현 방식을 지정.(grid, wrap, vars 등)|
+| `theme()` | 그림의 비데이터(non-data) 요소를 제어.즉, 플롯의 테마를 설정하는 함수이다. 플롯의 일반적인 배경, 글꼴, 색상 등을 조정한다. |
+
+### 3.12.2. 미국 중서부의 437개 카운티(county) 데이터셋을 활용한 ggplot2:: 실습
+
+| 변수명           | 설명                                   |
+|:-----------------|:--------------------------------------|
+| PID              | 고유 식별자                            |
+| county           | 카운티 이름                            |
+| state            | 주 이름                                |
+| area             | 지역 넓이                              |
+| poptotal         | 총 인구                                |
+| popdensity       | 인구 밀도                              |
+| popwhite         | 백인 인구                              |
+| popblack         | 흑인 인구                              |
+| popamerindian    | 아메리칸 인디언 인구                   |
+| popasian         | 아시아 인구                            |
+| popother         | 기타 인구                              |
+| percwhite        | 백인 인구 비율                         |
+| percblack        | 흑인 인구 비율                         |
+| percamerindan    | 아메리칸 인디언 인구 비율              |
+| percasian        | 아시아 인구 비율                        |
+| percother        | 기타 인구 비율                          |
+| popadults        | 성인 인구                              |
+| perchsd          | 고등학교 졸업자 비율                    |
+| percollege       | 대학 졸업자 비율                        |
+| percprof         | 전문직 비율                            |
+| poppovertyknown  | 빈곤 상태가 알려진 인구                |
+| percpovertyknown | 빈곤 상태가 알려진 인구 비율           |
+| percbelowpoverty | 빈곤선 아래에 있는 인구 비율           |
+| percchildbelowpovert | 빈곤선 아래에 있는 어린이 비율      |
+| percadultpoverty | 빈곤선 아래에 있는 성인 비율           |
+| percelderlypoverty | 빈곤선 아래에 있는 노인 비율         |
+| inmetro          | 도시 지역에 위치한 경우                |
+| category         | 지역 분류                              |
+
+-   load the midwest data
+
+```{r}
+data("midwest", package = "ggplot2")
+```
+
+-   총 인구 수(poptotal)와 대졸자 비율(percollege)간의 관계를 보여준다.
+
+```{r}
+ggplot2::ggplot(midwest, aes(x = poptotal, y = percollege)) +
+  geom_point() +
+  xlim(c(0, 6000000)) + ylim(c(0, 50)) +
+  geom_smooth(method="lm") +
+  labs(title = "g1: 선형 회귀 적합",
+       subtitle="midwest",
+       y = "대졸자 비율",
+       x = "인구",
+       caption = "미 중서부 인구 조사"
+  )
+```
+
+-   총 인구수를 로그 변환을 취하여 총 인구수와 대졸자 비율간의 관계를 나타내었다.
+    -   빨간색 선은 선형 회귀 모델에 기반한 예측 선
+    -   파란색 선은 LOESS, Locally Estimated Scatterplot Smoothing 회귀 선
+    
+```{r}
+ggplot(midwest, aes(x=log(poptotal), y = percollege)) +
+  geom_point(col= sbl, size=2) +
+  geom_smooth(method ="lm", col="firebrick") +
+  geom_smooth(method ="loess",
+              span = 0.75,
+              alpha = 0.2,
+              col = "blue"
+              ) +
+  labs(title="g1: log(인구) vs. 대졸자 비율",
+       subtitle = "midwest",
+       y = "대졸자 비율",
+       x = "인구",
+       caption = "미 중서부 인구 조사"
+       ) +
+  theme_bw()
+```
+
+-   총 인구수를 로그 변환을 취하여 총 인구수와 대졸자 비율간의 관계
+    -   **[facet_wrap(~state)]{style="color: blue;"}**: 각 주별로 서브플롯을 생성
+
+```{r}
+ggplot2::ggplot(midwest, aes(x=log(poptotal), y=percollege)) +
+  geom_point(col= sbl, size=1) + 
+  geom_smooth(method="lm", 
+              col="firebrick",
+              se= FALSE
+              ) +
+  geom_smooth(method="loess", #local smooth
+              span=0.75,
+              alpha=0.2,
+              col="blue"
+              ) +
+  labs(title="g2: 주별 log(인구) vs. 대졸자 비율",
+       subtitle = "midwest",
+       y="대졸자 비율",
+       x="인구",
+       caption="미 중서부 인구 조사"
+       ) +
+  theme_bw() + 
+  facet_wrap(~state)
+```
+
+
+---
+
+# Ch4. 줄기-잎 그림 Stem-and-Leaf Plot
+
+-   줄기-잎 그림은 **간단한 수작업**을 통하여 데이터세트를 기록하고 관련
+    정보를 탐색할 수 있는 방법이다.
+
+-   각 데이터 포인트를 **줄기(stem)**와 **잎(leaf)**으로 나누어 표현한다.
+
+-   히스토그램과 유사한 정보를 제공하지만, 데이터의 개별 값을 유지하여
+    보다 상세한 정보를 얻을 수 있다.
+
+-   **[줄기-잎 그림을 통해 확인할 수 있는 정보]{style="color: #383838;"}**
+
+    -   대칭성 유무
+    -   자료의 범위 및 산포의 정도
+    -   집중도가 높은 범위 식별
+    -   군집(cluster)의 존재 여부 및 구분
+    -   이상점(outliers) 존재 유무
+
+## 4.1. aplpack::
+
+-   **[stem.leaf()]{style="color: blue;"}**: 단일 데이터 세트에 대한 줄기-잎 그림
+-   **[stem.leaf.backback()]{style="color: blue;"}**: 두 개의 데이터 세트를 비교하기 위해 줄기-잎 그림
+    -   **오름차순** 또는 **내림차순**으로 적는 것이 바람직하다.
+    -   나타낸 줄기 기준 단위가 변별력이 없다면, 줄기의 크기를 1/2 또는 1/5로 재구분하여 세분화할 수 있다.
+    -   예를 들어 점수로 줄기-잎을 구분한다고 했을 때, 학생들은 점수보다는 학점에 관심이 많기 때문에 줄기의 크기를 5로 가정하고 새로운 줄기-잎 그림을 생성해보면 더욱 의미 있는 결과를 볼 수 있다.
+-   줄기-잎 그림 VS 히스토그램
+    -   줄기-잎 그림은 구체적인 값을 확인할 수 있지만 히스토그램은 분포의 구조를 대략적으로 파악가능하다.
+    -   줄기-잎 그림도 대략적 분포의 구조를 확인할 수 있지만, 줄기 값의 변경이 제한된다는 단점이 있다.
+
+|     인수      |                설명                 |          예          |
+|:-------------:|:-----------------------------------:|:--------------------:|
+|     data      | 벡터 지정, backpack의 경우 2개 지정 | data = toeic\$total  |
+|     unit      |  잎의 단위, 10의 거듭제곱으로 정의  |      unit = 0.1      |
+|       m       |     줄기의 구분 1, 2, 5로 지정      |        m = 5         |
+| trim.outliers |          이상값 제거 여부           | trim.outliers = TRUE |
+|     na.rm     |          결측값 제거 여부           |     na.rm = TRUE     |
+|    depths     |           도수 표시 여부            |    depths = False    |
+
+## 4.2. 2021년 전세계 TOEIC 응시자들의 점수 toeic.2021
+
+toeic.2021 데이터셋은 2021년 전세계 TOEIC 응시자들의 점수 - Listening,
+Reading, Total를 국가별로 구분하여 정리한 데이터이다.
+
+### 4.2.1. 데이터 불러오기
+
+```{r}
+toeic <- read.csv(paste0(data_path, "toeic.2021.csv"))
+toeic
+```
+
+### 4.2.2. 데이터 구조 확인
+
+-   데이터 변수와 유형 확인
+
+```{r}
+str(toeic)
+```
+
+-   결측값 개수 확인
+
+```{r}
+sum(is.na(toeic))
+```
+
+-   변수별 처음 6개의 케이스 값 확인
+
+```{r}
+head(toeic)
+```
+
+### 4.2.3. 총점에 대한 줄기-잎 그림 및 활용
+
+-   총점에 대한 줄기-잎 그림
+    -   10의 자리를 줄기로 하는 경우, 줄기의 수가 너무 많을 수 있다.\
+    -   이 경우, 줄기-잎 그림의 단위(untis)는 1이 된다.
+
+해당 그림을 통해서 최저점 480, 최고점 826임을 알 수 있다. 하지만 빈도가
+0인 줄기가 다수 발생하여, 줄기의 크기가 적절하지 않다고 볼 수 있다.
+
+```{r}
+stem.leaf(toeic$total, unit = 1, m = 1)
+```
+
+-   총점이 가장 높은 국가
+
+```{r}
+toeic %>% dplyr::filter(total == 826)
+```
+
+-   총점이 가장 낮은 국가
+
+```{r}
+toeic %>% dplyr::filter(total == 480)
+```
+
+-   Q: 2021년 대한민국의 응시자들은 어느 정도의 평균 총점을 받았을까?
+
+```{r}
+toeic %>% dplyr::filter(country == "KOREA (ROK)")
+```
+
+한국 사람들의 점수를 확인해보면 기본적으로 listening 점수가 reading
+점수보다 높은 것을 확인해볼 수 있다. 이는 어렸을 때부터 영어에 관한 것을
+귀로 많이 들을 수 있는 환경이 조성되어 있기 때문이라고 생각해볼 수 있다.
+특히, 최근에는 IT의 발전으로 인해 유튜브로 책읽어 주는 컨텐츠나
+오디어북이라는 새로운 시장도 활성화 되고 있다. 이와 반대로 reading같은
+경우에는 대부분 전자책, 오디오북 등 스마트폰 시장의 발달로 인해 독서량의
+줄어들고 있기 때문에 토익에서의 reading 또한 이러한 영향을 미쳤을 것으로
+판단해볼 수 있다.
+
+```{r}
+median(toeic$total)
+```
+
+중앙값값과 한국의 평균을 봤을 때 한국의 토익 점수 평균이 20점이 높다.\
+이 그림은 줄기의 수가 적어 집중도가 높은 구간이 발생하므로, 줄기의
+크기를 1/2로 줄여서 다시 해보았다.
+
+```{r}
+stem.leaf(toeic$total, unit = 10, m = 1)
+```
+
+줄기의 크기를 1/2로 줄인 결과 중앙값을 중심으로 낮은 점수들이 많아진
+것을 확인할 수 있다.
+
+```{r}
+stem.leaf(toeic$total, unit = 10, m = 2)
+```
+
+집중도가 높은 구간을 확인하기 위하여 줄기의 크기를 1/5로 줄여서
+재작성한다.
+
+```{r}
+stem.leaf(toeic$total, unit = 10, m = 5)
+```
+
+-   총점이 800점 이상인 국가들
+
+```{r}
+toeic %>% dplyr::filter(total >= 800)
+```
+
+-   총점이 530점 이하인 국가들
+
+```{r}
+toeic %>% dplyr::filter(total <= 530)
+```
+
+-   비교를 위한 줄기-잎 그림
+
+-   Reading과 Listening의 국가 별 점수는 비슷한 분포를 갖는지를 확인하기
+    위하여 다음의 back-to-back 줄기-잎 그림을 고려해 보자. 이전 줄기-잎
+    그림과 동일하게 줄기의 크기는 100, 잎의 크기는 10을 가정하고, 줄기의
+    크기를 1/5로 지정하였다.
+
+```{r}
+stem.leaf.backback(toeic$reading, toeic$listening, unit = 10, m = 5)
+```
+
+해당 그림을 통해서 전반적으로 listening이 reading보다 점수가 높은 것을
+알 수 있다.
+
+-   listening과 reading 점수 차이가 큰 상위 30개의 나라
+
+```{r}
+toeic$difference <- abs(toeic$listening - toeic$reading)  #listening 점수와 reading 점수의 차이
+toeic_sorted <- toeic[order(-toeic$difference),]
+head(toeic_sorted, 30)
+```
+
+### 4.2.4. ggplot2 시각화 패키지 활용
+
+```{r}
+ggplot2::ggplot(toeic, aes(x = sort(total), y = reorder(country, total))) +
+  geom_point(aes(x=total), col="blue", size=1) + 
+  labs(title = "국가별 TOEIC Total 점수",
+       y = "국가",
+       x = "TOEIC 평균 점수"
+  ) +
+  theme(plot.title = element_text(size = 35, face = "bold", hjust = 0.5),
+        axis.title.x = element_text(size = 25, face = "bold"),
+        axis.title.y = element_text(size = 25, face = "bold"),
+        axis.text.y = element_text(size = 15)# y축 레이블 텍스트 크기를 15로 설정
+  ) + 
+  geom_vline(xintercept = median(toeic$total), color = lre) +
+  geom_vline(xintercept = mean(toeic$total), color = "green") +
+  geom_hline(yintercept = "KOREA (ROK)", color = "yellow", linetype = 2) + 
+  geom_text(aes(x=median(total), y = 12, label = "중앙값"),color = lre, size = 12) + 
+  geom_text(aes(x=mean(total), y = 5, label = "평균"),color = ldg, size = 12)
+```
+
+국가별로 토익 점수의 차이가 나타나는 것은 다양한 요인들이 함께 영향을
+미치는 것으로 생각해볼 수 있다. 국가별 영어 교육의 특성, 교육 시스템,
+학습자들의 동기와 학습 습관 등이 그 요인들 중 하나일 것이다. 한국의
+경우에는 total의 평균이 679점인데 이는 토익 점수가 700점 이상이라는 기본
+요건으로 둔 것이 토익 점수에 영향을 미쳤다고 판단할 수 있다.
+
+```{r}
+ggplot2::ggplot(toeic, aes(y=reorder(country,listening))) +
+  geom_point(aes(x=listening), color="red", size=1.5) + 
+  geom_point(aes(x=reading), color="blue", size=1) + 
+  labs(title="국가별 TOEIC Total 점수",
+       y="국가",
+       x="TOEIC Listening & Reading 평균 점수"
+  ) +
+  theme(plot.title = element_text(size = 35, face = "bold", hjust = 0.5),
+        axis.title.x = element_text(size = 25, face = "bold"),
+        axis.title.y = element_text(size = 25, face = "bold"),
+        axis.text.y = element_text(size = 15)# y축 레이블 텍스트 크기를 15로 설정
+  ) + 
+  geom_vline(xintercept = median(toeic$listening), color=lre) +
+  geom_vline(xintercept = mean(toeic$listening), color="green") +
+  geom_vline(xintercept = median(toeic$reading), color=lre) +
+  geom_vline(xintercept = mean(toeic$reading), color="green") +
+  geom_hline(yintercept = "KOREA (ROK)", color="yellow", linetype=2) + 
+  geom_text(aes(x=median(listening), y = 10, label ="L중앙값"),color = lre, size = 12) + 
+  geom_text(aes(x=mean(listening), y = 5, label ="L평균"),color = ldg, size = 12) +
+  geom_text(aes(x=median(reading), y = 10, label ="R중앙값"),color = lre, size = 12) + 
+  geom_text(aes(x=mean(reading), y = 5, label ="R평균"),color = ldg, size = 12) +
+  theme(legend.position = 'top')
+```
+
+---
+
+# Ch5. 문자 값 요약 Letter Value Summaries
+
+-   집단을 요약하는 것은 단지 평균 또는 중앙값 같은 하나의 숫자보다 더
+    나아질 필요가 있다.
+
+문자 값 요약은 데이터의 중심 성향(central tendency), 산포(spread),
+대칭(symmetry) 여부 그리고 추가적인 고찰을 필요로 하는 데이터 식별
+등으로 적용할 수 있는 **수치 요약 방법**이다.
+
+## 5.1. 문자 값의 응용
+
+-   중위수(Median)
+
+    -   자료의 크기가 N이라고 할 때, N이 홀수이면 중위수는 (N+1)/2 번째
+        자료점, 짝수이면 N/2번째와 (N/2+1)번째의 평균
+    -   중위수의 깊이(d(M)): $d(M) = {(N+1) \over 2}$
+
+-   삼평균(tri-mean)
+
+    -   중앙값과 2개의 사분위수를 반영한 값
+    -   1개의 대표값을 사용하여 나타날 때의 단점을 보완하여 일부
+        극단값들에 대한 **저항성**을 갖음
+    -   삼평균: $TM = {F_L + 2M + F_U \over 4}$
+
+-   산포(spreadness)
+
+    -   표준편차
+    -   두 사분위수의 차이: 강한 저항성 - 강건하다
+    -   spr(F) = 사분위수의 범위
+    -   두 사분위수(H)의 깊이(d(H)): $([d(M)]+1) \over 2$, 여기서
+        $[X]$는 가우스 함수(x보다 크지 않은 최대 정수)
+    -   사분위수: Q1(제 1사분위수, 아래 4분위수 HL), Q2(중위수, 중앙값,
+        M), Q3(제 3사분위수, 위 4분위수, HU)
+
+-   왜도와 첨도
+
+    -   왜도(Skewness): 분포의 기울어진 정도($-1 < skew < 1$)
+    -   $S = {(F_U - M)-(M-F_L) \over (F_U - M)+(M-F_L)}$, 1에
+        가까울수록 오른쪽 꼬리, -1에 가까울수록 왼쪽 꼬리
+    -   첨도(Kurtosis): 분포의 대칭 여부
+    -   $K_{E/F} = {E_U - E_L \over F_U - F_L} - 1.704 = {spr(E) \over spr(F)} - 1.704$
+    -   $K_{D/F} = {D_U - D_L \over F_U - F_L} - 2.274 = {spr(D) \over spr(F)} - 2.274$
+    -   $K \approx 0$: 정규 분포와 유사한 대칭, $K > 0$: 꼬리부분이
+        두꺼움, $K < 0$: 꼬리부분이 얇음
+
+    ```{r}
+    #정규분포
+    f1 <- function(x){
+      1/sqrt(2*pi)*exp(-x^2/2)
+    }
+    #균일분포
+    f2 <- function(x){
+      return(1/2.7*((-1.35<x)&(x<1.35)))
+    }
+    #이중지수분포
+    f3 <- function(x){
+      lambda/2*exp(-lambda*abs(x))
+    }
+    lambda <- log(2)/0.675
+
+    #정규분포 vs 균일분포(K < 0) vs 이중지수분포(K > 0)
+    curve(f1,-4,4, ylim=c(0,1), ylab="density")
+    par(new=T)
+    curve(f2, -4,4,ylim=c(0,1),ylab="", lty="dotted", col="red")
+    par(new=T)
+    curve(f3, -4,4,ylim=c(0,1),ylab="", lty="dashed", col="blue")
+    ```
+
+-   펜스(FENCES)
+
+    -   이상점을 체계적으로 확인하기 위한 한계값
+    -   $FENCE_L = F_L - STEP = F_L - [k \ \times (F_U-F_L) ,\ k =1.5, 2.0, ..., 3.5$
+    -   $FENCE_U = F_U + STEP = F_U + [k \ \times (F_U-F_L) ,\ k =1.5, 2.0, ..., 3.5$
+
+## 5.2. 정규 분포와 문자값
+
+-   pseudo-sigma $\tilde{\sigma}$
+
+| 문자값 |          정규분포의 분위수 범위           |  mid  |     spr      |            가표준편차            |
+|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
+|   M    |                   $\mu$                   | $\mu$ |      \*      |                \*                |
+|  F(H)  | $\mu-0.675\sigma, \quad \mu +0.675\sigma$ | $\mu$ | $1.35\sigma$ | $\tilde{\sigma}_H = spr(H)/1.35$ |
+|   E    |  $\mu-1.15\sigma, \quad \mu +1.15\sigma$  | $\mu$ | $2.30\sigma$ | $\tilde{\sigma}_E = spr(E)/2.30$ |
+|   D    | $\mu-1.535\sigma, \quad \mu +1.535\sigma$ | $\mu$ | $3.07\sigma$ | $\tilde{\sigma}_D = spr(D)/3.07$ |
+|   C    | $\mu-1.863\sigma, \quad \mu +1.863\sigma$ | $\mu$ | $3.73\sigma$ | $\tilde{\sigma}_C= spr(C)/3.73$  |
+
+-   $k=1.5$일 때, FENSES 정의
+    $FENCE_L = F_L - STEP = \mu-0.675\sigma - 1.5(1.349)\sigma = \mu - 2.6980\sigma$
+    $FENCE_U = F_U + STEP = \mu+0.675\sigma + 1.5(1.349)\sigma = \mu + 2.6980\sigma$
+
+탐색적 자료 분석시에 FENCES를 수정해보는 것도 중요한 방법 중 하나라고
+본다.\
+1.5 펜스 같은 경우에는 과거부터 이상점을 선별하기 위해 사용해오던
+한계값이다.\
+현재는 데이터가 많아짐에 따라서 1.5펜스로 설정할 경우 많은 데이터가
+이상점으로 나올 수 있다.\
+따라서 상황에 맞게 적절한 펜스 범위를 설정해보면 좋을 수 있다.
+
+## 5.3. 2021년 국내 621개 직업의 평균 연봉 분석(occupation.csv)
+
+-   해당 데이터셋은 2021년 국내 621개 직업의 평균 연봉(단위: 만원)과
+    해당 직업 종사자들이 생각하는 미래의 일자리 증가에 대한 전망(%)을
+    조사한 것이다.
+
+-   `fivenum()`: 5-숫자 요약
+
+| 인수  |            설명            |        예        |
+|:-----:|:--------------------------:|:----------------:|
+|   x   |         벡터 지정          | x = toeic\$total |
+| na.rm | 결측값(NA)와 NaN 제거 여부 |   na.rm = TRUE   |
+
+-   `eda_lsum()`
+
+| 인수 |             설명             |        예        |
+|:----:|:----------------------------:|:----------------:|
+|  x   |          벡터 지정           | x = toeic\$total |
+|  l   | 계산할 문자값의 수 (max = 9) |      l = 7       |
+| all  | Upper, Lower, mid 생성 여부  |    all = TRUE    |
+
+### 5.3.1. 데이터셋 불러오기
+
+```{r}
+job21 <- read_csv(paste0(data_path, "occupation.csv"))
+```
+
+### 5.3.2. 데이터의 구조 확인
+
+-   변수, 변수 유형, 결측값, 데이터 파악
+
+```{r}
+str(job21) #3개의 변수
+sum(is.na(job21)) #0
+head(job21)
+```
+
+### 5.3.3. 데이터의 대략적 분포 구조 확인(줄기-잎 그림)
+
+```{r}
+stem.leaf(job21$annual) #대략적인 좌우대칭 구조
+```
+
+### 5.3.4. 숫자요약과 최대/최소값 확인
+
+최소 연봉과 최대 연봉과의 차이가 약 12배가 난다.
+
+```{r}
+fivenum(job21$annual) #1036  2400  3137  3900 13057
+max(job21$annual)/min(job21$annual) #12.60328
+
+```
+
+-   최소, 최대 연봉 직업 확인
+
+    -   최대: 도선사, 최소: 설문조사원
+
+    ```{r}
+    job21 %>% dplyr::filter(annual==max(annual) | annual==min(annual))
+    ```
+
+### 5.3.5. 문자값 활용
+
+-   문자값 계산
+
+```{r}
+eda_lsum(job21$annual, l=9) #l: 문자값 개수
+```
+
+-   문자값 한쪽 비중 백분율로 표현
+
+```{r}
+ls <- eda_lsum(job21$annual, l=9)
+ls %>% 
+  mutate(percent = round((depth / (621+1))*100, 2)) %>%
+  relocate(percent, .after=depth) #depth 변수 뒤에 percent 변수 넣기
+```
+
+-   문자값 응용: 함수 생성
+
+    -   tsk: 삼평균(t)과 문자값에 기초하여 왜도(S), 첨도(K) 구하는 함수
+
+    ```{r}
+    tsk <- function(x) {
+     q <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+     e <- quantile(x, probs = c(0.125, 0.875), na.rm = TRUE)
+     d <- quantile(x, probs = c(0.0625, 0.9375), na.rm = TRUE)
+     m <- median(x) 
+     tri <- 0.5*(m + (q[1] + q[2])/2)
+     s <- ((q[2] - m) - (m - q[1]))/((q[2] - m) + (m - q[1]))
+     ke <-(e[2] - e[1])/(q[2] - q [1]) - 1.740
+     kd <-(d[2] - d[1])/(q[2] - q [1]) - 2.274
+     out <- round(cbind(tri, s, ke, kd), 3)
+     row.names(out) <- NULL
+     out
+    }
+
+    tsk(job21$annual) #왜도(S) = 0.017(양의 왜도), 첨도 = 0.043, 0.32(정규분포 보다 큼)
+    ```
+
+-   직업별 연봉 데이터의 개별 문자값에 대한 mid와 spread의 관계
+
+    -   mid 가 증가할수록 spread도 증가 - 양의 왜도
+
+    ```{r}
+    ls %>%
+      ggplot(aes(x=mid, y=spread, label = letter)) + 
+      geom_point(color=lre) + 
+      geom_text(size=2, hjust=3, nudge_x = 0.05) +
+      theme_bw()
+
+    ```
+
+-   FENSE 함수로 이상점 선별 함수 표현
+
+```{r}
+fence <- function(x, k = 1.5) {
+ quar <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+ iqr <- diff(quar)
+ fence_l <- as.numeric(quar[1] - k * iqr)
+ fence_u <- as.numeric(quar[2] + k * iqr)
+ out_l <- x[(x <= fence_l)]
+ out_u <- x[(x >= fence_u)]
+ print(paste("k = ", k, ", fence_l = ", fence_l, ", fence_u = ", fence_u))
+ out <- rbind(out_l, out_u)
+ row.names(out) <- NULL
+ out
+}
+fence(job21$annual) #28개의 이상점
+```
+
+-   이상점 직업 확인
+
+```{r}
+outliers <- job21[job21$annual >= 6150, ]
+outliers %>%
+  arrange(desc(annual))
+```
+
+-   다양한 요약값들을 모은 통합 함수
+
+```{r}
+letter_ext <- function(x, k=1.5){
+  tsks <- tsk(x)
+  fen <- fence(x, k)
+  ext <- list(tsks, fen)
+  ext
+}
+
+letter_ext(job21$annual)
+```
+
+### 5.3.6. 평균 연봉 추출을 위한 필터 적용
+
+```{r}
+job21 %>%
+  filter(annual >= 3000 & annual <= 3100)
+```
+
+### 5.3.7. ggplot2 시각화 패키지 활용
+
+```{r}
+#평균 연봉과 미래 전망 산점도
+ggplot2::ggplot(job21, aes(x=annual, y=positive)) +
+  geom_text(aes(label=reorder(job,annual)), size=5, angle = 45, col="blue") +
+  labs(y="미래 전망",
+       x="평균 연봉(만원)"
+       )
+
+#평균 연봉 3000-4000만 추출 후 시각화
+jj34 <- job21 %>%
+  filter(annual >= 3000 & annual <= 4000)
+ggplot2::ggplot(jj34, aes(x=annual, y=positive)) +
+  geom_text(aes(label=reorder(job,annual)), size=5, angle = 145, col="firebrick") +
+  labs(y="미래 전망",
+       x="평균 연봉(만원)"
+  )
+
+```
+
+2021년도 최저 시급은 8,720원이고, 이에 따른 월급은 1,822,480원이다. 이를
+연봉으로 나타냈을 때의 연봉은 21,869,760원이다. 이 수치를 이용하여 다시
+해당 직업들을 살펴 보았다.
+
+```{r}
+#최저 연봉 보다 낮은 직업 추출 후 시각화
+jobmin <- job21 %>%
+  filter(annual <= 2186.9760)
+ggplot2::ggplot(jobmin, aes(x=annual, y=positive)) +
+  geom_text(aes(label=reorder(job,annual)), size=10, angle = 80, col="firebrick") +
+  labs(y="미래 전망",
+       x="평균 연봉(만원)"
+  )
+jobmin
+```
+
+---
+
+# Ch6. 박스 그림과 그 응용 Box Plots & Their Applications
+
+-   잊고 있었던 질문을 떠올리게 하는 데 그림보다 더 좋은 것은
+    없다(심지어 정신적으로도).
+
+## 6.1. 박스 그림 및 단점 보완 방법
+
+-   박스그림(box plot)
+    -   문자값 요약을 반영한 그림으로 여러 집단을 상호 비교할 때
+        유용하게 사용된다.
+    -   고려된 데이터의 수(n)를 확인할 수 없다.
+    -   혼합이 된 다봉 구조를 진단하지 못한다.
+-   점 그림(dot plot)
+    -   고려된 데이터의 수를 파악하기 위해 박스 플랏에 중복하여 그린다.
+-   바이올린 그림(violin plot)
+    -   커널 밀도 추정값에 의한 평활화를 적용한 그림으로 데이터의 밀집된
+        구간을 구별해 준다.
+    -   다봉 구조를 파악할 수 있다.
+-   문자값 박스 그림(letter values Box Plot; lvplot)
+    -   데이터의 크기가 클 때 전체 문자 값들로 확장하여 표현한 그림이다.
+
+## 6.2. 2001년 보스턴 마라톤 대회 분석(marathon.csv)
+
+### 6.2.1. 데이터 불러오기
+
+```{r}
+marathon <- read.csv(paste0(data_path, "marathon.csv"))
+```
+
+### 6.2.2. 데이터 구조 확인 및 결측값 파악
+
+```{r}
+str(marathon)
+sum(is.na(marathon))
+```
+
+### 6.2.3. 기본 박스 그림, 점 그림, 바이올린 그림
+
+```{r}
+g1 <- ggplot(marathon, aes(x = time, y = 1)) +
+  geom_boxplot(outlier.shape = 3, outlier.size = 2, outlier.color = "red") +
+  labs(x = "시간(분)") +
+  theme_bw() + 
+  theme(axis.title.x = element_text(size = 20), axis.title.y = element_text(size = 15))
+
+g2 <- ggplot(marathon, aes(x=time, y = 1)) +
+  geom_boxplot(outlier.shape = 3, outlier.size = 2, outlier.color = "red") +
+  geom_jitter() +
+  labs(x = "시간(분)") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 20), axis.title.y = element_text(size = 15))
+
+g3 <- ggplot(marathon, aes(x=time, y = 1)) +
+  geom_violin() +
+  geom_jitter() +
+  labs(x = "시간(분)") +
+  theme_bw() + 
+  theme(axis.title.x = element_text(size = 20), axis.title.y = element_text(size = 15))
+
+grid.arrange(g1, g2, g3, nrow = 3)
+```
+
+박스 그림, 점 그림을 추가한 박스 그림, 바이올린 그림을 살펴보면 집단
+내에 특정한 군집은 보이지 않는다.\
+사분위수 박스와 중앙값을 나타내는 선의 간격을 보면 중앙값의 앞쪽으로
+데이터가 많이 밀집되어 있는 것을 파악할 수 있다. 또한, 박스 그림을 살펴
+보면 결승 지점을 통과하는 시간 차이가 많이 나는 것을 볼 수 있다. 이는
+마라톤 경기 시간과 그날 컨디션에 따라서 영향을 많이 받기 때문인 것으로
+보인다.
+
+-   문자 값 박스 그림
+
+    -   문자값 그림은 박스 그림보다 데이터의 구조를 더 상세하게 보여주는
+        것을 알 수 있다.\
+    -   데이터셋의 클 경우에는 문자값 박스 그림을 활용하면 탐색적
+        자료분석을 함에 있어서 크게 유용할 것이다.
+
+    ```{r}
+    library(lvplot)
+    ggplot(marathon, aes(x=1, y = time)) +
+      geom_lv(aes(fill = ..LV..),outlier.shape = 3, outlier.size = 2) +
+      coord_flip() +  #기준 축을 전환하는 명령(해석을 용이하게 하기 위함)
+      labs(x = "시간(분)") +
+      theme_bw()
+    ```
+
+### 6.2.4. 연령 대별 분석
+
+-   연령대 별 우승자
+
+    -   40대가 30대보다 그리고 60대가 50대가 더 좋은 기록을 얻은 것을 알
+        수 있다.
+
+    ```{r}
+    marathon %>% 
+      group_by(age) %>% 
+      summarize(winner = min(time))
+    ```
+
+-   탐색적 논리로 접근해서 분석을 해봐야 한다.
+    -   **[확증적 논리로 접근했을 때는 등분산이 아니기 때문에 비교가 불가능하다.]{style="color: red;"}**
+-   1.연령 별 박스 + 점그림 2. 연령 별 바이올린 + 점 그림 비교하기
+
+```{r}
+g1 <- ggplot(marathon, aes(x = factor(age), y = time)) + 
+  geom_boxplot(outlier.color = "red") + 
+  stat_summary(fun.y="mean", geom="point", shape=22, size=3, fill="blue") + 
+  geom_jitter() + 
+  coord_flip() + 
+  labs(x = "연령대", y = "시간(분)", title = "박스 & 점 그림") + 
+  theme_bw() +
+  theme(plot.title = element_text(size = 25, face = "bold", hjust = 0.5),
+      axis.title.x = element_text(size = 25), axis.title.y = element_text(size = 25), 
+      axis.text.x = element_text(size = 20), axis.text.y = element_text(size = 20))
+
+g2 <- ggplot(marathon, aes(x = factor(age), y = time)) + 
+  geom_violin() + 
+  geom_jitter() + 
+  coord_flip() + 
+  labs(x = "연령대", y = "시간(분)", title = "바이올린 & 점 그림") + 
+  theme_bw() +
+  theme(plot.title = element_text(size = 25, face = "bold", hjust = 0.5),
+      axis.title.x = element_text(size = 25), axis.title.y = element_text(size = 25), 
+      axis.text.x = element_text(size = 20), axis.text.y = element_text(size = 20))
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+연령별 그림을 분석해 보면 다음과 같은 결과를 도출해 볼 수 있다.
+
+-   20대에서 60대로 높아질수록 전체적으로 도착 시간이 길어진다.
+-   30/40/50대의 산포는 비슷하지만, 20/60대는 산포가 나머지 연령대와
+    서로 다르다.
+    -   이는 20대 60대는 각 연령대에서 수준 차이가 비슷하다는 것 을
+        의미한다.
+-   중앙값을 봤을 때 50대를 기점으로 기록이 확 꺾이는 것을 알 수 있다.
+    -   이로 볼 때 50대부터는 젊은 사람들에 비해 체력에서 밀려 사실상
+        우승권과는 많이 멀어진다고 볼 수 있다.
+
+---
+
+# Ch7. 데이터 재표현
+
+-   현상이 주인공이고 숫자는 조연이다.
+
+| 목적                                    |                         진단                         |     |
+|:----------------------|:------------------------------:|:---------------:|
+| 1\. 분포의 대칭화                       | 중앙 요약(mid summaries), hinkley's d, symmetry plot |     |
+| 2\. 여러 집단의 산포의 균일화           |                  spread-level plot                   |     |
+| 3\. 2개의 연속형 변수같의 관계의 직선화 |                  three summary plot                  |     |
+
+-   재표현의 방법
+    -   선형 변환(linear transformation): $L(x) = ax + b, a>0$
+    -   비선형 변환(nonlinear transformation, 멱승 변환):
+
+$$
+T_p(x) = 
+\begin{cases}
+{x^p-1 \over p},p\neq0\\
+log(x), p = 0
+\end{cases}
+$$
+
+-   재표현의 사다리 자료의 재표현을 하는 목적은 비선형적인 변수 간의
+    관계를 선형적으로, 조금 더 알아보기 쉽게 하기 위함이다. 이때,
+    **재표현의 사다리(ladder of re-expression)** 방법을 많이 사용하는데
+    이는 $x$ 를 $f(x)$로 변환시키는 것으로 함수 $f(x)$는 단조함수(꾸준히
+    증가 Or 감소)만이 변환시키는 함수로서 가치가 있다고 한다.
+
+-   최종 변환에 사용할 p의 값은 변환식을 간단히 하고 역변환을 쉽게 찾기
+    위하여 **0.5 단위로 근사하여 사용**을 추천한다.
+
+## 7.1. 대칭성의 진단과 교정
+
+### 7.1.1. 중앙(mid) 요약
+
+-   대칭성의 진단 I
+    -   **중앙 요약(mid summaries)**: 문자값의 **중앙(mid)** 비교
+        -   $midian < midian_F < midian_E < ... < midian_A$: **양(+)의
+            왜도**
+        -   $midian > midian_F > midian_E > ... > midian_A$: **음(-)의
+            왜도**
+        -   $midian \approx midian_F \approx midian_E \approx ... \approx midian_A$:
+            **좌우대칭**
+    -   힌클리의 간편법(Hinkley's Quick Method)
+        -   $d={\bar{x}-M \over d_F}$
+        -   $d > 0$: **양(+)의 왜도**
+        -   $d < 0$: **음(-)의 왜도**
+        -   $d \approx 0$: **좌우대칭**
+    -   재표현의 사다리에서의 p 결정
+        -   **양(+)의 왜도**: $p < 1$, 아래로 내려가면서 변환 시도
+        -   **음(-)의 왜도**: $p > 1$, 위로 올라가면서 변환 시도
+        -   p는 가능한 0.5씩 증감하기
+
+### 7.1.2. 대칭도(symmetry plot)
+
+-   대칭성의 진단 Ⅱ
+    -   대칭도(symmetry Plot)
+        -   $(v_i, u_i): v_i = median - x_{(i)}, \ u_i = x_{(n+1-i)}-median$
+        -   $u = v$의 기준 직선을 추가한다.
+        -   $(v_i, u_i)$이 직선에 가까우면 좌우 대칭의 형태
+        -   $(v_i, u_i)$이 양(+)의 왜도를 가지면, 점들은 직선 위에
+            위치함
+        -   $(v_i, u_i)$이 음(-)의 왜도를 가지면, 점들은 직선 아래에
+            위치함
+    -   재표현의 사다리를 이용하여 대칭형태를 제공하는 적절한 멱승
+        변환을 적용한다.
+
+### 7.1.3 맞춤 변환(Matched Transformation)
+
+-   멱승 변환 후 해석을 쉽게 하기 위한 절차를 **맞춤 변환(matched
+    Transformation)**이라고 한다.
+
+-   $L_{a,b}(x) = a + bx^* = a+bT_p(x)$
+
+    1.  새로운 척도(L)와 동일한 원시 척도 $x$ 값 1개 선택($x_0$는 중앙값
+        Or 중심값)
+    2.  $P_p(x) = x^p$인 경우,
+
+    $$
+    L(x) = 
+    \begin{cases}
+    x_0 + {x^p-x^p_0 \over px^{p-1}_0}, \ p \neq 0\\
+    x_0 + {\log(x)-\log(x_0) \over \log(e)/x_0}, \ p = 0
+    \end{cases}
+    $$
+
+### 7.1.4. 동물들의 회임 기간 분석(gestation.csv)
+
+#### 7.1.4.1. 데이터 불러오기
+
+```{r}
+gestation <- read.csv(paste0(data_path, "gestation.csv"))
+```
+
+#### 7.1.4.2. 데이터 구조 확인 및 결측치 파악하기기
+
+```{r}
+str(gestation)
+```
+
+```{r}
+na_count <- function(df){
+  sapply(df, function(y) sum(length(which(is.na(y)))))
+}
+
+na_count(gestation)
+```
+
+#### 7.1.4.3. 데이터의 기본 정보 확인
+
+43 종의 평균 회임 일수는 208일, 중앙값을 187일이다.\
+최소 회임 일수인 종은 주머니쥐(13일)이고, 최대 회임 일수는 아프리카
+코끼리(660일)이다.
+
+```{r}
+fivenum(gestation$period)
+```
+
+```{r}
+mean(gestation$period)
+```
+
+```{r}
+gestation %>% 
+  dplyr::filter(period == min(period) | period == max(period))
+```
+
+#### 7.1.4.4. 분포 형태의 확인
+
+-   양의 왜도를 갖는 것으로 보인다.
+
+```{r}
+aplpack::stem.leaf(gestation$period)
+```
+
+#### 7.1.4.5. 박스 그림과 바이올린 그림
+
+```{r}
+box_plot <- gestation %>%
+  ggplot(aes(x = period, y = 1)) +
+  geom_boxplot(outlier.color = "red", outlier.shape = 1, fill = "lightblue", color = "blue") +
+  geom_jitter(width = 0.3, size = 2, color = "darkorange") +
+  labs(title = "박스플롯",
+       x = "회임 기간(일)",
+       y = "") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 15, face = "bold"))
+
+violin_plot <- gestation %>%
+  ggplot(aes(x = period, y = 1)) +
+  geom_violin(fill = "lightblue", color = "blue") +
+  geom_jitter(width = 0.3, size = 2, color = "darkorange") +
+  labs(title = "바이올린 플롯",
+       x = "회임 기간(일)",
+       y = "") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 15, face = "bold"))
+
+grid.arrange(box_plot, violin_plot, ncol = 2)
+
+```
+
+#### 7.1.4.6. 대칭 점검
+
+-   중앙(mid) 요약의 검토
+-   양의 왜도를 보인다.
+
+```{r}
+eda_lsum(gestation$period, l = 5) 
+hinkley(gestation$period) #hikely의 d 계산
+symmetry_plot(gestation$period) #기준 직선 위에 점: 양의 왜도
+```
+
+#### 7.1.4.7. 재표현의 사다리
+
+-   find_p(): 멱승 변환 p의 범위에서 hinkey's d 값 구하는 함수
+
+```{r}
+p <- seq(1.0, -0.5, -0.1) #사다리 내려가기 적용
+find_p(gestation$period, p)
+```
+
+-   해당 범위에서 $d \approx 0$을 보이는 $p$ 값은 \$0.6 \< p \< 0.7
+
+-   p = 0.7을 가정하여 변환 시도한다.
+
+-   기존 데이터 vs 변환 데이터 비교
+
+    -   기존의 데이터와 비교하여 기준 직선에 가까워진 것을 알 수있다.
+
+```{r}
+gestation$trans <- trans_p(gestation$period, 0.7)
+g1 <- symmetry_plot(gestation$period)
+g2 <- symmetry_plot(gestation$trans)
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+-   히스토그램 비교
+
+    -   기존과 대비하여 좌우 대칭의 형태가 나타난다.
+
+```{r}
+g1 <- gestation %>% ggplot(aes(x = period)) +
+  geom_histogram(bins=9, color="white", fill="steelblue")+
+  theme_bw()
+g2 <- gestation %>% ggplot(aes(x = trans)) +
+  geom_histogram(bins=9, color="white", fill="steelblue")+
+  theme_bw()
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+#### 7.1.4.8. 맞춤 변환(matched transformation)
+
+-   재표현된 데이터는 서로 다른 척도(scale)로 표현되어 직접 비교가
+    어려운 점이 있다.
+
+    -   따라서 맞춤 변환을 통해 해석의 용이성을 높인다.
+
+```{r}
+gestation$matched <- match_trans(gestation$period, 0.65)
+m.period <- median(gestation$period); m.period
+
+l.gestation <- gestation %>%
+  tidyr::pivot_longer(cols=period:matched,
+                      names_to = "type",
+                      values_to = "values")
+
+l.gestation %>%
+  ggplot(aes(x = type, y = values)) + 
+  geom_boxplot() + 
+  geom_hline(yintercept = m.period,
+             color = "orange",
+             lty = "dashed"
+             ) +
+  labs(x = "type", y = "values") +
+  theme_bw()
+```
+
+-   기존 데이터와 맞춤 변환 데이터의 ggplot으로 비교하기
+
+    -   맞춤 변환된 데이터의 그림을 보면 중앙값과 평균이 크기가 많이
+        좁혀졌다.
+    -   이는 맞춤 변환을 통해서 대칭성에 가까워졌음을 알 수 있다.
+
+```{r}
+#동물 이름 정렬
+dd <- gestation %>% dplyr::arrange(period) %>% select(animal)
+dd
+dd_m <- gestation %>% dplyr::arrange(matched) %>% select(animal)
+dd_m
+
+#원시 데이터
+g1 <- ggplot2::ggplot(gestation, aes(x=sort(period), y=animal)) +
+  geom_point(col="blue", size=1) + 
+  labs(y="종류",
+       x="회임 기간"
+  ) +
+  theme(axis.title.x = element_text(size = 25, face = "bold"),
+        axis.title.y = element_text(size = 25, face = "bold")
+  ) + 
+  geom_vline(xintercept = median(gestation$period), color=lre) +
+  geom_vline(xintercept = mean(gestation$period), color="green") +
+  geom_text(aes(x=median(gestation$period), y = 10, label ="중앙값"),color = lre) + 
+  geom_text(aes(x=mean(gestation$period), y = 5, label ="평균"),color = ldg) +
+  scale_y_discrete(labels=dd$animal)
+
+#맞춤 변환 데이터
+g2 <- ggplot2::ggplot(gestation, aes(x=sort(matched), y=animal)) +
+  geom_point(col="blue", size=1) + 
+  labs(x="맞춤 변환된 회임 기간"
+  ) +
+  theme(axis.title.x = element_text(size = 25, face = "bold"),
+        axis.title.y = element_blank()
+        ) + 
+  geom_vline(xintercept = median(gestation$matched), color=lre) +
+  geom_vline(xintercept = mean(gestation$matched), color="green") +
+  geom_text(aes(x=median(gestation$matched), y = 10, label ="중앙값"), color = lre) + 
+  geom_text(aes(x=mean(gestation$matched), y = 5, label ="평균"), color = ldg) +
+  scale_y_discrete(labels=dd_m$animal)
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+## 7.2. 산포 안정화의 진단과 교정
+
+-   산포가 불안정적인 데이터
+    -   **빈도(counts)**를 기준으로 집계된 데이터
+    -   일정 집계 단위 별로 **비율(Proprtion)**로 정리된 데이터
+    -   서로 다른 집계 단위 또는 서로 다른 환경에서 측정된 데이터
+-   산포의 균일성 진단 방법
+    -   산포-수준 그림(spread-level Plot)
+    -   **[spread_level_plot()]{style="color: blue;"}**
+    
+### 7.2.1 소프트웨어 개발 기업의 연차 별 연봉 분석(salary.group.csv)
+
+-   salart 데이터는 특정 소프트웨어 개발 기업에 재직 중인 재직자들의 5년 단위 연차(group)별 연봉(annual)을 조사한 데이터셋이다.
+
+```{r}
+#데이터 로드
+salary <- read_csv(paste0(data_path, "salary.group.csv"))
+str(salary)
+
+#결측값 개수 확인
+na_count(salary)
+head(salary)
+```
+
+-   데이터 탐색하기
+```{r}
+fivenum(salary$annual) #다섯수치요약
+mean(salary$annual) #평균
+
+salary %>% dplyr::filter(annual == min(annual) | annual == max(annual)) #최소, 최대값 확인
+```
+-   데이터 분포 형태 확인
+
+-   줄기-잎 그림 적용
+    -   양의 왜도를 갖는다.
+```{r}
+aplpack::stem.leaf(salary$annual)
+```
+-    박스 플랏 그림
+    -   데이터의 분포가 양의 왜도 형태를 보인다.
+```{r}
+#박스 플랏 + 점 그림(jitter)
+g1 <- ggplot(salary, aes(x = annual, y = 1)) +
+  geom_boxplot() + 
+  geom_jitter() +
+  labs(x = "연봉(달러)") +
+  theme_bw()
+
+#바이올린 플랏, 점 그림
+g2 <- ggplot(salary, aes(x = annual, y = 1)) +
+  geom_violin() + 
+  geom_jitter() +
+  labs(x = "연봉(달러)") +
+  theme_bw()
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+-   대칭 점검 진행
+    -   mid를 비교해보면 mid(H) < mid(E) < mid(D) < mid(E)로 양의 왜도를 보인다.
+    -   hikely의 d 계산하였는데 0보다 크다.
+    -   시각적 표현, 기준 직선 위에 점들이 나타므로 양의 왜도를 보인다.
+```{r}
+eda_lsum(salary$annual, l = 5)
+hinkley(salary$annual)
+symmetry_plot(salary$annual)
+```
+-   연차와 연봉간의 관계 확인
+    -   연차가 쌓일수록 산포도가 커지는 것을 확인할 수 있다.
+    -   등분산이 아니므로 해석에 문제가 발생하기 때문에 산포 안정화를 진행한다.
+```{r}
+salary %>%
+  ggplot(aes(x = group, y = annual)) +
+  geom_boxplot()+
+  theme_bw()
+```
+-   산포 수준 그림
+    -   기울기 $b = 0.88$이므므로 $p = 1-b = 0.12 \approx 0$을 적용하여 변환을 진행해야 한다.
+    -   $p=0$의 변환 함수는 **[log()]{style="color: blue;"}**이다.
+```{r}
+spread_level_plot(salary, annual, group)
+```
+-   변환하기
+```{r}
+salary <- salary %>%
+  mutate(new.annual = log(annual))
+```
+
+-   변환 결과 box-plot
+    -   연차 별 산포가 균등해졌다.
+    -   연차가 쌓일 수록 연봉도 꾸준히 상승하는 것을 알 수 있다. 
+```{r}
+salary %>%
+  ggplot(aes(x = fct_reorder(group, new.annual), y = new.annual)) +
+  geom_boxplot()+
+  labs(x="경력", y="log(연봉)")+
+  theme_bw()
+```
+
+## 7.3 관계의 선형성 진단과 교정
+
+  -   직선이 아니면 unique하지 않고 여러식이 나오므로 선형성은 중요하다.
+
+### 7.3.1. A사의 광고 규모와 판매액 데이터(onmarket.csv)
+
+-   `tukeyedar` 패키지 내의 **[eda_3pt()]{style="color: blue;"}**: 3-요약 점 그림을 실행
+-   onmarket는 84개의 개별 제품에 대한 광고(또는 판촉 비용) 규모(advert)와 판매액(sales)을 조사한 데이터셋이다.
+    -   sales: 판매액, advert: 규모
+```{r}
+#데이터 로드
+market <- read_csv(paste0(data_path, "onmarket.csv"))
+str(market)
+#결측값 개수 확인
+sum(is.na(market))
+na_count(market)
+head(market)
+```
+
+-   데이터 탐색하기
+
+```{r}
+fivenum(market$sales) #다섯수치요약
+mean(market$sales) #평균
+market %>% dplyr::filter(sales == min(sales) | sales == max(sales)) #최소, 최대값 확인
+
+```
+
+-   데이터 분포 형태 확인하기
+
+-   줄기-잎 그림
+    -   2개의 봉우리가 발견된다.
+```{r}
+aplpack::stem.leaf(market$sales)
+```
+-   박스 플랏 그림
+```{r}
+#기본 박스 + 점 그림(jitter)
+g1 <- ggplot(market, aes(x = sales, y = 1)) +
+  geom_boxplot() + 
+  geom_jitter() +
+  labs(x = "판매액(100만원)") +
+  theme_bw()
+
+#바이올린 플랏, 점 그림
+g2 <- ggplot(market, aes(x = sales, y = 1)) +
+  geom_violin() + 
+  geom_jitter() +
+  labs(x = "판매액(100만원)") +
+  theme_bw()
+
+gridExtra::grid.arrange(g1, g2, nrow = 2)
+```
+
+-   변수들의 관계 확인
+    -   위로 오목한 형태이다.
+```{r}
+market %>%
+  ggplot(aes(x=advert, y=sales)) + 
+  geom_point(color= sbl, size=0.7, alpha=0.5) +
+  xlab("advert") +
+  ylab("sales") +
+  labs(caption = "단위: 100만원") +
+  theme_bw()
+```
+
+-   3-요약 그림을 통한 직선화 진단
+    -   hsrtio($b_H$) = 0.24로 $b_H < 1$이기 때문에 위로 오목한 형태를 가지고 있다.
+    -   해당 그림에서 작은 x, 큰 y로 나타나기 때문에 멱승변환 진행시 $p_x$는 작은 값으로, $p_y$는 큰 방향으로 적용해가야 한다.
+    -   적절한 멱승 변환 $p$를 찾기위해 3등분된 데이터의 중앙값을 모아서 변수 **[market.3p()]{style="color: blue;"}**를 정의한다.
+```{r}
+eda_3pt(market, advert, sales) #eda_3pt(data, x, y)
+```
+
+-   3등분된 데이터의 중앙값 추출
+
+```{r}
+pt3 <- eda_3pt(market, advert, sales) 
+market.3p <- data.frame(x = pt3$xmed,
+                        y = pt3$ymed)
+market.3p
+```
+
+-   직선화를 위한 $(p_x, p_y)$의 결정 
+  - **[trans_p()]{style="color: blue;"}**``: 멱승 변환 적용 함수(변환의 사다리)
+  - **[straigthen()]{style="color: blue;"}**`:  절반 기울기의 비 계산 함수
+      -   $b_H = {b_R \over b_L}$
+
+```{r}
+x <- seq(1, -3, -0.1) #x 변환을 위한 p의 범위
+y <- seq(1, 2, 0.1) #y 변환을 위한 p의 범위
+
+#초기화
+bp <- data.frame(
+  matrix(0, nrow=length(x) * length(y), ncol = 3)
+)
+colnames(bp) <- c("px", "py", "b_H")
+head(bp)
+
+#반복 계산
+k <- 0
+for(i in x){
+  for(j in y){
+    k <- k+1
+    bp[k, 1] <- i
+    bp[k, 2] <- j
+    bp[k, 3] <- round(straighten(market.3p, i, j, TRUE), 2) #반올림(소수점 2번째까지 나타냄)
+  }
+}
+head(bp)
+
+bp %>% dplyr::filter(b_H >= 0.95 & b_H <= 1.05)
+```
+
+-   변환한 것 중에서 1에 가장 가까운 값은 $(p_x=-0.1, p_y=1.7, b_H=1.00)$이다.
+    - BUT, 멱승 변환의 $p$ 단위를 $0.5$로 맞추는 것이 핵심이다.
+    - 따라서, $(p_x=0.0, p_y=2.0, b_H=1.01)$로 변환을 적용한다.
+
+-   $p_x = 0.0$ -> $log(x)$
+-   $p_y = 2.0$ -> $y^2$
+
+
+-   직선화 달성 여부 확인
+  -   원시 데이터와 비교한 결과, 변환 전보다 직선 형태에 가까워졌다.
+  
+```{r}
+market$t.advert <- trans_p(market$advert, 0.0, Pp=TRUE)
+market$t.sales <- trans_p(market$sales, 2.0, Pp=TRUE)
+market
+
+eda_3pt(market, t.advert, t.sales) #3-요약 점그림
+
+g1 <- market %>%
+  ggplot(aes(x=advert, y=sales)) + 
+  geom_point(color="blue", size=0.7, alpha=0.5) +
+  xlab("advert") +
+  ylab("sales") +
+  labs(caption = "단위: 100만원", subtitle = "변환 전 원시데이터") +
+  theme_bw()
+
+g2 <- market %>%
+  ggplot(aes(x=t.advert, y=t.sales)) + 
+  geom_point(color="blue", size=0.7, alpha=0.5) +
+  xlab("log(ladvert)") +
+  ylab("sales^2") +
+  labs(subtitle = "3-요약점 직선화 결과") +
+  theme_bw()
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+## 7.4. 데이터 재표현
+
+-   분포의 대칭화
+-   여러 집단의 분산 안정화
+    -   분산이 다르면 비교가 어려워진다.
+-   2개의 변수의 직선화
+
+-   데이터 재표현이 효과적인 경우(멱승 변환이 필요한 경우)
+    -   (최대값/최소값)의 값이 큰 경우
+        -    범위가 큰 경우
+    -   산포-수준 그림에서 명확한 패턴이 존재하는 경우
+    -   잔차에서 명확한 패턴이 존재하는 경우
+
+-   마지막으로 이러한 재표현의 방법이 데이터 소비자와 소통을 어렵게 한다면!
+    -   데이터 재표현보다는 측정 방법의 개선 또는 지표의 새로운 정의 등의 다른 방법을 고려할 필요가 있다.
+    
+---
+
+# Ch8. 저항선과 강건 회귀(Resistance Line & Robust Regression)
+
+## 8.1. 저항선 Resistance Line
+
+-   3-요약점(3-summary point)과 잔차(residuals)를 이용한 반복 적합과 교정을 통하여 이상점들의 영향을 덜 받는 직선식을 추정하는 방법이다.
+-   회귀 분석이 평균으로 계산하니까 이상점에 민감하다.
+    - 이를 극복하기 위한 방법 중 하나이다.
+
+### 8.1.1. diamonds 중에서 일부 데이터(jset.csv)
+
+#### 8.1.1.1. 데이터 불러오기
+```{r}
+jset <- read.csv(paste0(data_path, "jset.csv"))
+```
+
+#### 8.1.1.2. 데이터 구조 확인
+```{r}
+na_count(jset)
+```
+```{r}
+jset %>% 
+  ggplot(aes(carat, s.price)) +
+  geom_point(color = sbl) +
+  theme_bw()
+```
+
+#### 8.1.1.3. 저항선의 적합(1차)
+```{r}
+first <- rline(s.price ~ carat, jset, iter = 1)
+
+jset %>% 
+  ggplot(aes(carat, s.price)) +
+  geom_point(color = "#383838") +
+  geom_abline(intercept = first$a - first$b * first$xC,
+              slope = first$b,
+              color = ldg
+              ) +
+  labs(subtitle = "저항성 적합(1차)의 결과") +
+  theme_bw()
+```
+#### 8.1.1.4. 저항선의 반복 적합
+```{r}
+#초기화
+out <- data.frame(Iteration = NULL, Slope = NULL, Intercept = NULL)
+iter.limit <- 10
+#반복
+for(iterations in 1:iter.limit){
+  rfit <- rline(s.price ~ carat, jset, iter = iterations)
+  out <- rbind(out,
+               data.frame(Iteration = iterations,
+                          Slope = rfit$b,
+                          Intercept = rfit$a)
+  )
+}
+#결과
+out
+```
+#### 8.1.1.5. iter = 6
+
+-   6번째 반복 이후의 **[절편(55.62368)]{style="color: red;"}**, **[기울기(44.65532)]{style="color: red;"}**로 수렴한다.
+    -   따라서, iter = 6으로 최종 저항선을 추정한다.
+```{r}
+final <- rline(s.price ~ carat, jset, iter = 6)
+jset$res <- final$residual
+#
+j1 <- jset %>% 
+  ggplot(aes(carat, s.price)) +
+  geom_point(color = sbl) +
+  geom_abline(intercept = first$a - first$b*first$xC,
+              slope = first$b,
+              color = ldg) +
+  geom_abline(intercept = final$a - final$b*final$xC,
+              slope = final$b,
+              color = lre) +
+  labs(subtitle = "1차(gray)/최종(red) 저항선 적합 결과") +
+  theme_bw()
+
+j2 <- jset %>% 
+  ggplot(aes(carat, res)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0,
+             color = lre) +
+  labs(subtitle = "최종(red) 적합의 잔차", y = "잔차") +
+  theme_bw()
+
+grid.arrange(j1, j2, ncol = 2)
+```
+```{r}
+jset %>% 
+  dplyr::filter(res <= -25) %>% 
+    dplyr::select(clarity, carat, table, s.price)
+```
+
+## 8.2. 강건 선형 회귀 Robust Linear Regression
+
+-   선형 회귀 분석은 오차에 가정되는 확률 분포의 타당성 여부와 이상점의 영향을 많이 받는다는 단점을 갖는다.
+    -   이러한 단점을 보완할 수 있는 방법으로 다음의 강건(rubust) 선형 회귀 분석이 소개되었다.
+        -   최소 중앙값 제곱
+        -   최소 절사 제곱
+        -   후버의 M추정
+        
+### 8.2.1. simple 데이터 실습(simple.csv)
+
+```{r}
+#데이터 로드
+simple <- read_csv(paste0(data_path, "simple.csv"),show_col_types = FALSE)
+str(simple)
+#결측값 개수 확인
+sum(is.na(simple))
+na_count(simple)
+```
+
+```{r}
+#산점도로 데이터 파악
+simple %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_point(color = "black") +
+  theme_bw()
+```
+-   단순 회귀 분석 적합
+```{r}
+fit.lin <- lm(y ~ x, simple)
+summary(fit.lin)
+```
+-   다항 회귀 분석 적합
+
+```{r}
+fit.poly <- lm(y ~ x + I(x^2), simple)
+summary(fit.poly)
+```
+
+-    산점도 비교(단순회귀분석 Vs 다항회귀분석)
+    -   단순 회귀 모형은 데이터의 패턴을 찾지 못한다.
+    -   다항 회귀 식은 오른쪽에 위치한 이상치에 민감하게 반응한다.
+
+```{r}
+colors <- c("linear" = sbl, "quadratic" = lre)
+simple %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_point(color = "black") +
+  stat_smooth(aes(x, fit.lin$fitted.values, color = "linear")) +
+  stat_smooth(aes(x, fit.poly$fitted.values, color = "quadratic"), linetype="dashed") +
+  labs(color = "Fits", subtitle = "단순/다항 회귀 적합 결과") +
+  theme_bw() +
+  scale_color_manual(values = colors)
+```
+
+
+-   최소 중앙값 제곱(LMS, Least Median of Squares) 적용하기
+    -   R의 `MASS` 패키지 내에 있는 **[lqs(method = "lms")]{style="color: blue;"}**
+```{r}
+lms <- MASS::lqs(y ~ x, method = "lms", data = simple)
+lms
+```
+
+-   산점도 비교
+
+```{r}
+colors <- c("ls" = sbl, "lms" = lre)
+simple %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_point(color = "black") +
+  stat_smooth(aes(x, fit.lin$fitted.values, color = "ls")) +
+  stat_smooth(aes(x, lms$fitted.values, color = "lms")) +
+  labs(color = "Fits", subtitle = "단순/LMS 회귀 적합 결과") +
+  theme_bw() +
+  scale_color_manual(values = colors)
+```
+
+
+-   최소 절사 제곱(LTS, Least Trimmed Squares)은 R의의 `MASS` 패키지 내에 있는 **[lqs(method = "lts")]{style="color: blue;"}** 함수
+
+```{r}
+lts <- MASS::lqs(y ~ x, method = "lts", data = simple)
+lts
+```
+
+-   단순/LMS/LTS 회귀 적합 결과 산점도 비교
+
+```{r}
+colors <- c("ls" = sbl, "lms" = lre, "lts" = ngr)
+simple %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_point(color = "black") +
+  stat_smooth(aes(x, fit.lin$fitted.values, color = "ls")) +
+  stat_smooth(aes(x, lms$fitted.values, color = "lms")) +
+  stat_smooth(aes(x, lts$fitted.values, color = "lts")) +
+  labs(color = "Fits", subtitle = "단순/LMS/LTS 회귀 적합 결과") +
+  theme_bw() +
+  scale_color_manual(values = colors)
+```
+
+
+### 8.2.2. phonecall 데이터(phonecall.csv)
+
+-   후버의 M 추정 - M-estimation은 R의의 `MASS` 패키지 내에 있는 **[rlm(psi = psi.huber)]{style="color: blue;"}** 함수
+
+
+```{r}
+#데이터 로드
+phonecall <- read_csv(paste0(data_path, "phonecall.csv"),show_col_types = FALSE)
+str(phonecall) #2개 변수
+#결측값 개수 확인
+sum(is.na(phonecall))
+na_count(phonecall)
+
+rlm <- MASS::rlm(calls ~ year, phonecall, psi = psi.huber, maxit = 50)
+rlm
+
+```
+
+-   단순/LMS/LTS/RLM 회귀 적합 결과 산점도 비교
+
+```{r}
+
+lin <- lm(calls ~ year, phonecall)
+plms <- MASS::lqs(calls ~ year, method = "lms", data = phonecall)
+plts <- MASS::lqs(calls ~ year, method = "lts", data = phonecall)
+
+colors <- c("ls" = sbl, "lms" = lre, "lts" = ngr, "rlm" = "orange")
+phonecall %>%
+  ggplot(aes(x = year, y = calls)) +
+  geom_point(color = sbl) +
+  stat_smooth(aes(year, lin$fitted.values, color = "ls")) +
+  stat_smooth(aes(year, plms$fitted.values, color = "lms")) +
+  stat_smooth(aes(year, plts$fitted.values, color = "lts")) +
+  stat_smooth(aes(year, rlm$fitted.values, color = "rlm")) +
+  labs(color = "Fits", subtitle = "단순/LMS/LTS/RLM 회귀 적합 결과") +
+  theme_bw() +
+  scale_color_manual(values = colors)
+```
+
+### 8.2.3. diamonds 데이터
+
+```{r}
+#데이터로드
+data(diamonds)
+jset <- diamonds %>%
+  dplyr::filter(color == "J") %>%
+  dplyr::filter(cut == "Fair")
+str(jset)
+
+set <- jset %>%
+  mutate(s.price = sqrt(price))
+```
+
+
+-   산점도 파악
+```{r}
+colors <- c("ls" = sbl, "lms" = lre, "lts" = ngr, "rlm" = "orange")
+set$lin <- lm(s.price ~ carat, set)$fitted.value
+set$rlm <- rlm(s.price ~ carat, set, psi = psi.huber, maxit = 50)$fitted.value
+set$lms <- lqs(s.price ~ carat, method = "lms", data = set)$fitted.value
+set$lts <- lqs(s.price ~ carat, method = "lts", data = set)$fitted.value
+
+set %>%
+  ggplot(aes(x = carat, y = s.price)) +
+  geom_point(color = sbl) +
+  stat_smooth(aes(carat, lin, color = "ls")) +
+  stat_smooth(aes(carat, lms, color = "lms")) +
+  stat_smooth(aes(carat, lts, color = "lts")) +
+  stat_smooth(aes(carat, rlm, color = "rlm")) +
+  labs(color = "Fits", subtitle = "단순/LMS/LTS/RLM 회귀 적합 결과") +
+  theme_bw() +
+  scale_color_manual(values = colors)
+
+```
+
+## 8.3. 스플라인스 선형 회귀 Splines Linear Regression
+
+-   설명 변수의 범위 별로 서로 다른 함수적 관계가 존재하는 경우, 적절한 범위를 구분하여 너트(knot)를 정의하고 이 모형을 고려할 수 있다.
+
+### 8.3.1. qmr 데이터(qmr.csv)
+
+-   00전자의 SW사업부에서의 QM 검증 결과의 타당성을 확인하고 QMR Score와의 관계를 분석하기 위하여 24개의 제품(자사, 경쟁사)을 조사하였다. 적절한 모형이 도출된다면, 이를 이용하여 SW 초기 완성도 판단을 위한 검토 기준으로 활용하고자 한다.
+
+```{r}
+#데이터 로드
+qm <- read_csv(paste0(data_path, "qmr.csv"), show_col_types = FALSE)
+str(qm)
+#결측값 개수 확인
+sum(is.na(qm))
+na_count(qm)
+```
+
+```{r}
+#데이터 구조 변경 - 변수명
+qm <- qm %>% dplyr::rename_all(tolower) %>% #소문자로 변경
+  dplyr::rename(qmr = qmr.score, qr = qr.score) %>%
+  dplyr::relocate(qmr)
+qm
+```
+
+
+```{r}
+#관계 패턴 확인
+qm %>%
+  ggplot(aes(x = qr, y = qmr)) +
+  geom_point(color = sbl) + 
+  geom_vline(xintercept = 50, color = lre, linetype = "dotted") +
+  theme_bw()
+
+#너트(knot) 정의
+qm <- qm %>%
+  mutate(knot1 = ifelse(qr - 50 > 0, (qr - 50), 0),
+         knot0 = ifelse(qr- 50 > 0 , 1, 0))
+qm
+```
+
+
+-   스플라인스 회귀 적합
+
+```{r}
+lin_fit <- lm(qmr ~ qr + knot0 + knot1, data = qm)
+summary(lin_fit)
+```
+
+-   스플라인스 회귀 추정 결과 및 잔차의 확인
+
+```{r}
+qm$fit <- fitted(lin_fit)
+
+q1 <- qm %>% 
+  ggplot(aes(x = qr, y = qmr, color = as.factor(knot0)),
+         show.legend = FALSE
+         ) + 
+  geom_point(color = sbl) +
+  geom_vline(xintercept = 50,
+             color = lre,
+             linetype = "dotted"
+             ) +
+  geom_line(aes(x = qr, y = fit, color = as.factor(knot0)),
+            show.legend = FALSE
+            ) +
+  labs(subtitle = "불연속 단일 너트[qr = 50]를 반영한 스플라인스 적합") +
+  theme(legend.position = "none") +
+  theme_bw()
+
+q2 <- lin_fit %>% 
+  ggplot(aes(rstandard(lin_fit))) + 
+  geom_histogram(bins = 13, color = "white", fill = sbl) + 
+  labs(x = "std residuals", y = "frequency") + 
+  theme_bw()
+
+q3 <-lin_fit %>%
+  ggplot(aes(fitted(lin_fit), rstandard(lin_fit))) + 
+  geom_point(color = sbl) + 
+  geom_hline(yintercept = 0,
+             color = lre,
+             linetype = "dotted"
+             ) +
+  labs(x = "fitted value", y = "std residuals") +
+  theme_bw()
+
+gridExtra::grid.arrange(q1, gridExtra::arrangeGrob(q2, q3, ncol = 2), 
+                        nrow = 2) 
+```
+
+---
+
+
+# Ch9. 중앙값 정제(Median Polish)
+
+## 9.1. 중앙값 정제의 이해
+
+**중앙값 정제(median polish)**는 서로 다른 2개의 상황 하에서 관찰된 반응값을 대상으로 각 상활별 효과(effects)와 나머지 잔차(residuals)로 분해하여 데이터의 해석을 돕는 방법이다.
+
+## 9.2. 1991년 부터 2020년까지의 지역별 평균 기온(monthly.1991.2020.csv) 분석
+
+monthly.1991.2020은 국내 219개 위치(location)에서 월별 평균 기온(°C)을 조사한 것이다. 각 위치별로 시작 일자는 서로 다르지만, 종료일은 2020년 12월로 동일하다.
+
+### 9.2.1. 데이터 불러오기
+```{r}
+monthly <- read.csv(paste0(data_path, "monthly.1991.2020.csv"))
+head(monthly)
+```
+
+### 9.2.2. 데이터의 구조 확인
+```{r}
+str(monthly)
+```
+```{r}
+na_count(monthly)
+```
+### 9.2.3. 데이터 구조 정리
+```{r}
+atemp <- data.frame(monthly[, -c(1,2)])
+row.names(atemp) <- monthly$location
+head(atemp)
+```
+
+### 9.2.4. 중앙값 정제
+```{r}
+ma.fit <- medpolish(atemp, 10)
+```
+```{r}
+ma.fit$overall
+```
+```{r}
+head(ma.fit$row, 5)
+```
+```{r}
+head(ma.fit$col, 5)
+```
+```{r}
+range(ma.fit$row)
+```
+
+```{r}
+range(ma.fit$col)
+```
+추정된 열 효과와 행 효과를 크기 순서대로 나열하면 다음과 같다.
+
+```{r}
+mon <- c(1:12)
+coleffect <- ma.fit$overall + ma.fit$col
+check.c <- data.frame(mon, coleffect)
+check.c %>% 
+  ggplot(aes(reorder(mon, coleffect), coleffect)) +
+  geom_point(color = sbl) +
+  geom_vline(xintercept = ma.fit$overall, color = ldg,) +
+  labs(x = "월",
+       y = "평균 온도",
+       subtitle = "1991-2020 평균 온도의 중앙값 정제 결과"
+  ) +
+  coord_flip() +
+  theme_bw()
+```
+```{r}
+loc <- row.names(atemp)
+roweffect <- ma.fit$overall + ma.fit$row
+check.r <- data.frame(loc, roweffect)
+check.r %>% 
+  ggplot(aes(reorder(loc, roweffect), roweffect)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = ma.fit$overall, color = ldg) +
+  coord_flip() +
+  labs(x = "위치",
+       y = "평균 온도",
+       subtitle = "1991-2020 평균 온도의 중앙값 정제 결과"
+       ) +
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 3))
+```
+가법 모형 적합 후의 잔차의 패턴을 고찰해 보면 다음과 같다.
+```{r}
+res <- as.data.frame(ma.fit$residuals)
+
+res %>% 
+  mutate(location = row.names(res)) %>% 
+  melt() %>% 
+  group_by(variable) %>% 
+  mutate(outlier = ifelse(is_outlier(value),
+                          location,
+                          as.character(NA))
+         ) %>% 
+  ggplot(aes(x = variable, y = value)) +
+  geom_boxplot() +
+  geom_text(aes(label = outlier),
+            size = 1.5,
+            na.rm = T,
+            hjust = -0.5
+  ) +
+  theme_bw()
+```
+
+-   잔차에서 이상점으로 진단된 행과 열의 값만 선택하여 heatmap 그리면 다음과 같다.
+
+```{r}
+res %>% #데이터 정리
+  mutate(location = row.names(res)) %>%
+  melt() %>%
+  group_by(variable) %>%
+  mutate(outlier = ifelse(is_outlier(value),
+                          location,
+                          as.character(NA))
+  ) %>% 
+  dplyr::filter(outlier != "NA") %>% #이상점으로 진단된 값 추출
+  
+  #히트맵 그리기
+  ggplot(aes(x = variable,
+             y = fct_reorder(location, value),
+             fill = value)) + 
+  geom_tile() +
+  geom_text(aes(label = value),
+            color = ngr,
+            size = 1.5
+            ) + 
+  labs(x = "월",
+       y = "위치",
+       subtitle = "1991~2020 평균 온도의 중앙값 정제 결과"
+       ) +
+  theme_bw() + 
+  scico::scale_fill_scico(palette = "bilbao")
+```
+-   현재의 가법 모형의 타당성을 확인하기 위하여 비교값을 계산한다.
+
+-   계산 함수 적용 종류
+    -   **[base::outer(x, y, fun = "*" ...)]{style="color: blue;"}**`: c(dim(x), dim(y))의 배열 생성하는 함수
+    -   **[base::with(data, R expression)]{style="color: blue;"}**: data 내의 변수 간 연산 결과 저장하는 함수
+
+-   cv: 비교 값
+```{r}
+cv <- with(ma.fit,
+           outer(row, col, "*") / overall 
+      )
+head(cv)
+
+df <- data.frame(loc = row.names(atemp),
+                 cv = as.vector(cv),
+                 res = as.vector(ma.fit$residuals)
+                 )
+head(df)
+```
+-   산점도
+    -   (cv, residuals)에서 음(-)의 선형 관계가 있어 보이므로, 저항선을 통하여 기울기를 추정한다.
+```{r}
+df %>%
+  ggplot(aes(cv, res, label = loc)) + 
+  geom_point(color = sbl, size = 0.5, alpha = 0.3) + 
+  geom_text(size = 1.5, hjust = 0, nudge_y = 0.1, nudge_x = 0.1) + 
+  labs(x = "comparison values",
+       y = "residuals"
+       ) + 
+  theme_bw()
+```
+
+-   기울기가 -0.49이므로 반영하여 패턴을 확인한다./
+    -   수정된 잔차(adjusted residuals)에는 선형 패턴이 존재하지 않는다.
+
+```{r}
+round(rline(res ~ cv, df)$b, 2)
+```
+-    최종적으로 적합된 잔차 확인
+```{r}
+out <- data.frame(iteration = NULL, slope = NULL, intercept = NULL)
+
+iter.limit <- 10
+for(iterations in 1:iter.limit){
+  rfit <- rline(res ~ cv, df, iter = iterations)
+  out <- rbind(out,
+               data.frame(iteration = iterations,
+                          slope = rfit$b,
+                          intercept = rfit$a)
+               )
+}
+```
+-   7번 째 반복 적합 이후 절편과 기울기 수렴한다.
+    - iteration을 7로하여 최종 저항선 추정 진행
+```{r}
+out 
+
+final <- rline(res ~ cv, df, iter = 7)
+df$adres <- final$residual
+#최종 적합 산점도
+df %>%
+  ggplot(aes(cv, adres, label = loc)) + 
+  geom_point(color = sbl, size = 0.5, alpha = 0.3) + 
+  geom_text(size = 1.5, hjust = 0, nudge_y = 0.1, nudge_x = 0.1) + 
+  geom_hline(yintercept =0,
+             color = lre) +
+  labs(x = "comparison values",
+       y = "adjusted residuals"
+       ) + 
+  theme_bw()
+```
+
+## 9.3. 올림픽 수영 기록(swimming.csv)을 이용한 데이터 분석
+
+-   10번의 하계 올림픽에서 여자 자유형 100, 200, 400, 800m 우승자들의 기록(초)로 각 연도별 그리고 시합의 거리별로 정리된 2원 데이터 표이다.
+
+```{r}
+#데이터 로드
+swim <- read_csv(paste0(data_path, "swimming.csv"), show_col_types = FALSE)
+str(swim)
+#결측값 개수 확인
+sum(is.na(swim))
+na_count(swim)
+```
+
+-   데이터 구조 정리
+    -   숫자형으로 저장된 행렬
+
+```{r}
+record <- data.frame(swim[, -1])
+record
+row.names(record) <- swim$year #행이름 변경
+record
+```
+
+-   중앙값 정제, **[stats::medpolish(data, maxiter = n)]{style="color: blue;"}** 사용
+
+```{r}
+sa.fit <- medpolish(record, 10)
+
+sa.fit$overall #공통효과
+head(sa.fit$row, 5) #행효과
+head(sa.fit$col, 5) #열효과
+range(sa.fit$row) #행효과 범위
+range(sa.fit$col) #열효과 범위
+```
+
+-   잔차와 비교값 그림
+    -   잔차의 값이 cv에 따라 증가하는 패턴, 양의 선형관계를 보인다.
+    -   이는 가법 모형보다 승법 모형이 적절하다는 의미이다.
+
+```{r}
+plot(sa.fit)
+```
+
+-   $k=1.1$ 이므로 $p=1-k=1-1.1\approx 0$ 0일 때 멱승 변환은 log 변환이다.
+    -   데이터를 변환하여 가법 모형을 재적합 진행한다.
+
+```{r}
+res <- as.data.frame(sa.fit$residuals) #적합선 기울기
+#비교값
+cv <- with(sa.fit,
+           outer(row, col, "*") / overall
+           )
+df <- data.frame(loc = row.names(record),
+                 cv = as.vector(cv),
+                 res = as.vector(sa.fit$residuals)
+                 )
+rline(res ~ cv, df)$b #기울기(k) 구하기
+```
+
+ 
+-   잔차의 값이 cv에 대한 특정 관계가 존재하지 않는다.
+    -   가법 모형이 적합하다고 할 수 있다.
+
+```{r}
+lrecord <- log(record)
+lrecord
+ta.fit <- medpolish(lrecord, 10)
+
+plot(ta.fit)
+```
+
+```{r}
+distance <- log(c(100,200,400,800))
+coleffect <- ta.fit$overall + ta.fit$col
+check.c <- data.frame(distance, coleffect)
+```
+
+-   추정 열효과 시각화
+```{r}
+check.c %>%
+  ggplot(aes(distance, round(coleffect, 2))) + 
+  geom_point(color = sbl) + 
+  geom_hline(yintercept = ta.fit$overall, color = ldg) + 
+  labs(x = "거리(distance: m)",
+       y = "기록(초)",
+       subtitle = "1968-2004 올림픽 수영 우승자 기록"
+       ) + 
+  theme_bw()
+
+year <- row.names(lrecord)
+roweffect <- ta.fit$overall + ta.fit$row
+check.r <- data.frame(year, roweffect)
+check.r %>%
+  ggplot(aes(year, roweffect)) + 
+  geom_point(color = sbl) + 
+  geom_hline(yintercept = ta.fit$overall, color = ldg) + 
+  labs(x = "년도",
+       y = "기록(초)",
+       subtitle = "1968-2004 올림픽 수영 우승자 기록"
+       ) + 
+  theme_bw()
+```
+
+-   시간에 대한 행 효과를 비교하기 위해서 ratio(비)를 고려해야 한다.
+-   기록된 최초년도 1968년과 비교했을 때 기록이 얼마나 개선되고 있는지를 파악해야 한다.
+    -   각 년도의 기록을 역변환하고 이를 최초 년도의 기록과의 비를 이용하여 비교해야 한다.
+
+-   행 효과 비교 해석
+    -   2004년은 1968년과 비교했을 때 약 10%가 감소되었다.
+        -   즉, 10%가 개선되었다.
+```{r}
+row.origin <- as.vector(exp(ta.fit$row))
+reffect.origin <- row.origin/row.origin[1]
+round(reffect.origin, 2)
+```
+
+-   열효과 비교 해석
+    -   거리에 대한 해석은 100m를 기준으로 200, 400, 800m로 올라갈수록 2.16배, 4.52배, 9.27배의 시간이 더 소요된다.
+        -   이는 장거리로 갈수록 피로도가 쌓이는 것이 반영된 결과라고 판단할 수 있다.
+```{r}
+col.origin <- as.vector(exp(ta.fit$col))
+ceffect.origin <- col.origin/col.origin[1]
+round(ceffect.origin, 2)
+```
+
+
+---
+
+# Ch10. 평활화(Smoothing)
+
+-   2개의 연속형 변수(x, y)의 경우에는 그 관계와 밀접도에 대한 정보를 얻기 위하여 **[산점도(Scatter Plots)]{style="color: red;"}**를 이용한다.
+-   x 변수가 동일(또는 거의 일정한) 간격을 갖는 값으로 순서(order)에 따라 주어지는 경우(나이, 회수, 위/경도 등)에는 x의 각 지점에 따라 y의 변화 패턴을 확인하는 **[평활화(smoothing)]{style="color: red;"}**을 해볼 수 있다.
+    -   엄마의 연령대별로 정의된 출산률(birth-rates)
+    -   환자의 몸무게에 따른 심근 경색의 발생 빈도
+    -   분기별 제품 판매액
+
+-   **[stats::smooth()]{style="color: blue;"}**: Tukey의 다양한 평활화 방법을 제공
+
+## 10.0. info
+
+- 고객 데이터가 들어오면 평활화를 계속한 다음, 잔차를 해석해보는 것이 중요하다.
+    -   현 시대에서는 평활화를 통해서 패턴을 파악하면 가구원수를 파악 하는 것이 가능하다.
+-   패턴과 패턴을 비교해보면 의미있는 결과를 얻을 수가 있어서 좋은 방법이다.
+-   평활화 자체가 분석의 목적일수도 있고 평활 후의 잔차가 목표일수도 있다.
+-   EDA라는 것은 새로운 가설을 찾아가는 과정이다.
+-   최대한 스무스한 패턴을 찾고 거침(잔차)를 해석하는 것이 핵심이다.
+    -   상승과 하강 지점에 대한 해석!
+-   Data set ⊃ Data Sequence ⊃  Time Series
+    -   Data = 주요약(fit) + 잔차(residuals) = 평활화(smooth) + 거침(rough)
+    -   Data Sequence: x의 순서에 따라 기록된 y의 값만으로 나타낸 구조
+        -   만일 x가 연속적인 시간(time) 간격이라면, y의 데이터 시퀀스(data sequence)를 **[시계열(time series)]{style="color: red;"}**라고 부름
+        -   $y_t,t=1,2,3,4,...,n$, 일반적으로 x 대신에 순서로 정의되는 값 t로 표시
+            -   데이터 시퀀스에 대한 첫번째 시도는 부드러운 곡선을 적합
+                -   이를 통해 크게 변하는 지점을 구별하여 어떤 규칙과 주기가 있는 지 검토한다.
+                -   이렇게 추정된 곡선을 평활(smooth), 이를 벗어나는 데이터들의 잔차를 거침(rough)
+        -   데이터 평활기(data smoothers): 데이터 시퀀스의 중복된 구획(segments)에서 평활(smooth)을 달성하고자 중앙값 또는 평균을 이용
+            -   이를 통하여 도출된 평활을 제외한 나머지 잔차가 거침(rough)을 결정한다.
+-   **[EDA에서는 평활의 수학적 공식보다 거침의 패턴해석을 더 중요시한다.]{style="color: red;"}**
+          
+          
+## 10.1. 중앙값 평활기 Median Smoothers
+
+-   중앙값 평활기는 주어진 데이터 시퀀스에 대하여 고정된 일정 개수 k≥3의 연속적으로(running) 분할된 구획(segments)별 중앙값을 이용하여 데이터 시퀀스를 평활화하는 것이다.
+    - k-연속 중앙값 평활기라고 부름
+-   평활 대상이 되는 데이터 시퀀스의 첫번째($y_1$)과 마지막($y_n$)을 데이터 시퀀스의 끝점(End Points)라 한다.
+-   3R: 평활된 값이 변화가 없을 때까지 반복적으로 평활하는 방법을 의미한다.
+
+-   Tukey's End Point Rule
+    -   평활값을 구할 수 없는 경우가 발생할 때 적용
+    -   평활화의 끝점(End Points of Smoothing; EPS)은 다음의 범칙에 의해 결정
+        -   EPS값에서 EPS 하나 이전의 값의 변화는 EPS 하나 이전의 값에서 EPS 두개 이전의 값으로의 변화의 0~2배 사이
+        -   EPS 값은 가능한 한 데이터 시퀀스의 값과 비슷하게 결정
+
+## 10.2. 분리, 재평활 그리고 해닝 Spliting, Rerough and Hanning
+
+-   이 챕터부터는 평활화를 돕는 기법이라고 생각하고 이해하면 된다.
+-   중복 평활을 적용할수록 보다 부드러운 형태로 평활된다.
+-   **[분리 평활(Split Smoothing)]{style="color: red;"}**: 중앙값 평활기를 적용한 이후 생성된 피크(peak)와 밸리(valley)를 각각 2개로 분리하여 끝점들을 평활한 후 중앙값 평활기를 재적용하여 평활된 결과를 향상시키는 방법
+    -   중앙값 평활기의 적용
+    -   동일한 값으로 평활된 피크 또는 밸리를 기준으로 2개의 데이터 시퀀스를 결정
+    -   각각에 대하여 Tukey's End Point Rule 적용
+    -   통합하여 중앙값 평활기 적용 -> 이 과정을 **[3RSS]{style="color: red;"}**라고 함
+
+-   **[재평활(Rerough)]{style="color: red;"}**: 거침(rough)에 남아 있는 패턴을 추가로 설명하기 위하여 다음의 절차를 적용
+    -   이러한 방법을 **[3RS3R, Twice]{style="color: red;"}**라고 부름
+        -   data = smooth + rough
+        -   rough = smooth(rough) + rough(rough)
+        -   data = [smooth + smooth(rough)] + rough(rough) = final.smooth + final.rough
+
+-   **[해닝(Hanning)]{style="color: red;"}**: 데이터 시퀀스에서 인접한 3개의 값들에 대한 가중 평균(weighted mean)을 이용한 평활 방법
+    -   $h_1=y_1$
+    -   $h_i=1/4y_{i-1}+1/2y_i+1/4y_{i+1},i>1$
+
+
+## 10.3. 2022년 K리그(Kleague.csv) 분석
+
+- 2022년 K리그 데이터셋은 한국 축구의 날짜별로 원정팀/홈팀에 따른 관중 수를 정리한 데이터셋이다. 해당 데이터셋을 통해서 날씨, 온도, 경기 지역과 같은 변수도 알 수 있다.
+
+|   |Variable|Description|변수 구분|
+|:---:|:---:|:---:|:---:|
+| 1 |gday|경기 날짜|날짜 변수|
+| 2 |game|경기 순번|이산형|
+| 3 |league|1군, 2군 구분|명목형|
+| 4 |month|달|명목형|
+| 5 |day|일|명목형|
+| 6 |date|요일|명목형|
+| 7 |home|홈팀|명목형|
+| 8 |visitor| 원정팀|명목형|
+| 9 |arena|경기장|명목형|
+| 10 |weather|날씨|명목형|
+| 11 |temp|온도|연속형|
+| 12 |spectator|관중 수|연속형|
+
+
+
+### 10.3.1. 데이터 불러오기
+```{r}
+league <- read.csv(paste0(data_path, "kleague.2022.csv"), header = TRUE)
+```
+
+### 10.3.2. 데이터의 구조 확인
+
+변수와 케이스의 수 그리고 변수의 유형을 확인하고, 결측값(missing value; NA)의 존재여부를 확인한다.
+
+```{r}
+head(league)
+```
+
+-   1161 obs. of  12 variables의 데이터프레임을 보인다.
+
+```{r}
+str(league)
+```
+
+-   온도 데이터만 28개의 결측치가 존재한다.
+
+```{r}
+na_count(league)
+```
+
+### 10.3.3. K리그 1의 팀들 간의 평균 관중 수 확인
+
+-   **[stats::aggregate():]{style="color: blue;"}**: 데이터를 구분하여 요약값을 구하고 이를 반환
+    -   aggregate(formula, data, FUN)
+        -   FUN : 각 그룹에 대해 적용할 함수로 요약 통계를 계산하는데 사용되는 함수(mean, sum, max)가 쓰인다.
+```{r}
+vr <- aggregate(spectator~ home + visitor,
+                data = subset(league, league == "K LEAGUE 1"),
+                mean
+                )
+vr
+vr %>% 
+  ggplot(aes(fct_reorder(home, -spectator),
+             fct_reorder(visitor, spectator),
+             fill = spectator
+             )
+         ) +
+  geom_tile() +
+  geom_text(aes(label = sprintf("%0.2f", round(spectator/1000, 2))),
+            color = lre,
+            size = 1.5
+            ) +
+  labs(x = "홈 팀",
+       y = "방문 팀",
+       subtitle = "2022년 k리그 1의 평균 관중 수(단위: 1000명)"
+       ) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "none") +
+  scico::scale_fill_scico("lajolla")
+```
+### 10.3.4. 데이터 선별: 울산 현대
+
+-   리그 중에 특정 일에 2개 이상의 경기가 진행되므로 특정 팀의 경기를 선택한다.
+    -   이때 관중이 없는 게임은 제거한다.
+    -   경기 간의 일자 간격은 동일하지 않다.
+        -   일자 간격이 동일하지 않아도 이정도는 감소하고 진행한다.
+```{r}
+ulsan <- league %>% 
+  dplyr::filter(spectator != 0) %>% 
+  dplyr::filter(home == "울산 현대" | visitor == "울산 현대") %>% 
+  dplyr::arrange(gday) %>% 
+  mutate(ugame = seq(1, length(gday), 1))
+```
+
+### 10.3.5. 평활화 방법 적용
+
+-   **[stats::smooth()]{style="color: blue;"}**는 Tukey의 k-연속 중앙값 평활기의 다양한 옵션을 제공한다.
+    -   **[smooth(x, kind = c("3RS3R", "3RSS", "3RSR", "3R", "3", "S"), twiceit = FALSE)]{style="color: blue;"}**
+        -   3: 3-중앙값 평활기 1회 적용
+        -   3R: 3-중앙값 평활기(수렴할 때까지) 반복 적용
+        -   S: 분리 평활 적용
+        -   3RSS: 3R + S 적용
+        -   3RS3R: 3R + S + 3R 동시 적용
+        -   twiceit = TRUE: 재평활 적용
+
+-   **[LearnEDAfunctions::han(sequnce)]{style="color: blue;"}**: 해닝 적합을 제공
+
+```{r}
+#평활화(smooth) 구하기
+ulsan$s.3R <- smooth(ulsan$spectator, kind = "3R")
+ulsan$s.3RSS <- smooth(ulsan$spectator, kind = "3RSS")
+ulsan$s.3RS3R2 <- smooth(ulsan$spectator, kind = "3RS3R", twiceit = TRUE)
+ulsan$s.3RS3R2H <- han(smooth(ulsan$spectator, kind = "3RS3R", twiceit = TRUE))
+```
+
+```{r}
+#거침(rough) 구하기
+ulsan$rough.3R <- ulsan$spectator - ulsan$s.3R
+ulsan$rough.3RSS <- ulsan$spectator - ulsan$s.3RSS
+ulsan$rough.3RS3R2 <- ulsan$spectator - ulsan$s.3RS3R2
+ulsan$rough.3RS3R2H <- ulsan$spectator - ulsan$s.3RS3R2H
+```
+
+### 10.3.6. 평활화 결과 확인
+
+-   가장 기본적인 3R 평활부터 3RS3R에 해닝(Hanning)기법까지 적용하여 결과를 살펴 보았다.
+-   최종단계에서는 초기 단계보다 훨씬 스무스한 패턴을 가지는 것을 알 수 있었다.
+
+-   3R 평활(smooth)
+
+```{r}
+g1 <- ulsan %>% 
+  ggplot(aes(ugame, spectator)) +
+  geom_point(color = sbl) +
+  geom_line(aes(ugame, s.3R), color = lre) +
+  labs(x = "경기",
+       y = "관중 수",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3R 적합 결과") +
+  theme_bw()
+g2 <- ulsan %>% 
+  ggplot(aes(ugame, rough.3R)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0, color = lre) +
+  geom_label(data = ulsan %>% 
+               filter(rough.3R >= 10000), aes(ugame, rough.3R, label = gday),
+               label.padding = unit(0.01, "lines")) +
+  labs(x = "경기",
+       y = "거침(rough)",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3R 적합 결과") +
+  theme_bw()
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+-   3RSS 평활(smooth)
+
+```{r}
+g1 <- ulsan %>% 
+  ggplot(aes(ugame, spectator)) +
+  geom_point(color = sbl) +
+  geom_line(aes(ugame, s.3RSS), color = lre) +
+  labs(x = "경기",
+       y = "관중 수",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RSS 적합 결과") +
+  theme_bw()
+g2 <- ulsan %>% 
+  ggplot(aes(ugame, rough.3RSS)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0, color = lre) +
+  geom_label(data = ulsan %>% 
+               filter(rough.3RSS >= 10000), aes(ugame, rough.3RSS, label = gday),
+               label.padding = unit(0.01, "lines")) +
+  labs(x = "경기",
+       y = "거침(rough)",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RSS 적합 결과") +
+  theme_bw()
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+-   3RS3R2 평활(smooth)
+
+```{r}
+g1 <- ulsan %>% 
+  ggplot(aes(ugame, spectator)) +
+  geom_point(color = sbl) +
+  geom_line(aes(ugame, s.3RS3R2), color = lre) +
+  labs(x = "경기",
+       y = "관중 수",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RS3R2 적합 결과") +
+  theme_bw()
+g2 <- ulsan %>% 
+  ggplot(aes(ugame, rough.3RS3R2)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0, color = lre) +
+  geom_label(data = ulsan %>% 
+               filter(rough.3RS3R2 >= 10000), aes(ugame, rough.3RS3R2, label = gday),
+               label.padding = unit(0.01, "lines")) +
+  labs(x = "경기",
+       y = "거침(rough)",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RS3R2 적합 결과") +
+  theme_bw()
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+-   3RS3RH 평활(smooth)
+```{r}
+g1 <- ulsan %>% 
+  ggplot(aes(ugame, spectator)) +
+  geom_point(color = sbl) +
+  geom_line(aes(ugame, s.3RS3R2H), color = lre) +
+  labs(x = "경기",
+       y = "관중 수",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RS3R2H 적합 결과") +
+  theme_bw()
+g2 <- ulsan %>% 
+  ggplot(aes(ugame, rough.3RS3R2H)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0, color = lre) +
+  geom_label(data = ulsan %>% 
+               filter(rough.3RS3R2H >= 10000), aes(ugame, rough.3RS3R2H, label = gday)) +
+  labs(x = "경기",
+       y = "거침(rough)",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RS3R2H 적합 결과") +
+  theme_bw()
+
+grid.arrange(g1, g2, ncol = 2)
+```
+-   관중 수가 평활 패턴보다 만명이상 많았던 날은 9월 18일, 10월 8일, 10월 23일로 확인되었다.
+-   해당 경기의 실제 경기 일정을 찾아보면 주말경기이면서 리그 순위가 중요한 날로 확인할 수 있다.
+-   K리그의 흥행을 불러오면서 관객을 더 모으기 위해서 가능하면 울산 현대, 전북 현대 모터스, FC서울같이 팬층이 두텁고 인기 있는 팀의 경기를 리그 후반부 주말에 배치하면 될 것이다.
+
+### 10.3.7. 전북 현대 평활화 적용
+
+-   울산 현대말고 유명한 구단인 전북 현대 관중 수에 평활화 기법을 적용해보았다.
+-   전북 현대로 선정한 이유는 다음과 같다.
+    -   팬층이 두터움
+    -   K리그에서 최다 우승한 구단
+    -   강등을 한번도 당하지 않은 구단
+
+-   울산 현대에 적용했던 것과 마찬가지로 다음과 같은 규칙을 적용했다.
+    -   리그 중에 특정 일에 2개 이상의 경기가 진행되므로 특정 팀의 경기를 선택한다.
+        -   이때 관중이 없는 게임은 제거한다.
+        -   경기 간의 일자 간격은 동일하지 않다.
+            -   일자 간격이 동일하지 않아도 이정도는 감소하고 진행한다.
+```{r}
+JB <- league %>% 
+  dplyr::filter(spectator != 0) %>% 
+  dplyr::filter(home == "전북 현대" | visitor == "전북 현대") %>% 
+  dplyr::arrange(gday) %>% 
+  mutate(jgame = seq(1, length(gday), 1))
+```
+
+```{r}
+#평활화 구하기
+JB$s.3RS3R2H <- han(smooth(JB$spectator, kind = "3RS3R", twiceit = TRUE))
+```
+
+```{r}
+#거침 구하기
+JB$rough.3RS3R2H <- JB$spectator - JB$s.3RS3R2H
+```
+
+```{r}
+#전북 현대 3RS3R2H 평활(smooth)
+g1 <- JB %>% 
+  ggplot(aes(jgame, spectator)) +
+  geom_point(color = sbl) +
+  geom_line(aes(jgame, s.3RS3R2H), color = lre) +
+  labs(x = "경기",
+       y = "관중 수",
+       subtitle = "2022년 시즌 전북 현대 관중 수에 대한 3RS3R2H 적합 결과") +
+  theme_bw()
+g2 <- JB %>% 
+  ggplot(aes(jgame, rough.3RS3R2H)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0, color = lre) +
+  geom_label(data = JB %>% 
+               filter(rough.3RS3R2H >= 10000), aes(jgame, rough.3RS3R2H, label = gday),
+               label.padding = unit(0.01, "lines")) +
+  labs(x = "경기",
+       y = "거침(rough)",
+       subtitle = "2022년 시즌 전북 현대 관중 수에 대한 3RS3R2H 적합 결과") +
+  theme_bw()
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+-   관중 수가 평활 패턴보다 유독 많았던 날은 10월 8일이다.
+-   10월 8일은 이전에 분석해보았던 울산 현대와 겹치는 날인데 거의 매년 리그 1, 2를 다투는 두 구단이 만났을 가능성이 높은 날이다.
+-   실제로 찾아본 결과, 두 구단이 10월 8일에 경기를 해서 울산이 승리하여 울산이 우승 확정을 만들어 가는 날임을 알 수 있었다.
+-   이렇게 평활화를 적용해 보았는데 관중 수가 많은 날들을 조사하여 마케팅에 활용하면 더욱더 관중수를 모을 수 있을 것으로 판단된다. 
+    -   이러한 점은 K리그뿐만 아니라 다른 스포츠도 적용해보면 스포츠 관객수를 모으는데 큰 도움이 될 것이다. 
+-   E-Sport 중 하나인 LCK(리그오브레전드 코리아)에서는 실제로 라이벌 구도인 팀들, 팬층이 두터운 팀 경기를 가장 많은 시청자를 모을 수 있는 주말에 배치하여 효과를 보고 있는 것으로 알려져 있다.
+    -   이번년도에 첫 시행이 된 사항이므로 향후 정규 리그가 끝난 이후에 지난 리그들과 비교하여 시청자수가 얼마나 변화했는지 알아 볼 예정이다.
+    
+
+---
+
+# Ch11. 시각화(Visualization)
+
+-   Numerical quantities focus on expected value, graphical summaries on unexpected values.
+
+-   EDA의 현시성(Revelation)은 데이터 탐색을 위하여 다양한 정보들에 대한 그래픽 요약(graphical summary)을 강조한다.
+-   그래프(graphs)는 의도된 메시지의 생생함, 불가피성 그리고 숫자들만으로 표현할 수 없는 정보들을 표현할 수 있어야 한다.
+
+-   데이터 시각화의 목적, 목표 그리고 설계 원칙
+    -   최근의 데이터 시각화 방법들은 데이터의 분석에 기반하고 있다.
+    -   좁은 의미에서는 **EDA 시각화**는 **[분석-탐색-탐지]{style="color: #383838;"}**를 위하여 적용된다.
+    -   목적과 목표를 달성하기 위한 기초 작업의 역할을 수행한다.
+    
+|목적|목표|시각화 설계 원칙|
+|:-:|:-:|:-:|
+|<span style="color:blue">분석 (Analysis)</span>|<span style="color:blue">탐색 (Exploration)</span>|<span style="color:blue">탐지 (Detection)</span>|
+|   |수색 (Reconnaissance)|인지 (Perception)|
+|   |진단 (Diagnosis)|비교 (Comparison)|
+|소개 (Presentation)|예증 (To Simulate)|미학 (Aesthetics)|
+|   |설득 (To Persuade)|수사 (Rhetoric)|
+|   |알림 (To inform)|설득 (Exposition)|
+
+-   효과적인 그래픽 요약을 위한 **[ACCENT 원칙]{style="color: red;"}**
+    -   **[A(Apprehension, 인지)]{style="color: blue;"}**: 고려한 변수들을 올바로 반영할 수 있는 방법 선택
+        -   그래프가 고려한 변수들간의 관계를 이해하는 데 최적화되어 있는가?
+    -   **[C(Clarity, 명확)]{style="color: blue;"}**: 그래프의 모든 요소를 시각적으로 구분
+        -   가장 중요한 요소나 관계가 시각적으로가장 잘 타나나는가?
+    -   **[C(Consistency, 일치)]{style="color: blue;"}**: 이전 그래프와의 유사성을 기반으로 그래프를 작성
+        -   그래프의 요소, 기호, 모양 그리고 색상이 이전에 사용했던 그래프와 일치하는가?
+    -   **[E(Efficiency, 효율)]{style="color: blue;"}**: 복잡할 수 있는 관계를 가능한 한 단순하게 묘사
+        -   그래프의 요소가 경제적으로 사용되었는가 그리고 그래프는 쉽게 해석할 수 있는가?
+    -   **[N(Necessity, 필요)]{style="color: blue;"}**: 꼭 필요한 그래프 그리고 그래프의 요소들의 선택
+        -   그래프가 표 또는 요약값 등의 대안보다 데이터를 설명하는 데 더 유용한가?
+        -   전달하고자 하는 관계를 표현하는데 현재의 모든 그래프 요소가 필요한가?
+    -   **[T(Truthfulness, 진실)]{style="color: blue;"}**: 암묵적 또는 명시적 척도들을 올바로 반영하는 그래프 요소들의 척도 결정
+        -   그래프의 요소들이 정확하게 배치되고 올바른 척도로 조정되었는가?
+
+-   데이터의 시각화 유성 여부는 다음 사항에 의하여 결정된다.
+    -   데이터의 소비자의 요구사항
+    -   적합한 데이터의 확보
+    -   분석자의 데이터 이해도와 시각화 방법에 대한 역량
+
+-   데이터 시각화를 위한 **[10-Key-Info]{style="color: red;"}**
+    -   최근의 데이터 시각화 방법들은 이러한 정보를 2개 이상 복합적으로 표현할 수 있는 응용 방법을 제공한다.
+        -   따라서 반드시 **[ACCENT]{style="color: red;"}** 기준에서 **[효율성과 필요성]{style="color: #383838;"}**을 검토해야 한다.
+
+|  | 정보 | 설명 |
+|:-----:|:-------:|:--------------:|
+|   1   |크기 Magnitude|빈도(frequency, counts) 또는 양(size)의 비교|
+|   2   |순서 Order|크기의 오름(Asc) 또는 내림(Desc)의 순위(rank)|
+|   3   |부분/비율 Proportion|전체에서 항목들의 집계 수 또는 비중(fraction)|
+|   4   |편차 Deviation|기준값(reference value)과의 차이(양(+)또는 음(-))|
+|   5   |분포 Distribution|전체 데이터의 구조(structure), 형태(shape), 위치, 범위 등|
+|   6   |흐름 Flow|기준값 변화에 따른 데이터(시퀀스)의 패턴(patterns)|
+|   7   |변화 Change|시간의 변화에 따른 트렌드(trends)|
+|   8   |상관 Correlation|2개의 양적 변수들간의 상관성(Correlations)|
+|   9   |연관 Association|개체 간의 관계(network) 또는 밀접도(associations)|
+|  10   |공간 Space|공간적(Spatial) 위치 또는 지리학적(geographical)으로 표현되는 값 또는 변화(Changes)|
+
+-   데이터 시각화를 위한 **[10-Key-Info]{style="color: red;"}**와 중요 시각화 방법
+    -   개별 요약(individual summary)의 관점에서 시각화에서 유용한 정보를 요약한 표
+        -   ★: 적절한 정보를 표현 가능
+        -   ☆: 정보 표현이 가능하지만 유용성이 제한됨
+        
+|   |   |막대|파이|히스토그램|박스플랏|산점도|히트맵|모자이크|등고선|지도|
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+|   1   |크기|★|☆|  | ☆|       |       |       |       |       |
+|   2   |순서|★| ☆| | ☆|       |       |       |       |       |
+|   3   |부분/비율|★| ★|       |       |       |       |  ★       |       |
+|   4   |편차|★|       |       |☆|  ★     |       |       |       |       |
+|   5   |분포|       |       |★|★|       |       |       |       ☆|     ☆  |
+|   6   |흐름|       |       |       |       |★       |       |       |       |       |
+|   7   |변화|       |       |       |       | ★      |       |       |       |       |
+|   8   |상관|       |       |       |       |  ★     |   ★    |       |       |       |
+|   9   |연관|       |       |       |       |       |★       |   ★    |       |       |
+|  10   |공간|       |       |       |       |       |    ☆   |       |   ★    |    ★|
+
+## 11.1. 데이터 사전 정리
+
+-   데이터 시각화를 적용하기 전에 필요 변수, 범주, 단위 등을 사전에 정리하여 **그래픽 요약**에서 그 의미가 명확히 표현될 수 있도록 해야 한다.
+
+-   데이터 시각화를 위한 사전 정리!!
+    -   **[변수 이름(들)과 범주 이름(들)]{style="color: #383838;"}**을 의미 있는 용어로 변경한다.
+    -   시각화 소비자 중심으로 데이터의 **[단위(units) 또는 척도(scale)]{style="color: #383838;"}**를 변경하고 이를 명시적으로 표현한다.
+    -   데이터 시각화를 위하여 변경된 데이터는 원시 데이터와 별도로 저장하고 관리한다.
+
+### 11.1. mtcars 데이터셋을 이용한 시각화를 위한 데이터 사전 정리 과정 알아보기
+
+-   mtcars는 R에 내장된 데이터로 1974년도 미국의 Motor Tend US Magazine에 수록된 1973~1974년 출시 자동차의 다양한 특징들을 기록한 데이터셋이다.
+
+| 변수명 | 설명 | Data 유형 |
+|:----|:--------:|:----:|
+| mpg | Miles/Gallon, 연비 | 연속형 |
+| cyl | No. of Cyclinders, 엔진의 기통수 | 이산형 |
+| disp | 배기량($inch^3$) | 연속형 |
+| hp | Gross Horsepower, 마력 | 연속형 |
+| drat | Rear axle ratio, 뒤차축비 | 연속형 |
+| wt | Weight(1000lbs), 무게 | 연속형 |
+| qsec | 1/4 Mile time, 402m 도달 시간 | 연속형 |
+| vs | V or Straight Engine, 엔진형태 | 범주형 |
+| am | 0 = auto, 1 = manual, 변속 기어 종류 | 범주형 |
+| gear | No. of Forward Gears, 전진 기어 단계의 수 | 이산형 |
+| carb | No. of Carburetors, 기화기의 수 | 이산형 |
+
+```{r}
+# mtcars의 class 확인하기
+class(mtcars)
+```
+- R환경에 있는 데이터는 다음의 함수를 이용하여 데이터의 대략적인 구조를 파악할 수 있다.
+    -   **[str()]]{style="color: blue;"}**: 데이터에 포함된 개별 변수들과 형식 그리고 값의 일부를 확인
+    -   **[head()]{style="color: blue;"}**, **[tail()]{style="color: blue;"}**: 전체 데이터 중에서 최초/최종 일부를 확인
+    
+```{r}
+str(mtcars)
+```
+
+-   그래프 사용자가 쉽게 이해할 수 있는 변수명으로 전환한다.
+    -   한글도 가능!
+    -   **[dplyr::rename_all(tolower)]{style="color: blue;"}** 또는 **[dplyr::rename_all(toupper)]{style="color: blue;"}**: 변수명을 일관된 문자(대문자 또는 소문자)로 변경
+        -   변수명은 가능하면 일관된 문자로 적용하는 것이 분석할 때 용이하다.
+    -   **[dplyr::rename(new = old)]{style="color: blue;"}**: 기존 변수 이름(old)을 새로운 이름(new)로 변경
+
+```{r}
+auto.74 <- mtcars %>% 
+  rename_all(tolower) %>% 
+  rename(cylinders = cyl,
+         displacement = disp,
+         ra.ratio = drat,
+         weight = wt,
+         trans = am,
+         carbuetors = carb
+  )
+```
+
+-   해석이 용이하도록 데이터의 단위 또는 범주 이름 등을 재정리한다.
+    -   **[dplyr::mutate()]{style="color: blue;"}**: 단위 변환시 사용
+    -   **[dplyr::recode()]{style="color: blue;"}**: 범주형 변수의 범주명 변경 시 사용
+    -   **[base::cut()]{style="color: blue;"}**: 연속형 변수를 범주화할 때 사용 
+
+-   변수 mpg는 Miles/Gallon으로 제시되었다.
+    -   1 gallon = 3.78541 litters
+    -   1 mile = 1.60934 Km
+
+```{r}
+auto.74 <- auto.74 %>% 
+  mutate(kml = (mpg * 1.60934) / 3.78541)
+```
+-   범주형 변수의 범주값들은 입력 편의성을 위하여 간단한 문자 또는 숫자로 입력한다.
+    -   mtcars 예제의 경우에도 vs와 trans 변수는 {0, 1}로 입력되었다.
+
+```{r}
+auto.74 <- auto.74 %>% 
+  mutate(vs = recode(vs, '0' = "v", '1' = "s"),
+         trans = recode(trans, '0' = "auto", '1' = "manual")
+  )
+```
+
+-   연속형 변수는 구간화(intervalization)를 통하여 범주형으로 전환할 수 있다.
+    -   연속형 변수의 구간을 소수의 범주들로 구분하여 서로 다른 연산 또는 기준을 적용할 때 유용하다.
+
+-   예를 들어, 2022년 현재 국내 자동차 세금은 엔진 배기량(displacement)에 세액을 곱하여 최종 납부액을 산출한다.
+    -   mtcars의 배기량(displacement)는 큐빅 인치($inch^3$) 단위로 기록되어 있다.
+    -   국내의 세금은 cc(cubic centimeter)이므로 이를 적절하게 환산하여 세금 부과 기준으로 구간화 가능하다.
+        -   $(1inch)^3 = 16.387cm^3$
+```{r}
+#세금액 부과 기준(배기량(cc))으로 범주화된 변수 taxclass
+auto.74 <- auto.74 %>% 
+  dplyr::mutate(
+    displacement.c = displacement * 16.387,
+    taxclass = cut(displacement.c,
+                   breaks = c(0, 1000, 1600, Inf),
+                   include.lowest = F,
+                   labels = c(80, 140, 200)
+                   ),
+    tax = displacement.c * as.numeric(as.character(taxclass))
+  )
+```
+
+-   1600cc를 기준으로 자동차 세금액이 구분되는 것을 알 수 있다.
+
+```{r}
+ggplot(auto.74, aes(x = displacement.c, y = tax)) +
+  geom_point() +
+  geom_vline(xintercept = 1600, color = "red", linetype = "dashed") +
+  labs(x = "Displacement(cc)", y = "Tax(만원)", title = "배기량에 따른 자동차 세금(2022년 12월 기준") +
+  scale_y_continuous(labels = function(x) x/10000) +
+  theme_minimal()
+```
+
+-   최종 정리되어 시각화에 사용된 데이터는 원하는 장소에 원하는 형식으로 저장하면 추후에 활용할 때 용이하다.
+    -   **[save(object, 파일명)]{style="color: blue;"}**: R형식으로 저장
+    -   **[write.csv(object, 파일명)]{style="color: blue;"}**: csv(comma separated values)형식으로 저장
+    -   **[data_save]{style="color: #383838;"}**하는 폴더도 따로 만들어서 관리를 하면 파일 관리에 유용
+
+```{r}
+#data_save <- paste0(getwd(),"/save/")
+#save(auto.74, file = paste0(data_save, "auto.74.RData")) #R data 형식
+#write.csv(auto.74, file = paste0(data_save, "auto.74.csv")) #csv 형식
+```
+
+## 11.2. 10-키-인포의 시각화 방법
+
+-   시각화 하기에 앞서서 ggplot2 패키지는 **[Chapter3.12.1. ggplot2::]{style="color: #383838;"}**에서 상세한 설명이 있으니 참고하기!
+
+### 11.2.1. 막대 그림 bar/column charts
+
+#### 11.2.1.1. 38종의 자동차의 연비와 특징을 기록한 데이터셋(bar.data.csv)
+
+**[ggplot2::mpg]{style="color: blue;"}**의 1999 ~ 2008년도에 판매된 38종의 자동차의 연비와 특징을 기록한 데이터 중 일부를 발췌한 데이터셋이다.
+
+| Variable | Description | 변수 척도 |
+|:---:|:---:|:---:|
+| class |차종|범주형|
+| cylinder |기통수|범주형|
+| drive |주행 방식|범주형|
+| city |연비|연속형|
+
+
+```{r}
+bar_data <- read.csv(paste0(data_path, "bar.data.csv"))
+```
+```{r}
+head(bar_data)
+```
+
+```{r}
+str(bar_data)
+#결측값 개수 확인
+sum(is.na(bar_data))
+```
+
+-   **[na_count()]{style="color: blue;"}**: 변수별 결측값 수 확인 사용자 함수
+```{r}
+na_count(bar_data)
+```
+
+
+-   기본 그림: 단일 범주형 변수
+    -   **[geom_bar()]{style="color: blue;"}**: 막대그림 함수
+    -   **[coord_flip()]{style="color: blue;"}**: 그래프의 축 전환 함수
+```{r}
+g1 <- ggplot(bar_data, aes(class)) +
+        geom_bar(color = "white", fill = sbl) +
+        theme_bw() +
+        theme(axis.title = element_text(size = 30, face = "bold"),
+              axis.text.x = element_text(size = 20), 
+              axis.text.y = element_text(size = 20))
+#
+g2 <- ggplot(bar_data, aes(class)) +
+        geom_bar(color = "white", fill = sbl) +
+        coord_flip() +
+        theme_bw() +
+        theme(axis.title = element_text(size = 30, face = "bold"),
+              axis.text.x = element_text(size = 20), 
+              axis.text.y = element_text(size = 20))
+
+grid.arrange(g1, g2, ncol = 2)
+```
+-   범주별 빈도 나열 관련 함수
+    - **[dplyr::count()]{style="color: blue;"}**: 고유값으로 빈도 계산
+    - **[forcats::fct_reorder()]{style="color: blue;"}**: 특정 변수에 따라 재정렬
+    - **[ggplot2::geom_text()]{style="color: blue;"}**: 그래프에 문자 또는 숫자 추가
+  
+```{r}
+bar_data %>%
+  count(class, name = "nclass") %>%
+  mutate(class = fct_reorder(class, nclass)) %>%
+  ggplot(aes(class, nclass)) + 
+  geom_bar(stat = "identity", color = "white", fill = "blue") + 
+  labs(subtitle = "차종별 빈도(ggplot2::mpg)",
+       x = "차종",
+       y = "빈도"
+       ) +
+  coord_flip() +
+  geom_text(aes(label = nclass), hjust = 2, color = "white", size = 3) +
+  theme_bw()
+```
+
+-   기본 그림: 2개 이상의 범주형 변수에 따른 표현 방법
+    -   **[aes(fill = var)]{style="color: blue;"}**: 개별 막대 내에 표시할 변수를 지정정
+    -   **[쌓기(stack)]{style="color: #383838;"}**
+    -   **[비켜놓기(dodge)]{style="color: #383838;"}**
+        -   지정하지 않으면 default값으로 쌓기 지정
+
+-   position = "dodge2": 그룹 간에 공간을 유지하면서 막대 그래프를 배치하는 데 사용
+-   position = position_dodge2(preserve = "single"): 이전에 그려진 그래프의 위치를 유지하면서 새로운 그래프를 그리는 데 사용
+```{r}
+g1 <- bar_data %>%
+  ggplot(aes(class, fill = drive)) + 
+  geom_bar() +
+  coord_flip()
+
+g2 <- bar_data %>%
+  ggplot(aes(class, fill = drive)) +
+  geom_bar(position = position_dodge2(preserve = "single")) +
+  coord_flip()
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+
+g1 <- bar_data %>%
+  ggplot(aes(cylinder, fill = drive)) + 
+  geom_bar() +
+  coord_flip()
+
+g2 <- bar_data %>%
+  ggplot(aes(cylinder, fill = drive)) +
+  geom_bar(position = position_dodge2(preserve = "single")) +
+  coord_flip()
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+-   position: position_dodge2 vs "dodge2"
+
+```{r}
+g1 <- bar_data %>%
+  ggplot(aes(class, fill = drive)) +
+  geom_bar(position = position_dodge2(preserve = "single")) +
+  coord_flip()
+
+g2 <- bar_data %>%
+  ggplot(aes(class, fill = drive)) +
+  geom_bar(position = "dodge2") +
+  coord_flip()
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+
+
+
+-   기본 그림: 2개의 범주형 변수들 - 범주별 비율(%) 표현 함수
+  - **[ggplot2::scale_*_continuous()]{style="color: blue;"}**: x 또는 y가 연속형일 때, 연속형 변수의 scale을 변환하고, label 형식 지정
+  - **[scale_*_log10()]{style="color: blue;"}**: 해당 축을 log 형태로 표현
+  - **[scale_*_sqrt()]{style="color: blue;"}**: 해당 축을 제곱근 형태로 표현
+  - **[scale_*_reverse()]{style="color: blue;"}**: 해당 축을 역순(큰 값 > 작은 값)으로 나열
+
+```{r}
+#기본
+bar_data %>%
+  ggplot(aes(x = cylinder, fill = drive)) +
+  geom_bar(position = "fill") + 
+  scale_y_continuous(labels = scales::percent) +
+  theme_bw()
+
+#log10()
+bar_data %>%
+  ggplot(aes(x = cylinder, fill = drive)) +
+  geom_bar(position = "fill") + 
+  scale_y_log10() +
+  theme_bw()
+
+#sqrt()
+bar_data %>%
+  ggplot(aes(x = cylinder, fill = drive)) +
+  geom_bar(position = "fill") + 
+  scale_y_sqrt() +
+  theme_bw()
+
+#reverse()
+bar_data %>%
+  ggplot(aes(x = cylinder, fill = drive)) +
+  geom_bar(position = "fill") + 
+  scale_y_reverse() +
+  theme_bw()
+```
+
+-   기본 그림: 범주형 변수의 범주 별 요약값 표현
+-   요약값 표현 관련 함수
+    -   **[base::round(x, digits)]{style="color: blue;"}**: 반올림 함수
+    -   **[dplyr::summarize()]{style="color: blue;"}**: 요약 함수
+    -   **[geom_bar()]{style="color: blue;"}**
+    -   **[geom_col()]{style="color: blue;"}**
+
+```{r}
+g1 <- bar_data %>% 
+        ggplot(aes(x = cylinder, y = city)) +
+        stat_summary(fun = mean, geom = "bar", color = "white", fill = sbl) +
+        theme_bw() +
+        theme(axis.title = element_text(size = 30, face = "bold"),
+              axis.text.x = element_text(size = 20), 
+              axis.text.y = element_text(size = 20))        
+g2 <- bar_data %>% 
+        group_by(cylinder) %>% 
+        summarise(avg = mean(city)) %>% 
+        ungroup() %>% 
+        ggplot(aes(x = cylinder, y = avg)) +
+        geom_col(color = "white", fill = sbl) +
+        geom_text(aes(label = round(avg, 1)), vjust = 2, color = "white", size = 10) +
+        theme_bw() +
+        theme(axis.title = element_text(size = 30, face = "bold"),
+              axis.text.x = element_text(size = 20), 
+              axis.text.y = element_text(size = 20))
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+#### 11.2.1.2. 세계 주류 소비량(2018)(alcohol.csv)
+
+-   alcohol.csv는 2018년 각 나라별 주류 소비량을 나타낸 데이터셋이다.
+
+|Variable|변수 설명|
+|:-:|:--------:|
+| country | 나라 이름|
+| beer_servings |맥주|
+| spirit_servings  |증류주|
+|wine_servings|와인|
+|total_litres_of_pure_alcohol|총 소비량|
+
+
+```{r}
+#데이터 로드
+drink <- read.csv(paste0(data_path, "alcohol.csv"), header = TRUE)
+str(drink)
+```
+
+-   결측값 개수 확인
+```{r}
+sum(is.na(drink))
+
+na_count(drink)
+```
+
+-   변수명 재정의 variable rename
+```{r}
+drink <- drink %>%
+  rename(total = total_litres_of_pure_alcohol,
+         beer = beer_servings,
+         spirit = spirit_servings,
+         wine = wine_servings
+         )
+str(drink)
+```
+
+-   오름차순, 랭킹 관련 함수
+  - **[dplyr::top_n(dataframe, n, wt)]{style="color: blue;"}**: wt 변수에 따른 n 개의 케이스 선택
+  - **[dplyr::arrange()]{style="color: blue;"}**: 변수의 값을 순서대로 나열
+  - **[dplyr::desc()]{style="color: blue;"}**: 변수의 값을 내림차순으로 나열
+  
+-   알코올을 많이 섭취하는 상위 5개국?
+
+```{r}
+drink %>%
+  top_n(5, wt = total) %>%
+  arrange(desc(total))
+```
+
+-   대한민국 알코올 섭취량 정도 시각화
+
+```{r}
+drink %>%
+  mutate(med = median(total, na.rm = TRUE)) %>%
+  mutate(alcohol = total - med,
+         country = fct_reorder(country, total)
+         ) %>%
+  ggplot(aes(country, alcohol)) +
+  geom_col(fill = sbl) + 
+  geom_vline(aes(
+    xintercept = which(levels(as.factor(country)) == "South Korea")),
+    color = lre,
+    lty = 1
+    ) +
+  labs(x = "총 주류 소비량(litters)",
+       y = "국가",
+       subtitle = "국가 별 총 주류 소비량"
+       ) +
+  coord_flip() + 
+  theme_bw() + 
+  theme(text = element_text(size = 3))
+```
+
+-   롤리팝 그림(lollipop chart)
+    -   **[geom_point()]{style="color: blue;"}**와 **[geom_segment()]{style="color: blue;"}**를 이용하여 좀 더 명확하게 표현한 그림
+
+```{r}
+drink <- drink %>%
+  mutate(alcohol = total - median(total, na.rm = TRUE),
+         acolor = ifelse(alcohol <= 0, "color1", "color2"),
+         country = fct_reorder(country, alcohol)
+         )
+
+drink %>%
+  ggplot(aes(country, alcohol, color = acolor)) +
+  geom_segment(aes(x = country, xend = country, y = 0, yend = alcohol),
+               color = ifelse(drink$country == "South Korea", lre, ldg)
+               ) +
+  geom_point() +
+  scale_color_manual(values = c(sbl, lre)) +
+  coord_flip() + 
+  labs(x = "총 주류 소비량(litters)",
+       y = "국가",
+       subtitle = "국가 별 총 주류 소비량"
+       ) +
+  theme_light() + 
+  theme(text = element_text(size = 4),
+        legend.position = "none"
+        )
+```
+
+### 11.2.2. 파이 그림 pie charts
+
+-   파이 그림을 통해 표현 가능한 것
+    - 크기(빈도, 양)
+    - 순서
+    - 비율
+
+-   전체 대상이 아닌 경우, 막대 그림 사용
+    -   비중으로 해석하는 용도로 사용함
+
+-   파이 그림 관련 ggplot 함수
+    -   **[ggplot2::coord_polar()]{style="color: blue;"}**: 그래프를 평면에서 원으로 전환
+        -   start: 시작점, direction: 1(시계 방향), -1(반시계 방향) 
+    -   **[ggplot2::theme_void()]{style="color: blue;"}**: 배경, 격자, 숫자 라벨 모두 제거
+
+-   기본 그림: 단일 범주형 변수
+```{r}
+#기본 파이 그림
+#범주 변수(group), 빈도 변수(counts)로 정제
+pie_data <- data.frame(group = LETTERS[1:6],
+                       value = c(30, 20, 10, 5, 3, 2)
+                       )
+
+#기본 막대 그림으로 도시 후 좌표 변환
+ggplot(pie_data, aes(x = "", y = value, fill = group)) + 
+  geom_bar(stat = "identity", width = 1) + 
+  coord_polar("y", start = 0) + 
+  theme_void()
+```
+
+
+-   파이 그림의 각 조각내의 중앙에 범례를 추가하기
+    - **[cumsum()]{style="color: blue;"}**: 누적 합
+    - **[cumprod()]{style="color: blue;"}**: 누적 곱
+    - **[cummin()]{style="color: blue;"}**: 누적 최소값
+    - **[cummax()]{style="color: blue;"}**: 누적 최대값
+```{r}
+pie_data <- pie_data %>%
+  arrange(desc(group)) %>%
+  mutate(prop = value / sum(value) * 100) %>%
+  mutate(ypos = cumsum(prop) - 0.5 * prop) #c누적합
+
+#막대 그림
+g1 <- ggplot(pie_data, aes(x = "", y = prop, fill = group)) + 
+  geom_bar(stat = "identity", width = 1, color = "white") + 
+  theme_void() +
+  theme(legend.position = "none") + 
+  geom_text(aes(y = ypos, label = group), color = "white", size = 3)
+
+#파이 그림으로 전환
+g2 <- ggplot(pie_data, aes(x = "", y = prop, fill = group)) + 
+  geom_bar(stat = "identity", width = 1, color = "white") + 
+  coord_polar("y", start = 0, direction = -1) + 
+  theme_void() +
+  theme(legend.position = "none") + 
+  geom_text(aes(y = ypos, label = group), color = "white", size = 3)
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+
+#### 11.2.2.1. 시장 점유율 시각화(tv.streaming.2020.csv)
+
+-    tv.streaming.2020.csv는 2020년 전세계 스트리밍의 시장 점유율을 조사한 데이터셋이다.
+```{r}
+#데이터 로드
+tvms <- read.csv(paste0(data_path, "tv.streaming.2020.csv"))
+str(tvms)
+#결측값 개수 확인
+sum(is.na(tvms))
+na_count(tvms)
+
+dim(tvms)
+```
+
+```{r}
+#기본 파이 그림
+ggplot(tvms, aes(x = "", y = market, fill = streaming)) +
+  geom_bar(stat = "identity", width = 1) + 
+  coord_polar("y", start = 0) + 
+  theme_void() 
+
+#색상 변경
+ggplot(tvms, aes(x = "", y = market, fill = streaming)) +
+  geom_bar(stat = "identity", width = 1) + 
+  #원하는 palette 이름으로 지정하여 변경 가능
+  scale_fill_brewer(palette = 'Paired') +
+  coord_polar("y", start = 0) + 
+  theme_void() 
+
+#파이 그림 각 조각 내 범례 추가
+tvms <- tvms %>%
+  arrange(desc(streaming)) %>%
+  mutate(prop = market / sum(market) * 100) %>%
+  mutate(ypos = cumsum(prop) - 0.5*prop) #cumsum - 누적합
+
+#막대 그림으로 도시
+g1 <- ggplot(tvms, aes(x = "", y = prop, fill = streaming)) + 
+  geom_bar(stat = "identity", width = 1, color = "white") + 
+  theme_void() +
+  theme(legend.position = "none") + 
+  geom_text(aes(y = ypos, label = streaming), color = "white", size = 6)
+
+#파이 그림으로 전환
+g2 <- ggplot(tvms, aes(x = "", y = prop, fill = streaming)) + 
+  geom_bar(stat = "identity", width = 1, color = "white") + 
+  coord_polar("y", start = 0, direction = -1) + 
+  theme_void() +
+  geom_text(aes(label = paste0(round(prop,2), "%")), position = position_stack(vjust = 1), color = "white", size = 6)
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+
+
+#비중 표시
+ggplot(tvms, aes(x = "", y = prop, fill = streaming)) + 
+  geom_bar(stat = "identity", width = 1, color = "white") + 
+  coord_polar("y", start = 0, direction = -1) + 
+  theme_void() +
+  geom_text(aes(x = 1.6, label = paste0(round(prop,2), "%")), 
+            position = position_stack(vjust = .5), color = ldg, size = 6)
+```
+-    파이 그림에서 막대 그림 & 롤리팝 그림으로 전환하여 도시하기
+```{r}
+#막대 그림으로 전환
+g1 <- tvms %>%
+  mutate(streaming = fct_reorder(streaming, -market)) %>% #streaming 점유율이 높은 순으로 정렬
+  ggplot(aes(streaming, market)) + 
+  geom_col(color = "white", fill = sbl) +
+  labs(x = "Tv streaming OS",
+       y = "점유율",
+       subtitle = "2020년 전세계 TV Streaming 점유율"
+  ) +
+  geom_text(aes(label = round(market, 1)), vjust = 2, color = "white", size = 3) +
+  theme_bw() + 
+  theme(text = element_text(size = 8, face = "bold"),
+        axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1))
+  
+
+#롤리팝 그림으로 전환
+g2 <- tvms %>%
+  mutate(streaming = fct_reorder(streaming, market)) %>% #streaming 점유율이 낮은 순으로 정렬
+  ggplot(aes(streaming, market)) + 
+  geom_point(color = sbl) +
+  geom_segment(aes(x = streaming, xend = streaming, y = 0, yend = market), color = sbl) +
+  labs(x = "Tv streaming OS",
+       y = "점유율",
+       subtitle = "2020년 전세계 TV Streaming 점유율"
+  ) +
+  geom_text(aes(label = round(market, 1)), vjust = -0.6, color = ldg, size = 3) +
+  theme_bw() + 
+  theme(text = element_text(size = 8, face = "bold"),
+        axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1))
+
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+### 11.2.3. 히스토그램 histogram
+
+-   관찰 가능한 것
+    - 연속형 데이터의 대략적인 분포
+    - 좌우대칭 여부 및 왜도
+    - 데이터의 범위 및 산포의 정도
+    - 군집 여부
+    - 이상점 여부 
+  
+-   **[geom_histogram()]{style="color: blue;"}**
+    - color: 막대 선 색깔
+    - fill: 막대 채우기 색깔  
+    - bins: 막대의 개수 
+    - binwidth: 막대의 너비
+    - geom_histogram(aes(y = ..density..)): 상대 도수로 변경
+    - geom_density(colour = "색상"): 밀도 함수 표현
+  
+-   커널 밀도 함수 관련 함수
+  -   기본 kernal은 gaussian이다.
+  -   **[geom_density()]{style="color: blue;"}**
+  -   **[stat_dentity()]{style="color: blue;"}**
+      -   adjust = 1(디폴트): smoothing bandwidth 조절 - 평활화
+      -   kernel = c("gaussian", "epanechnikov", "rectangular", "triangular", "biweight", "cosine", "optcosine")
+
+- 기본 그림: 가상 데이터
+
+```{r}
+hist_data <- data.frame(values = rnorm(100, 100, 10))
+
+hist_data %>% 
+  ggplot(aes(x = values)) +
+  geom_histogram(binwidth = 5, color = "white", fill = sbl) +
+  labs(subtitle = "binwidth = 5") +
+  theme_bw()
+```
+```{r}
+hist_data %>% 
+  ggplot(aes(x = values)) +
+  geom_histogram(bins = 17, color = "white", fill = sbl) +
+  labs(subtitle = "bins = 17") +
+  theme_bw()
+```
+```{r}
+diamonds %>% 
+  ggplot(aes(x = carat, y = after_stat(density))) +
+  geom_histogram(bins = 17, color = "white", fill = sbl) +
+  theme_bw()
+```
+-   커널 밀도 그림: 가상 데이터
+
+```{r}
+g1 <- hist_data %>% 
+  ggplot(aes(values)) + 
+  geom_density(adjust = 0.5) + 
+  labs(subtitle = "adjust = 1/2") + 
+  theme_bw()
+
+g2 <- hist_data %>% 
+  ggplot(aes(values)) + 
+  geom_density(adjust = 1) + 
+  labs(subtitle = "adjust = 1") + 
+  theme_bw()
+
+g3 <- hist_data %>% 
+  ggplot(aes(values)) + 
+  geom_density(adjust = 2) + 
+  labs(subtitle = "adjust = 2") + 
+  theme_bw()
+
+gridExtra::grid.arrange(g1, g2, g3, ncol = 3)
+```
+
+#### 11.2.3.1. ggplot2::diamonds
+
+| 변수명 | 설명 |
+|:--------:|:-----------:|
+| carat | 다이아몬드의 무게 |
+| cut | 다이아몬드 컷팅 품질 |
+| color | 다이아몬드의 색상 |
+| clarity | 다이아몬드의 투명도 |
+| depth | 다이아몬드의 깊이 |
+| table | 다이아몬드의 테이블 폭 |
+| price | 다이아몬드의 가격 |
+| x | 다이아몬드의 길이 |
+| y | 다이아몬드의 너비 |
+| z | 다이아몬드의 높이 |
+
+
+-   기본 히스토그램과 커널 밀도 함수
+
+```{r}
+diamonds %>%
+  ggplot(aes(x = carat, y = ..density..)) + 
+  geom_histogram(color = "white", fill = sbl) + 
+  geom_density(adjust = 3, color = lre) + 
+  theme_bw()
+```
+
+
+-   범주별로 구분된 히스토그램: 색상별 가격의 분포 히스토그램
+
+```{r}
+
+diamonds %>%
+  ggplot(aes(x = price, color = color, fill = color)) + 
+  geom_histogram(binwidth = 5, alpha = 0.6) + 
+  theme_bw() + 
+  theme(legend.position = "none",
+        strip.text.x = element_text(size = 8),
+        ) + 
+  labs(y = "counts") + 
+  facet_grid(cut ~ color)
+```
+
+-   쌍별 비교 히스토그램: 색상(color) D와 E의 가격 비교
+    -   y = ..density..: count 대신에 density를 표시해준다.
+
+```{r}
+diamonds %>%
+  ggplot(aes(x = price)) + 
+  geom_histogram(data = subset(diamonds, color == "D"),
+                 aes(y = ..density.., fill = color,
+                     color = "white")
+                 ) + 
+  geom_segment(data = subset(diamonds, color == "D"), 
+               aes(x = mean(price), xend=mean(price), y = 0, yend = 0.0005), 
+              color=ldg, size = 1
+               ) +
+  geom_histogram(data = subset(diamonds, color == "J"),
+                 aes(y = -..density.., fill = color, 
+                     color = "white")
+                 ) +
+  geom_segment(data = subset(diamonds, color == "J"), 
+               aes(x = mean(price), xend=mean(price), y = 0, yend = -0.00025), 
+              color= ldg, size = 1
+               ) +
+  scale_fill_manual(name = "color",
+                    values = c(sbl, lre),
+                    labels = c("D", "J")
+                    ) +
+  theme_bw()
+```
+
+### 11.2.4. 산점도 scatter plots
+
+-   산점도는 x축과 y축으로 이루어진 그래프에 두 변수의 값을 점으로 나타낸 그래프이다.
+    -   두 변수의 관계를 파악하는데 용이하다.
+    -   데이터가 많은 경우 데이터가 겹쳐서 그려지는 경우가 발생한다.
+
+-   overplotting 해결책
+    - **[jitter()]{style="color: blue;"}**: 각 값들을 겹치지 않게 흔들어서 도시
+    - **[geom_bin2d()]{style="color: blue;"}**: 2차원 bin 정의하여 도시, 기본은 양축으로 30개를 가정
+    - **[geom_hex()]{style="color: blue;"}**: 각 값들을 겹치지 않게 흔들어서 도시
+    - **[geom_smooth()]{style="color: blue;"}**: 두 변수들의 관계를 대략적으로 확인
+  
+-   geom_point 관련 옵션
+    - color: 점 색깔    
+    - size: 점 크기  
+    - shape: 점의 모양 
+    - alpha: 점의 투명도(0 ~ 1: 완전 투명 ~ 완전 불투명)
+  
+#### 11.2.4.1 ggplot::diamonds
+
+| 변수명 | 설명 |
+|:--------:|:-----------:|
+| carat | 다이아몬드의 무게 |
+| cut | 다이아몬드 컷팅 품질 |
+| color | 다이아몬드의 색상 |
+| clarity | 다이아몬드의 투명도 |
+| depth | 다이아몬드의 깊이 |
+| table | 다이아몬드의 테이블 폭 |
+| price | 다이아몬드의 가격 |
+| x | 다이아몬드의 길이 |
+| y | 다이아몬드의 너비 |
+| z | 다이아몬드의 높이 |
+
+```{r}
+#데이터 불러오기
+data("diamonds")
+str(diamonds)
+```
+
+-   기본 구조 및 구성 요소 추가와 조정 및 변경 요소 시각화
+```{r}
+#g1: 기본 구조
+g1 <- diamonds %>%
+  ggplot(aes(carat, price)) +
+  geom_point() +
+  labs(subtitle = "origin") + 
+  theme_bw()
+
+#g2: jitter() 추가
+g2 <- g1 + 
+  geom_jitter() +
+  labs(subtitle = "+ jitter") 
+
+#g3: color, size, alpha 추가
+g3 <-  diamonds %>%
+  ggplot(aes(carat, price)) +
+  geom_point(color = sbl, size = 0.5, alpha = 0.1) +
+  labs(subtitle = "+++ color, small size, alpha") +
+  theme_bw()
+
+#g4: geom_bin2d 추가
+g4 <- diamonds %>%
+  ggplot(aes(carat, price)) +
+  geom_bin2d() + 
+  labs(subtitle = "+ bin2d") +
+  theme_bw()
+
+#g5: geom_hex() 추가
+g5 <- diamonds %>%
+  ggplot(aes(carat, price)) +
+  geom_hex(color = "gold") + 
+  labs(subtitle = "+ hex") +
+  theme_bw()
+
+#g6: geom_smooth() 추가
+g6 <- diamonds %>%
+  ggplot(aes(carat, price)) +
+  geom_point(color = sbl) +
+  geom_smooth() +
+  labs(subtitle = "+ smooth") + 
+  theme_bw()
+
+gridExtra::grid.arrange(g1, g2, g3, g4, g5, g6, nrow = 3)
+```
+
+-   혼합된 데이터 분리 선택
+    -   **[dplyr::filter()]{style="color: blue;"}**
+    -   cut = Ideal, color = D
+```{r}
+dia.ID <- diamonds %>%
+  dplyr::filter(cut == "Ideal" & color == "D")
+str(dia.ID)
+
+g1 <- dia.ID %>%
+  ggplot(aes(carat, price)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "rlm", color = "gold") + 
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  geom_smooth(method = "lm", formula = y ~ x + I(x^3), color = "darkgray", se = FALSE) + 
+  geom_smooth(method = "loess", span = 0.3, color = "darkgreen", se = FALSE) + 
+  labs(subtitle = "전체 데이터를 이용한 다양한 적합") +
+  theme_bw()
+```
+-   층화 여부 확인
+
+```{r}
+g2 <- dia.ID %>%
+  ggplot(aes(carat, price, group = clarity)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "rlm", color = "gold", se = FALSE) + 
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(subtitle = "층(clarity)별 구분 적합") +
+  theme_bw()
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+-   그룹별 적합 적용 
+    - **[aes(group = `var`)]{style="color: blue;"}**: 그룹 변수 지정하여 그룹별 계산이 가능
+    - **[facet_wrap(~`var`)]{style="color: blue;"}**: 지정된 formula 별로 적합시킨 결과를 보여줌
+        - 시각적으로 더 편하다!
+  
+```{r}
+dia.ID %>%
+  ggplot(aes(carat, price)) +
+  geom_point(color = sbl) +
+  geom_smooth(method = "rlm", color = "gold") + 
+  geom_smooth(method = "lm", color = lre) +
+  facet_wrap(~ clarity) + 
+  theme_bw()
+```
+
+### 11.2.5. 히트맵 heatmaps
+
+-   서로 다른 2개의 범주형 변수 간의 관계를 타일 형태로 보여주는 그림
+
+-   히트맵 데이터 구조
+    - 제 1 범주형 변수: x축 상에 위치하는 변수
+    - 제 2 범주형 변수: y축 상에 위치하는 변수
+    - 연속형/이산형 변수: 색상으로 표현할 변수
+    - **[geom_tile()]{style="color: blue;"}**
+    - 색상 조절: 
+        -   **[scico::scale_fill_scico(palette = c("bilbao", "vik", "lajolla" ))]{style="color: blue;"}**
+        -   **[scale_fill_distiller(palette = c("Spectral", "RdPu", "YlOrBr"))]{style="color: blue;"}**
+
+#### 11.2.5.1. 기본 그림: 가상 데이터(heat.data.csv)
+
+```{r}
+#데이터 로드
+heat_data <- read.csv(paste0(data_path, "heat.data.csv"))
+str(heat_data)
+```
+
+-   기본 히트맵 및 다양한 색상 적용하기기
+```{r}
+g1 <- heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() 
+
+g2 <- heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scale_fill_distiller(palette = "Spectral") + 
+  labs(subtitle = "Spectral") +
+  theme(legend.position = "none")
+  
+g3 <- heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scale_fill_distiller(palette = "RdPu") + 
+  labs(subtitle = "RdPu") +
+  theme(legend.position = "none")
+
+g4 <- heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scale_fill_distiller(palette = "YlOrBr") + 
+  labs(subtitle = "YlOrBr") +
+  theme(legend.position = "none")
+
+g5 <- heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scico::scale_fill_scico(palette = "bilbao") + 
+  labs(subtitle = "bilbao") +
+  theme(legend.position = "none")
+
+g6 <-  heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scico::scale_fill_scico(palette = "vik") + 
+  labs(subtitle = "vik") +
+  theme(legend.position = "none")
+
+g7 <-  heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scico::scale_fill_scico(palette = "lajolla") + 
+  labs(subtitle = "lajolla") +
+  theme(legend.position = "none")
+
+gridExtra::grid.arrange(g1, gridExtra::arrangeGrob(g2, g3, g4, g5, g6, g7,
+                        ncol = 3), ncol = 2) 
+```
+
+#### 11.2.5.2. 기본 그림 표현(volcano2.csv)
+
+  -   R에 내장되어 있는 volcano 데이터를 이용한 마웅가 화우(Maunga Whau)이 지형 정보 데이터이다.
+      -   오클랜드 화산 지대에 있는 약 50개의 화산 중의 하나이다.
+      -   지형 정보는 10m X 10m 격자 형태로 기록되었다.
+      -   X는 동에서 서, Y는 남에서 북으로 격자선을 나타낸다.
+
+```{r}
+#데이터 로드
+volcano2 <- read.csv(paste0(data_path, "volcano2.csv"))
+str(volcano2)
+```
+
+- 히트맵 적용
+```{r}
+volcano2 %>%
+  ggplot(aes(X, Y, fill = Z)) + 
+  geom_tile() + 
+  theme_bw() + 
+  theme(legend.position = "none")
+```
+
+#### 11.2.5.3. 국내 성씨 본관의 분포 2015(lastname.2015.csv)
+
+```{r}
+#데이터 로드
+names <- read.csv(paste0(data_path, "lastname.2015.csv"))
+str(names)
+#결측값 개수 확인
+sum(is.na(names))
+na_count(names)
+
+head(names)
+#NA 값 채워주기, fill()
+names <- names %>%
+  fill(last)
+head(names)
+
+#데이터 탐색
+names_total <- names %>%
+  fill(last) %>%
+  dplyr::filter(area == "전국") %>%
+  dplyr::filter(last != "계") %>%
+  arrange(desc(total)) #내림차순 정렬
+lastnames <- unique(names_total$last)
+lastnames #김이박최 순으로 많음
+
+#성 개수
+length(lastnames)
+```
+- 국내 빈도 상위 50개의 성씨들
+
+```{r}
+names_50 <- names_total %>%
+  top_n(50)
+
+names_50 %>%
+  ggplot(aes(fct_reorder(last, total), total)) + 
+  geom_col(color = "white", fill = sbl) + 
+  labs(x = "성씨",
+       y = "등록 인구 수",
+       subtitle = "국내 빈도 상위 50개 성씨들(2015)"
+       ) +
+  coord_flip() + 
+  theme_bw()
+```
+-   상위 50개 성의 지역 분포 히트맵
+
+```{r}
+names_50_area <- names %>%
+  fill(last) %>%
+  dplyr::filter(area != "전국") %>%
+  dplyr::filter(last != "계" & last %in% names_50$last)
+
+names_50_area %>% 
+  ggplot(aes(fct_reorder(area, -total), #지역 - total 낮은 순
+             fct_reorder(last, total), #성 - total 높은 순
+             fill = total)) +
+  geom_tile() +
+  geom_text(aes(label = sprintf("%0.2f", round(total/10000, 2)),
+                color = lre),
+            size = 1.5
+            ) +
+  labs(x = "행정구역",
+       y = "성씨",
+       subtitle = "2015년 국내 빈도 상위 50개 성씨들(단위:만명)"
+       ) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "none"
+        ) +
+  scico::scale_fill_scico(palette = "lajolla")
+```
+
+### 11.2.6. 모자이크 그림 mosaic plots
+
+2개 이상의 범주형 데이터의 빈도 시각화를 위한 그림, 교차표 형식으로 되어있는 데이터에 적용 가능하다.
+
+-   ggmosaic::**[geom_mosaic()]{style="color: blue;"}**
+    - aes: product 지정, fill - 관심 변수, weight - 빈도 변수, conds - 데이터 나누는 기준
+    - offset: 첫번째 판(spine)과의 간격 설정
+    - show.legend: TRUE이면 범례를 보여줌
+-   **[aes()의 변수는 반드시 product()를 지정]{style="color: red;"}**
+
+#### 11.2.6.1. tragic accident: titanic(titanic.csv)
+
+```{r}
+#데이터 로드
+titanic <- read.csv(paste0(data_path, "titanic.csv"))
+str(titanic)
+
+#결측값 개수 확인
+sum(is.na(titanic))
+na_count(titanic) 
+```
+
+```{r}
+library(ggmosaic)
+
+mosaic_color <- c(lre, sbl, ngr, "black")
+
+#class에 따른 생존여부 빈도
+g1 <- titanic %>% 
+  ggplot() + 
+  geom_mosaic(aes(weight = freq,
+                  x = product(class), 
+                  fill = survived)) + 
+  theme_mosaic() + 
+  scale_fill_manual(values = mosaic_color)
+
+#class와 age에 따른 생존 여부 빈도
+g2 <- titanic %>%
+  ggplot() + 
+  geom_mosaic(aes(weight = freq,
+                  x = product(class, age),
+                  fill = survived)) + 
+  theme_mosaic() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) + 
+  scale_fill_manual(values = mosaic_color)
+
+#class와 age에 따른 생존 여부 빈도, age 비율 조정
+g3 <- titanic %>%
+  ggplot() + 
+  geom_mosaic(aes(weight = freq,
+                  x = product(class),
+                  conds = product(age),
+                  fill = survived)) + 
+  theme_mosaic() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) + 
+  scale_fill_manual(values = mosaic_color)
+
+gridExtra::grid.arrange(g1, g2, g3, ncol = 3)
+
+```
+
+### 11.2.7. 등고선도 contour plots
+
+-   {x, y, z}로 주어지는 공간 데이터 표현하는 그림으로 표면도와 함께 활용된다.
+
+-   등고선도 관련 함수
+    - **[geom_contour()]{style="color: blue;"}**: 등고선 기본 기능 제공
+    - **[geom_density_2d(aes(color = ..level..))]{style="color: blue;"}**: 등고선 수준에 따라 색상을 적용
+    - **[geom_density_2d_filled()]{style="color: blue;"}**: 등고선 수준에 색상을 채움
+    - **[scale_color_viridis_c()]{style="color: blue;"}**: 녹색 계열의 등고선 적용
+    - **[coord_equal()]{style="color: blue;"}**: x축 및 y축의 비율을 동일하게 맞춰줌
+
+-   **[reshape2::melt()]{style="color: blue;"}**
+    - matrix를 (행, 열, 값)으로 전환한다.
+    - reshape2::melt(data,
+                     id.vars, #식별자 컬럼들
+                     measure.vars, #측정치 컬럼들, 생략시 id.vars에 해당하지 않는 모든 컬럼이 측정치 컬럼으로 취급
+                     na.rm=FALSE) #NA인 행을 결과에 포함시킬지 여부
+
+#### 11.2.7.1. 기본 그림: 가상 데이터
+
+```{r}
+library(reshape2) 
+df <- melt(volcano) #melt 함수로 데이터 전환하기
+head(df)
+
+a <- as.data.frame(volcano)
+class(volcano)
+```
+
+- 기본 그림
+
+```{r}
+ggplot(df, aes(Var1, Var2, z = value)) + 
+  geom_contour(aes(z = value, color = stat(level))) + 
+  scale_color_viridis_c() + 
+  scale_fill_distiller(palette = "Spectral", direction = -1) + 
+  coord_equal() + 
+  theme_bw()
+```
+-   등고선 색깔 적용하기
+
+```{r}
+ggplot(df, aes(Var1, Var2, z = value)) + 
+  stat_contour(geom = "polygon",aes(fill = stat(level))) + 
+  scale_fill_distiller(palette = "Spectral", direction = -1) + 
+  theme_bw()
+```
+
+
+### 11.2.8. 지도 maps
+
+-   지리 공간 데이터를 활용하여 지도를 시각화하는 것이다.
+-   **[geom_polygon()]{style="color: blue;"}**: 지역 간 경계를 구분해 지도를 그린다.
+-   **[.shp 확장자 파일]{style="color: red;"}**로 저장된 데이터를 사용해서 지도를 그린다.
+
+-   **[geom_polygon()]{style="color: blue;"}**
+    -   fill: 채우기 색상
+    -   color: 테두리 색상
+
+#### 11.2.8.1. 지도 데이터 실습(*.shp)
+
+-   데이터 불러오기기
+```{r}
+file_name <- paste0(data_path, "TL_SCCO_CTPRVN.shp")
+map.i <- rgdal::readOGR(file_name,
+                        layer = "TL_SCCO_CTPRVN",
+                        use_iconv = TRUE,
+                        encoding = "euc-kr"
+                        )
+
+map.ko <- fortify(map.i)
+map.ko %>%
+  ggplot(aes(x = long, y = lat, group = group)) + 
+  geom_polygon(size = 0.05, fill = "white", color = "black") + 
+  labs(title = "South Korea", subtitle = "EDA coruse") + 
+  theme_minimal() + 
+  scale_x_discrete(labels = NULL, breaks = NULL) + labs(x = "") + 
+  scale_y_discrete(labels = NULL, breaks = NULL) + labs(y = "") + 
+  theme(legend.position = "none")
+```
+
+-   색상 및 구급차 데이터 추가
+
+```{r}
+ident <- read.csv(paste0(data_path, "geomap.csv"),
+                  fileEncoding = "euc-kr")
+```
+```{r}
+emergency <- read.csv(paste0(data_path, "emergency.csv"),
+                  fileEncoding = "euc-kr")
+
+#구급차 데이터, id 합치기
+emergency <- ident %>%
+  dplyr::left_join(emergency, by = c("area" = "본부")) %>%
+  mutate(id = as.character(id))
+```
+
+-   보유 구급차 데이터를 반영한 지도 나타내기
+    -   지도로 표시하면 도별로 어디가 빈약한지 파악 가능하다.
+    -   서울, 강원도는 많이 보유하고 있고, 충청도쪽과 경상남도쪽은 빈약해 보이는 것을 알 수 있다.
+```{r}
+data <- map.ko %>% dplyr::left_join(emergency, by = "id")
+
+data %>%
+  ggplot(aes(x = long, y = lat)) + 
+  geom_polygon(aes(fill = 보유구급차, group = group)) + 
+  labs(fill = "bilbao") + 
+  theme_minimal() + 
+  scale_x_discrete(labels = NULL, breaks = NULL) + labs(x = "") + 
+  scale_y_discrete(labels = NULL, breaks = NULL) + labs(y = "") + 
+  scico::scale_fill_scico(palette = "bilbao")
+```
+
+---
+
+# 참고 문헌 {-}
+
+1. R Development Core Team. (n.d.). An Introduction to R. Retrieved from [https://cran.r-project.org/doc/manuals/r-release/R-intro.html](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)
+2. 고승곤. (2023). _R과 통계적 방법을 활용한 탐색적 데이터 분석_. KYOWOO.
+3. 권재명. (2017). _실리콘밸리 데이터 과학자가 알려주는 따라 하며 배우는 데이터 과학_. Jpub.
+4. 윌케, K. (저), & 권혜정. (역). (2020). _데이터 시각화 교과서_. 책만.
+
+---
+
+  ⓒ Statistical MethodsⅡ, Gachon University
+
+---

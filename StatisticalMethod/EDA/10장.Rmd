@@ -1,0 +1,415 @@
+---
+title: "통계 방법론Ⅱ - 탐색적 데이터 분석"
+author: "응용통계학과 이준혁"
+date: "2023-06-10(토)"
+output:
+  html_document:
+    css: styles.css
+    #code_folding: show
+    fig_caption: yes
+    fig_height: 7.5
+    fig_width: 10
+    fig_retina: null
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+    fig_dpi: 300
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+    font-weight: bold;
+  }
+  h1{
+    font-size: 18pt;
+  }
+  h2{
+    font-size: 16pt;
+  }
+  h3{
+    font-size: 14pt;
+  }
+</style>
+
+<br><br><br><br>
+
+---
+
+# Ch10. 평활화(Smoothing)
+
+-   2개의 연속형 변수(x, y)의 경우에는 그 관계와 밀접도에 대한 정보를 얻기 위하여 **[산점도(Scatter Plots)]{style="color: red;"}**를 이용한다.
+-   x 변수가 동일(또는 거의 일정한) 간격을 갖는 값으로 순서(order)에 따라 주어지는 경우(나이, 회수, 위/경도 등)에는 x의 각 지점에 따라 y의 변화 패턴을 확인하는 **[평활화(smoothing)]{style="color: red;"}**을 해볼 수 있다.
+    -   엄마의 연령대별로 정의된 출산률(birth-rates)
+    -   환자의 몸무게에 따른 심근 경색의 발생 빈도
+    -   분기별 제품 판매액
+
+-   **[stats::smooth()]{style="color: blue;"}**: Tukey의 다양한 평활화 방법을 제공
+
+## 10.0. info
+
+- 고객 데이터가 들어오면 평활화를 계속한 다음, 잔차를 해석해보는 것이 중요하다.
+    -   현 시대에서는 평활화를 통해서 패턴을 파악하면 가구원수를 파악 하는 것이 가능하다.
+-   패턴과 패턴을 비교해보면 의미있는 결과를 얻을 수가 있어서 좋은 방법이다.
+-   평활화 자체가 분석의 목적일수도 있고 평활 후의 잔차가 목표일수도 있다.
+-   EDA라는 것은 새로운 가설을 찾아가는 과정이다.
+-   최대한 스무스한 패턴을 찾고 거침(잔차)를 해석하는 것이 핵심이다.
+    -   상승과 하강 지점에 대한 해석!
+-   Data set ⊃ Data Sequence ⊃  Time Series
+    -   Data = 주요약(fit) + 잔차(residuals) = 평활화(smooth) + 거침(rough)
+    -   Data Sequence: x의 순서에 따라 기록된 y의 값만으로 나타낸 구조
+        -   만일 x가 연속적인 시간(time) 간격이라면, y의 데이터 시퀀스(data sequence)를 **[시계열(time series)]{style="color: red;"}**라고 부름
+        -   $y_t,t=1,2,3,4,...,n$, 일반적으로 x 대신에 순서로 정의되는 값 t로 표시
+            -   데이터 시퀀스에 대한 첫번째 시도는 부드러운 곡선을 적합
+                -   이를 통해 크게 변하는 지점을 구별하여 어떤 규칙과 주기가 있는 지 검토한다.
+                -   이렇게 추정된 곡선을 평활(smooth), 이를 벗어나는 데이터들의 잔차를 거침(rough)
+        -   데이터 평활기(data smoothers): 데이터 시퀀스의 중복된 구획(segments)에서 평활(smooth)을 달성하고자 중앙값 또는 평균을 이용
+            -   이를 통하여 도출된 평활을 제외한 나머지 잔차가 거침(rough)을 결정한다.
+-   **[EDA에서는 평활의 수학적 공식보다 거침의 패턴해석을 더 중요시한다.]{style="color: red;"}**
+          
+          
+## 10.1. 중앙값 평활기 Median Smoothers
+
+-   중앙값 평활기는 주어진 데이터 시퀀스에 대하여 고정된 일정 개수 k≥3의 연속적으로(running) 분할된 구획(segments)별 중앙값을 이용하여 데이터 시퀀스를 평활화하는 것이다.
+    - k-연속 중앙값 평활기라고 부름
+-   평활 대상이 되는 데이터 시퀀스의 첫번째($y_1$)과 마지막($y_n$)을 데이터 시퀀스의 끝점(End Points)라 한다.
+-   3R: 평활된 값이 변화가 없을 때까지 반복적으로 평활하는 방법을 의미한다.
+
+-   Tukey's End Point Rule
+    -   평활값을 구할 수 없는 경우가 발생할 때 적용
+    -   평활화의 끝점(End Points of Smoothing; EPS)은 다음의 범칙에 의해 결정
+        -   EPS값에서 EPS 하나 이전의 값의 변화는 EPS 하나 이전의 값에서 EPS 두개 이전의 값으로의 변화의 0~2배 사이
+        -   EPS 값은 가능한 한 데이터 시퀀스의 값과 비슷하게 결정
+
+## 10.2. 분리, 재평활 그리고 해닝 Spliting, Rerough and Hanning
+
+-   이 챕터부터는 평활화를 돕는 기법이라고 생각하고 이해하면 된다.
+-   중복 평활을 적용할수록 보다 부드러운 형태로 평활된다.
+-   **[분리 평활(Split Smoothing)]{style="color: red;"}**: 중앙값 평활기를 적용한 이후 생성된 피크(peak)와 밸리(valley)를 각각 2개로 분리하여 끝점들을 평활한 후 중앙값 평활기를 재적용하여 평활된 결과를 향상시키는 방법
+    -   중앙값 평활기의 적용
+    -   동일한 값으로 평활된 피크 또는 밸리를 기준으로 2개의 데이터 시퀀스를 결정
+    -   각각에 대하여 Tukey's End Point Rule 적용
+    -   통합하여 중앙값 평활기 적용 -> 이 과정을 **[3RSS]{style="color: red;"}**라고 함
+
+-   **[재평활(Rerough)]{style="color: red;"}**: 거침(rough)에 남아 있는 패턴을 추가로 설명하기 위하여 다음의 절차를 적용
+    -   이러한 방법을 **[3RS3R, Twice]{style="color: red;"}**라고 부름
+        -   data = smooth + rough
+        -   rough = smooth(rough) + rough(rough)
+        -   data = [smooth + smooth(rough)] + rough(rough) = final.smooth + final.rough
+
+-   **[해닝(Hanning)]{style="color: red;"}**: 데이터 시퀀스에서 인접한 3개의 값들에 대한 가중 평균(weighted mean)을 이용한 평활 방법
+    -   $h_1=y_1$
+    -   $h_i=1/4y_{i-1}+1/2y_i+1/4y_{i+1},i>1$
+
+
+## 10.3. 2022년 K리그(Kleague.csv) 분석
+
+- 2022년 K리그 데이터셋은 한국 축구의 날짜별로 원정팀/홈팀에 따른 관중 수를 정리한 데이터셋이다. 해당 데이터셋을 통해서 날씨, 온도, 경기 지역과 같은 변수도 알 수 있다.
+
+|   |Variable|Description|변수 구분|
+|:---:|:---:|:---:|:---:|
+| 1 |gday|경기 날짜|날짜 변수|
+| 2 |game|경기 순번|이산형|
+| 3 |league|1군, 2군 구분|명목형|
+| 4 |month|달|명목형|
+| 5 |day|일|명목형|
+| 6 |date|요일|명목형|
+| 7 |home|홈팀|명목형|
+| 8 |visitor| 원정팀|명목형|
+| 9 |arena|경기장|명목형|
+| 10 |weather|날씨|명목형|
+| 11 |temp|온도|연속형|
+| 12 |spectator|관중 수|연속형|
+
+
+
+### 10.3.1. 데이터 불러오기
+```{r}
+league <- read.csv(paste0(data_path, "kleague.2022.csv"), header = TRUE)
+```
+
+### 10.3.2. 데이터의 구조 확인
+
+변수와 케이스의 수 그리고 변수의 유형을 확인하고, 결측값(missing value; NA)의 존재여부를 확인한다.
+
+```{r}
+head(league)
+```
+
+-   1161 obs. of  12 variables의 데이터프레임을 보인다.
+
+```{r}
+str(league)
+```
+
+-   온도 데이터만 28개의 결측치가 존재한다.
+
+```{r}
+na_count(league)
+```
+
+### 10.3.3. K리그 1의 팀들 간의 평균 관중 수 확인
+
+-   **[stats::aggregate():]{style="color: blue;"}**: 데이터를 구분하여 요약값을 구하고 이를 반환
+    -   aggregate(formula, data, FUN)
+        -   FUN : 각 그룹에 대해 적용할 함수로 요약 통계를 계산하는데 사용되는 함수(mean, sum, max)가 쓰인다.
+```{r}
+vr <- aggregate(spectator~ home + visitor,
+                data = subset(league, league == "K LEAGUE 1"),
+                mean
+                )
+vr
+vr %>% 
+  ggplot(aes(fct_reorder(home, -spectator),
+             fct_reorder(visitor, spectator),
+             fill = spectator
+             )
+         ) +
+  geom_tile() +
+  geom_text(aes(label = sprintf("%0.2f", round(spectator/1000, 2))),
+            color = lre,
+            size = 1.5
+            ) +
+  labs(x = "홈 팀",
+       y = "방문 팀",
+       subtitle = "2022년 k리그 1의 평균 관중 수(단위: 1000명)"
+       ) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "none") +
+  scico::scale_fill_scico("lajolla")
+```
+### 10.3.4. 데이터 선별: 울산 현대
+
+-   리그 중에 특정 일에 2개 이상의 경기가 진행되므로 특정 팀의 경기를 선택한다.
+    -   이때 관중이 없는 게임은 제거한다.
+    -   경기 간의 일자 간격은 동일하지 않다.
+        -   일자 간격이 동일하지 않아도 이정도는 감소하고 진행한다.
+```{r}
+ulsan <- league %>% 
+  dplyr::filter(spectator != 0) %>% 
+  dplyr::filter(home == "울산 현대" | visitor == "울산 현대") %>% 
+  dplyr::arrange(gday) %>% 
+  mutate(ugame = seq(1, length(gday), 1))
+```
+
+### 10.3.5. 평활화 방법 적용
+
+-   **[stats::smooth()]{style="color: blue;"}**는 Tukey의 k-연속 중앙값 평활기의 다양한 옵션을 제공한다.
+    -   **[smooth(x, kind = c("3RS3R", "3RSS", "3RSR", "3R", "3", "S"), twiceit = FALSE)]{style="color: blue;"}**
+        -   3: 3-중앙값 평활기 1회 적용
+        -   3R: 3-중앙값 평활기(수렴할 때까지) 반복 적용
+        -   S: 분리 평활 적용
+        -   3RSS: 3R + S 적용
+        -   3RS3R: 3R + S + 3R 동시 적용
+        -   twiceit = TRUE: 재평활 적용
+
+-   **[LearnEDAfunctions::han(sequnce)]{style="color: blue;"}**: 해닝 적합을 제공
+
+```{r}
+#평활화(smooth) 구하기
+ulsan$s.3R <- smooth(ulsan$spectator, kind = "3R")
+ulsan$s.3RSS <- smooth(ulsan$spectator, kind = "3RSS")
+ulsan$s.3RS3R2 <- smooth(ulsan$spectator, kind = "3RS3R", twiceit = TRUE)
+ulsan$s.3RS3R2H <- han(smooth(ulsan$spectator, kind = "3RS3R", twiceit = TRUE))
+```
+
+```{r}
+#거침(rough) 구하기
+ulsan$rough.3R <- ulsan$spectator - ulsan$s.3R
+ulsan$rough.3RSS <- ulsan$spectator - ulsan$s.3RSS
+ulsan$rough.3RS3R2 <- ulsan$spectator - ulsan$s.3RS3R2
+ulsan$rough.3RS3R2H <- ulsan$spectator - ulsan$s.3RS3R2H
+```
+
+### 10.3.6. 평활화 결과 확인
+
+-   가장 기본적인 3R 평활부터 3RS3R에 해닝(Hanning)기법까지 적용하여 결과를 살펴 보았다.
+-   최종단계에서는 초기 단계보다 훨씬 스무스한 패턴을 가지는 것을 알 수 있었다.
+
+-   3R 평활(smooth)
+
+```{r}
+g1 <- ulsan %>% 
+  ggplot(aes(ugame, spectator)) +
+  geom_point(color = sbl) +
+  geom_line(aes(ugame, s.3R), color = lre) +
+  labs(x = "경기",
+       y = "관중 수",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3R 적합 결과") +
+  theme_bw()
+g2 <- ulsan %>% 
+  ggplot(aes(ugame, rough.3R)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0, color = lre) +
+  geom_label(data = ulsan %>% 
+               filter(rough.3R >= 10000), aes(ugame, rough.3R, label = gday),
+               label.padding = unit(0.01, "lines")) +
+  labs(x = "경기",
+       y = "거침(rough)",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3R 적합 결과") +
+  theme_bw()
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+-   3RSS 평활(smooth)
+
+```{r}
+g1 <- ulsan %>% 
+  ggplot(aes(ugame, spectator)) +
+  geom_point(color = sbl) +
+  geom_line(aes(ugame, s.3RSS), color = lre) +
+  labs(x = "경기",
+       y = "관중 수",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RSS 적합 결과") +
+  theme_bw()
+g2 <- ulsan %>% 
+  ggplot(aes(ugame, rough.3RSS)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0, color = lre) +
+  geom_label(data = ulsan %>% 
+               filter(rough.3RSS >= 10000), aes(ugame, rough.3RSS, label = gday),
+               label.padding = unit(0.01, "lines")) +
+  labs(x = "경기",
+       y = "거침(rough)",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RSS 적합 결과") +
+  theme_bw()
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+-   3RS3R2 평활(smooth)
+
+```{r}
+g1 <- ulsan %>% 
+  ggplot(aes(ugame, spectator)) +
+  geom_point(color = sbl) +
+  geom_line(aes(ugame, s.3RS3R2), color = lre) +
+  labs(x = "경기",
+       y = "관중 수",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RS3R2 적합 결과") +
+  theme_bw()
+g2 <- ulsan %>% 
+  ggplot(aes(ugame, rough.3RS3R2)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0, color = lre) +
+  geom_label(data = ulsan %>% 
+               filter(rough.3RS3R2 >= 10000), aes(ugame, rough.3RS3R2, label = gday),
+               label.padding = unit(0.01, "lines")) +
+  labs(x = "경기",
+       y = "거침(rough)",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RS3R2 적합 결과") +
+  theme_bw()
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+-   3RS3RH 평활(smooth)
+```{r}
+g1 <- ulsan %>% 
+  ggplot(aes(ugame, spectator)) +
+  geom_point(color = sbl) +
+  geom_line(aes(ugame, s.3RS3R2H), color = lre) +
+  labs(x = "경기",
+       y = "관중 수",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RS3R2H 적합 결과") +
+  theme_bw()
+g2 <- ulsan %>% 
+  ggplot(aes(ugame, rough.3RS3R2H)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0, color = lre) +
+  geom_label(data = ulsan %>% 
+               filter(rough.3RS3R2H >= 10000), aes(ugame, rough.3RS3R2H, label = gday)) +
+  labs(x = "경기",
+       y = "거침(rough)",
+       subtitle = "2022년 시즌 울산 현대 관중 수에 대한 3RS3R2H 적합 결과") +
+  theme_bw()
+
+grid.arrange(g1, g2, ncol = 2)
+```
+-   관중 수가 평활 패턴보다 만명이상 많았던 날은 9월 18일, 10월 8일, 10월 23일로 확인되었다.
+-   해당 경기의 실제 경기 일정을 찾아보면 주말경기이면서 리그 순위가 중요한 날로 확인할 수 있다.
+-   K리그의 흥행을 불러오면서 관객을 더 모으기 위해서 가능하면 울산 현대, 전북 현대 모터스, FC서울같이 팬층이 두텁고 인기 있는 팀의 경기를 리그 후반부 주말에 배치하면 될 것이다.
+
+### 10.3.7. 전북 현대 평활화 적용
+
+-   울산 현대말고 유명한 구단인 전북 현대 관중 수에 평활화 기법을 적용해보았다.
+-   전북 현대로 선정한 이유는 다음과 같다.
+    -   팬층이 두터움
+    -   K리그에서 최다 우승한 구단
+    -   강등을 한번도 당하지 않은 구단
+
+-   울산 현대에 적용했던 것과 마찬가지로 다음과 같은 규칙을 적용했다.
+    -   리그 중에 특정 일에 2개 이상의 경기가 진행되므로 특정 팀의 경기를 선택한다.
+        -   이때 관중이 없는 게임은 제거한다.
+        -   경기 간의 일자 간격은 동일하지 않다.
+            -   일자 간격이 동일하지 않아도 이정도는 감소하고 진행한다.
+```{r}
+JB <- league %>% 
+  dplyr::filter(spectator != 0) %>% 
+  dplyr::filter(home == "전북 현대" | visitor == "전북 현대") %>% 
+  dplyr::arrange(gday) %>% 
+  mutate(jgame = seq(1, length(gday), 1))
+```
+
+```{r}
+#평활화 구하기
+JB$s.3RS3R2H <- han(smooth(JB$spectator, kind = "3RS3R", twiceit = TRUE))
+```
+
+```{r}
+#거침 구하기
+JB$rough.3RS3R2H <- JB$spectator - JB$s.3RS3R2H
+```
+
+```{r}
+#전북 현대 3RS3R2H 평활(smooth)
+g1 <- JB %>% 
+  ggplot(aes(jgame, spectator)) +
+  geom_point(color = sbl) +
+  geom_line(aes(jgame, s.3RS3R2H), color = lre) +
+  labs(x = "경기",
+       y = "관중 수",
+       subtitle = "2022년 시즌 전북 현대 관중 수에 대한 3RS3R2H 적합 결과") +
+  theme_bw()
+g2 <- JB %>% 
+  ggplot(aes(jgame, rough.3RS3R2H)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = 0, color = lre) +
+  geom_label(data = JB %>% 
+               filter(rough.3RS3R2H >= 10000), aes(jgame, rough.3RS3R2H, label = gday),
+               label.padding = unit(0.01, "lines")) +
+  labs(x = "경기",
+       y = "거침(rough)",
+       subtitle = "2022년 시즌 전북 현대 관중 수에 대한 3RS3R2H 적합 결과") +
+  theme_bw()
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+-   관중 수가 평활 패턴보다 유독 많았던 날은 10월 8일이다.
+-   10월 8일은 이전에 분석해보았던 울산 현대와 겹치는 날인데 거의 매년 리그 1, 2를 다투는 두 구단이 만났을 가능성이 높은 날이다.
+-   실제로 찾아본 결과, 두 구단이 10월 8일에 경기를 해서 울산이 승리하여 울산이 우승 확정을 만들어 가는 날임을 알 수 있었다.
+-   이렇게 평활화를 적용해 보았는데 관중 수가 많은 날들을 조사하여 마케팅에 활용하면 더욱더 관중수를 모을 수 있을 것으로 판단된다. 
+    -   이러한 점은 K리그뿐만 아니라 다른 스포츠도 적용해보면 스포츠 관객수를 모으는데 큰 도움이 될 것이다. 
+-   E-Sport 중 하나인 LCK(리그오브레전드 코리아)에서는 실제로 라이벌 구도인 팀들, 팬층이 두터운 팀 경기를 가장 많은 시청자를 모을 수 있는 주말에 배치하여 효과를 보고 있는 것으로 알려져 있다.
+    -   이번년도에 첫 시행이 된 사항이므로 향후 정규 리그가 끝난 이후에 지난 리그들과 비교하여 시청자수가 얼마나 변화했는지 알아 볼 예정이다.

@@ -1,0 +1,1344 @@
+---
+title: "통계 방법론Ⅱ - 탐색적 데이터 분석"
+author: "응용통계학과 이준혁"
+date: "2023-06-10(토)"
+output:
+  html_document:
+    css: styles.css
+    #code_folding: show
+    fig_caption: yes
+    fig_height: 7.5
+    fig_width: 10
+    fig_retina: null
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+    fig_dpi: 300
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+    font-weight: bold;
+  }
+  h1{
+    font-size: 18pt;
+  }
+  h2{
+    font-size: 16pt;
+  }
+  h3{
+    font-size: 14pt;
+  }
+  table{
+    font-size: 20px;
+  }
+</style>
+
+<br><br><br><br>
+
+---
+
+# Ch11. 시각화(Visualization)
+
+-   Numerical quantities focus on expected value, graphical summaries on unexpected values.
+
+-   EDA의 현시성(Revelation)은 데이터 탐색을 위하여 다양한 정보들에 대한 그래픽 요약(graphical summary)을 강조한다.
+-   그래프(graphs)는 의도된 메시지의 생생함, 불가피성 그리고 숫자들만으로 표현할 수 없는 정보들을 표현할 수 있어야 한다.
+
+-   데이터 시각화의 목적, 목표 그리고 설계 원칙
+    -   최근의 데이터 시각화 방법들은 데이터의 분석에 기반하고 있다.
+    -   좁은 의미에서는 **EDA 시각화**는 **[분석-탐색-탐지]{style="color: #383838;"}**를 위하여 적용된다.
+    -   목적과 목표를 달성하기 위한 기초 작업의 역할을 수행한다.
+    
+|목적|목표|시각화 설계 원칙|
+|:-:|:-:|:-:|
+|<span style="color:blue">분석 (Analysis)</span>|<span style="color:blue">탐색 (Exploration)</span>|<span style="color:blue">탐지 (Detection)</span>|
+|   |수색 (Reconnaissance)|인지 (Perception)|
+|   |진단 (Diagnosis)|비교 (Comparison)|
+|소개 (Presentation)|예증 (To Simulate)|미학 (Aesthetics)|
+|   |설득 (To Persuade)|수사 (Rhetoric)|
+|   |알림 (To inform)|설득 (Exposition)|
+
+-   효과적인 그래픽 요약을 위한 **[ACCENT 원칙]{style="color: red;"}**
+    -   **[A(Apprehension, 인지)]{style="color: blue;"}**: 고려한 변수들을 올바로 반영할 수 있는 방법 선택
+        -   그래프가 고려한 변수들간의 관계를 이해하는 데 최적화되어 있는가?
+    -   **[C(Clarity, 명확)]{style="color: blue;"}**: 그래프의 모든 요소를 시각적으로 구분
+        -   가장 중요한 요소나 관계가 시각적으로가장 잘 타나나는가?
+    -   **[C(Consistency, 일치)]{style="color: blue;"}**: 이전 그래프와의 유사성을 기반으로 그래프를 작성
+        -   그래프의 요소, 기호, 모양 그리고 색상이 이전에 사용했던 그래프와 일치하는가?
+    -   **[E(Efficiency, 효율)]{style="color: blue;"}**: 복잡할 수 있는 관계를 가능한 한 단순하게 묘사
+        -   그래프의 요소가 경제적으로 사용되었는가 그리고 그래프는 쉽게 해석할 수 있는가?
+    -   **[N(Necessity, 필요)]{style="color: blue;"}**: 꼭 필요한 그래프 그리고 그래프의 요소들의 선택
+        -   그래프가 표 또는 요약값 등의 대안보다 데이터를 설명하는 데 더 유용한가?
+        -   전달하고자 하는 관계를 표현하는데 현재의 모든 그래프 요소가 필요한가?
+    -   **[T(Truthfulness, 진실)]{style="color: blue;"}**: 암묵적 또는 명시적 척도들을 올바로 반영하는 그래프 요소들의 척도 결정
+        -   그래프의 요소들이 정확하게 배치되고 올바른 척도로 조정되었는가?
+
+-   데이터의 시각화 유성 여부는 다음 사항에 의하여 결정된다.
+    -   데이터의 소비자의 요구사항
+    -   적합한 데이터의 확보
+    -   분석자의 데이터 이해도와 시각화 방법에 대한 역량
+
+-   데이터 시각화를 위한 **[10-Key-Info]{style="color: red;"}**
+    -   최근의 데이터 시각화 방법들은 이러한 정보를 2개 이상 복합적으로 표현할 수 있는 응용 방법을 제공한다.
+        -   따라서 반드시 **[ACCENT]{style="color: red;"}** 기준에서 **[효율성과 필요성]{style="color: #383838;"}**을 검토해야 한다.
+
+|  | 정보 | 설명 |
+|:-----:|:-------:|:--------------:|
+|   1   |크기 Magnitude|빈도(frequency, counts) 또는 양(size)의 비교|
+|   2   |순서 Order|크기의 오름(Asc) 또는 내림(Desc)의 순위(rank)|
+|   3   |부분/비율 Proportion|전체에서 항목들의 집계 수 또는 비중(fraction)|
+|   4   |편차 Deviation|기준값(reference value)과의 차이(양(+)또는 음(-))|
+|   5   |분포 Distribution|전체 데이터의 구조(structure), 형태(shape), 위치, 범위 등|
+|   6   |흐름 Flow|기준값 변화에 따른 데이터(시퀀스)의 패턴(patterns)|
+|   7   |변화 Change|시간의 변화에 따른 트렌드(trends)|
+|   8   |상관 Correlation|2개의 양적 변수들간의 상관성(Correlations)|
+|   9   |연관 Association|개체 간의 관계(network) 또는 밀접도(associations)|
+|  10   |공간 Space|공간적(Spatial) 위치 또는 지리학적(geographical)으로 표현되는 값 또는 변화(Changes)|
+
+-   데이터 시각화를 위한 **[10-Key-Info]{style="color: red;"}**와 중요 시각화 방법
+    -   개별 요약(individual summary)의 관점에서 시각화에서 유용한 정보를 요약한 표
+        -   ★: 적절한 정보를 표현 가능
+        -   ☆: 정보 표현이 가능하지만 유용성이 제한됨
+        
+|   |   |막대|파이|히스토그램|박스플랏|산점도|히트맵|모자이크|등고선|지도|
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+|   1   |크기|★|☆|  | ☆|       |       |       |       |       |
+|   2   |순서|★| ☆| | ☆|       |       |       |       |       |
+|   3   |부분/비율|★| ★|       |       |       |       |  ★       |       |
+|   4   |편차|★|       |       |☆|  ★     |       |       |       |       |
+|   5   |분포|       |       |★|★|       |       |       |       ☆|     ☆  |
+|   6   |흐름|       |       |       |       |★       |       |       |       |       |
+|   7   |변화|       |       |       |       | ★      |       |       |       |       |
+|   8   |상관|       |       |       |       |  ★     |   ★    |       |       |       |
+|   9   |연관|       |       |       |       |       |★       |   ★    |       |       |
+|  10   |공간|       |       |       |       |       |    ☆   |       |   ★    |    ★|
+
+## 11.1. 데이터 사전 정리
+
+-   데이터 시각화를 적용하기 전에 필요 변수, 범주, 단위 등을 사전에 정리하여 **그래픽 요약**에서 그 의미가 명확히 표현될 수 있도록 해야 한다.
+
+-   데이터 시각화를 위한 사전 정리!!
+    -   **[변수 이름(들)과 범주 이름(들)]{style="color: #383838;"}**을 의미 있는 용어로 변경한다.
+    -   시각화 소비자 중심으로 데이터의 **[단위(units) 또는 척도(scale)]{style="color: #383838;"}**를 변경하고 이를 명시적으로 표현한다.
+    -   데이터 시각화를 위하여 변경된 데이터는 원시 데이터와 별도로 저장하고 관리한다.
+
+### 11.1. mtcars 데이터셋을 이용한 시각화를 위한 데이터 사전 정리 과정 알아보기
+
+-   mtcars는 R에 내장된 데이터로 1974년도 미국의 Motor Tend US Magazine에 수록된 1973~1974년 출시 자동차의 다양한 특징들을 기록한 데이터셋이다.
+
+| 변수명 | 설명 | Data 유형 |
+|:----|:--------:|:----:|
+| mpg | Miles/Gallon, 연비 | 연속형 |
+| cyl | No. of Cyclinders, 엔진의 기통수 | 이산형 |
+| disp | 배기량($inch^3$) | 연속형 |
+| hp | Gross Horsepower, 마력 | 연속형 |
+| drat | Rear axle ratio, 뒤차축비 | 연속형 |
+| wt | Weight(1000lbs), 무게 | 연속형 |
+| qsec | 1/4 Mile time, 402m 도달 시간 | 연속형 |
+| vs | V or Straight Engine, 엔진형태 | 범주형 |
+| am | 0 = auto, 1 = manual, 변속 기어 종류 | 범주형 |
+| gear | No. of Forward Gears, 전진 기어 단계의 수 | 이산형 |
+| carb | No. of Carburetors, 기화기의 수 | 이산형 |
+
+```{r}
+# mtcars의 class 확인하기
+class(mtcars)
+```
+- R환경에 있는 데이터는 다음의 함수를 이용하여 데이터의 대략적인 구조를 파악할 수 있다.
+    -   **[str()]]{style="color: blue;"}**: 데이터에 포함된 개별 변수들과 형식 그리고 값의 일부를 확인
+    -   **[head()]{style="color: blue;"}**, **[tail()]{style="color: blue;"}**: 전체 데이터 중에서 최초/최종 일부를 확인
+    
+```{r}
+str(mtcars)
+```
+
+-   그래프 사용자가 쉽게 이해할 수 있는 변수명으로 전환한다.
+    -   한글도 가능!
+    -   **[dplyr::rename_all(tolower)]{style="color: blue;"}** 또는 **[dplyr::rename_all(toupper)]{style="color: blue;"}**: 변수명을 일관된 문자(대문자 또는 소문자)로 변경
+        -   변수명은 가능하면 일관된 문자로 적용하는 것이 분석할 때 용이하다.
+    -   **[dplyr::rename(new = old)]{style="color: blue;"}**: 기존 변수 이름(old)을 새로운 이름(new)로 변경
+
+```{r}
+auto.74 <- mtcars %>% 
+  rename_all(tolower) %>% 
+  rename(cylinders = cyl,
+         displacement = disp,
+         ra.ratio = drat,
+         weight = wt,
+         trans = am,
+         carbuetors = carb
+  )
+```
+
+-   해석이 용이하도록 데이터의 단위 또는 범주 이름 등을 재정리한다.
+    -   **[dplyr::mutate()]{style="color: blue;"}**: 단위 변환시 사용
+    -   **[dplyr::recode()]{style="color: blue;"}**: 범주형 변수의 범주명 변경 시 사용
+    -   **[base::cut()]{style="color: blue;"}**: 연속형 변수를 범주화할 때 사용 
+
+-   변수 mpg는 Miles/Gallon으로 제시되었다.
+    -   1 gallon = 3.78541 litters
+    -   1 mile = 1.60934 Km
+
+```{r}
+auto.74 <- auto.74 %>% 
+  mutate(kml = (mpg * 1.60934) / 3.78541)
+```
+-   범주형 변수의 범주값들은 입력 편의성을 위하여 간단한 문자 또는 숫자로 입력한다.
+    -   mtcars 예제의 경우에도 vs와 trans 변수는 {0, 1}로 입력되었다.
+
+```{r}
+auto.74 <- auto.74 %>% 
+  mutate(vs = recode(vs, '0' = "v", '1' = "s"),
+         trans = recode(trans, '0' = "auto", '1' = "manual")
+  )
+```
+
+-   연속형 변수는 구간화(intervalization)를 통하여 범주형으로 전환할 수 있다.
+    -   연속형 변수의 구간을 소수의 범주들로 구분하여 서로 다른 연산 또는 기준을 적용할 때 유용하다.
+
+-   예를 들어, 2022년 현재 국내 자동차 세금은 엔진 배기량(displacement)에 세액을 곱하여 최종 납부액을 산출한다.
+    -   mtcars의 배기량(displacement)는 큐빅 인치($inch^3$) 단위로 기록되어 있다.
+    -   국내의 세금은 cc(cubic centimeter)이므로 이를 적절하게 환산하여 세금 부과 기준으로 구간화 가능하다.
+        -   $(1inch)^3 = 16.387cm^3$
+```{r}
+#세금액 부과 기준(배기량(cc))으로 범주화된 변수 taxclass
+auto.74 <- auto.74 %>% 
+  dplyr::mutate(
+    displacement.c = displacement * 16.387,
+    taxclass = cut(displacement.c,
+                   breaks = c(0, 1000, 1600, Inf),
+                   include.lowest = F,
+                   labels = c(80, 140, 200)
+                   ),
+    tax = displacement.c * as.numeric(as.character(taxclass))
+  )
+```
+
+-   1600cc를 기준으로 자동차 세금액이 구분되는 것을 알 수 있다.
+
+```{r}
+ggplot(auto.74, aes(x = displacement.c, y = tax)) +
+  geom_point() +
+  geom_vline(xintercept = 1600, color = "red", linetype = "dashed") +
+  labs(x = "Displacement(cc)", y = "Tax(만원)", title = "배기량에 따른 자동차 세금(2022년 12월 기준") +
+  scale_y_continuous(labels = function(x) x/10000) +
+  theme_minimal()
+```
+
+-   최종 정리되어 시각화에 사용된 데이터는 원하는 장소에 원하는 형식으로 저장하면 추후에 활용할 때 용이하다.
+    -   **[save(object, 파일명)]{style="color: blue;"}**: R형식으로 저장
+    -   **[write.csv(object, 파일명)]{style="color: blue;"}**: csv(comma separated values)형식으로 저장
+    -   **[data_save]{style="color: #383838;"}**하는 폴더도 따로 만들어서 관리를 하면 파일 관리에 유용
+
+```{r}
+#data_save <- paste0(getwd(),"/save/")
+#save(auto.74, file = paste0(data_save, "auto.74.RData")) #R data 형식
+#write.csv(auto.74, file = paste0(data_save, "auto.74.csv")) #csv 형식
+```
+
+## 11.2. 10-키-인포의 시각화 방법
+
+-   시각화 하기에 앞서서 ggplot2 패키지는 **[Chapter3.12.1. ggplot2::]{style="color: #383838;"}**에서 상세한 설명이 있으니 참고하기!
+
+### 11.2.1. 막대 그림 bar/column charts
+
+#### 11.2.1.1. 38종의 자동차의 연비와 특징을 기록한 데이터셋(bar.data.csv)
+
+**[ggplot2::mpg]{style="color: blue;"}**의 1999 ~ 2008년도에 판매된 38종의 자동차의 연비와 특징을 기록한 데이터 중 일부를 발췌한 데이터셋이다.
+
+| Variable | Description | 변수 척도 |
+|:---:|:---:|:---:|
+| class |차종|범주형|
+| cylinder |기통수|범주형|
+| drive |주행 방식|범주형|
+| city |연비|연속형|
+
+
+```{r}
+bar_data <- read.csv(paste0(data_path, "bar.data.csv"))
+```
+```{r}
+head(bar_data)
+```
+
+```{r}
+str(bar_data)
+#결측값 개수 확인
+sum(is.na(bar_data))
+```
+
+-   **[na_count()]{style="color: blue;"}**: 변수별 결측값 수 확인 사용자 함수
+```{r}
+na_count(bar_data)
+```
+
+
+-   기본 그림: 단일 범주형 변수
+    -   **[geom_bar()]{style="color: blue;"}**: 막대그림 함수
+    -   **[coord_flip()]{style="color: blue;"}**: 그래프의 축 전환 함수
+```{r}
+g1 <- ggplot(bar_data, aes(class)) +
+        geom_bar(color = "white", fill = sbl) +
+        theme_bw() +
+        theme(axis.title = element_text(size = 30, face = "bold"),
+              axis.text.x = element_text(size = 20), 
+              axis.text.y = element_text(size = 20))
+#
+g2 <- ggplot(bar_data, aes(class)) +
+        geom_bar(color = "white", fill = sbl) +
+        coord_flip() +
+        theme_bw() +
+        theme(axis.title = element_text(size = 30, face = "bold"),
+              axis.text.x = element_text(size = 20), 
+              axis.text.y = element_text(size = 20))
+
+grid.arrange(g1, g2, ncol = 2)
+```
+-   범주별 빈도 나열 관련 함수
+    - **[dplyr::count()]{style="color: blue;"}**: 고유값으로 빈도 계산
+    - **[forcats::fct_reorder()]{style="color: blue;"}**: 특정 변수에 따라 재정렬
+    - **[ggplot2::geom_text()]{style="color: blue;"}**: 그래프에 문자 또는 숫자 추가
+  
+```{r}
+bar_data %>%
+  count(class, name = "nclass") %>%
+  mutate(class = fct_reorder(class, nclass)) %>%
+  ggplot(aes(class, nclass)) + 
+  geom_bar(stat = "identity", color = "white", fill = "blue") + 
+  labs(subtitle = "차종별 빈도(ggplot2::mpg)",
+       x = "차종",
+       y = "빈도"
+       ) +
+  coord_flip() +
+  geom_text(aes(label = nclass), hjust = 2, color = "white", size = 3) +
+  theme_bw()
+```
+
+-   기본 그림: 2개 이상의 범주형 변수에 따른 표현 방법
+    -   **[aes(fill = var)]{style="color: blue;"}**: 개별 막대 내에 표시할 변수를 지정정
+    -   **[쌓기(stack)]{style="color: #383838;"}**
+    -   **[비켜놓기(dodge)]{style="color: #383838;"}**
+        -   지정하지 않으면 default값으로 쌓기 지정
+
+-   position = "dodge2": 그룹 간에 공간을 유지하면서 막대 그래프를 배치하는 데 사용
+-   position = position_dodge2(preserve = "single"): 이전에 그려진 그래프의 위치를 유지하면서 새로운 그래프를 그리는 데 사용
+```{r}
+g1 <- bar_data %>%
+  ggplot(aes(class, fill = drive)) + 
+  geom_bar() +
+  coord_flip()
+
+g2 <- bar_data %>%
+  ggplot(aes(class, fill = drive)) +
+  geom_bar(position = position_dodge2(preserve = "single")) +
+  coord_flip()
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+
+g1 <- bar_data %>%
+  ggplot(aes(cylinder, fill = drive)) + 
+  geom_bar() +
+  coord_flip()
+
+g2 <- bar_data %>%
+  ggplot(aes(cylinder, fill = drive)) +
+  geom_bar(position = position_dodge2(preserve = "single")) +
+  coord_flip()
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+-   position: position_dodge2 vs "dodge2"
+
+```{r}
+g1 <- bar_data %>%
+  ggplot(aes(class, fill = drive)) +
+  geom_bar(position = position_dodge2(preserve = "single")) +
+  coord_flip()
+
+g2 <- bar_data %>%
+  ggplot(aes(class, fill = drive)) +
+  geom_bar(position = "dodge2") +
+  coord_flip()
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+
+
+
+-   기본 그림: 2개의 범주형 변수들 - 범주별 비율(%) 표현 함수
+  - **[ggplot2::scale_*_continuous()]{style="color: blue;"}**: x 또는 y가 연속형일 때, 연속형 변수의 scale을 변환하고, label 형식 지정
+  - **[scale_*_log10()]{style="color: blue;"}**: 해당 축을 log 형태로 표현
+  - **[scale_*_sqrt()]{style="color: blue;"}**: 해당 축을 제곱근 형태로 표현
+  - **[scale_*_reverse()]{style="color: blue;"}**: 해당 축을 역순(큰 값 > 작은 값)으로 나열
+
+```{r}
+#기본
+bar_data %>%
+  ggplot(aes(x = cylinder, fill = drive)) +
+  geom_bar(position = "fill") + 
+  scale_y_continuous(labels = scales::percent) +
+  theme_bw()
+
+#log10()
+bar_data %>%
+  ggplot(aes(x = cylinder, fill = drive)) +
+  geom_bar(position = "fill") + 
+  scale_y_log10() +
+  theme_bw()
+
+#sqrt()
+bar_data %>%
+  ggplot(aes(x = cylinder, fill = drive)) +
+  geom_bar(position = "fill") + 
+  scale_y_sqrt() +
+  theme_bw()
+
+#reverse()
+bar_data %>%
+  ggplot(aes(x = cylinder, fill = drive)) +
+  geom_bar(position = "fill") + 
+  scale_y_reverse() +
+  theme_bw()
+```
+
+-   기본 그림: 범주형 변수의 범주 별 요약값 표현
+-   요약값 표현 관련 함수
+    -   **[base::round(x, digits)]{style="color: blue;"}**: 반올림 함수
+    -   **[dplyr::summarize()]{style="color: blue;"}**: 요약 함수
+    -   **[geom_bar()]{style="color: blue;"}**
+    -   **[geom_col()]{style="color: blue;"}**
+
+```{r}
+g1 <- bar_data %>% 
+        ggplot(aes(x = cylinder, y = city)) +
+        stat_summary(fun = mean, geom = "bar", color = "white", fill = sbl) +
+        theme_bw() +
+        theme(axis.title = element_text(size = 30, face = "bold"),
+              axis.text.x = element_text(size = 20), 
+              axis.text.y = element_text(size = 20))        
+g2 <- bar_data %>% 
+        group_by(cylinder) %>% 
+        summarise(avg = mean(city)) %>% 
+        ungroup() %>% 
+        ggplot(aes(x = cylinder, y = avg)) +
+        geom_col(color = "white", fill = sbl) +
+        geom_text(aes(label = round(avg, 1)), vjust = 2, color = "white", size = 10) +
+        theme_bw() +
+        theme(axis.title = element_text(size = 30, face = "bold"),
+              axis.text.x = element_text(size = 20), 
+              axis.text.y = element_text(size = 20))
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
+#### 11.2.1.2. 세계 주류 소비량(2018)(alcohol.csv)
+
+-   alcohol.csv는 2018년 각 나라별 주류 소비량을 나타낸 데이터셋이다.
+
+|Variable|변수 설명|
+|:-:|:--------:|
+| country | 나라 이름|
+| beer_servings |맥주|
+| spirit_servings  |증류주|
+|wine_servings|와인|
+|total_litres_of_pure_alcohol|총 소비량|
+
+
+```{r}
+#데이터 로드
+drink <- read.csv(paste0(data_path, "alcohol.csv"), header = TRUE)
+str(drink)
+```
+
+-   결측값 개수 확인
+```{r}
+sum(is.na(drink))
+
+na_count(drink)
+```
+
+-   변수명 재정의 variable rename
+```{r}
+drink <- drink %>%
+  rename(total = total_litres_of_pure_alcohol,
+         beer = beer_servings,
+         spirit = spirit_servings,
+         wine = wine_servings
+         )
+str(drink)
+```
+
+-   오름차순, 랭킹 관련 함수
+  - **[dplyr::top_n(dataframe, n, wt)]{style="color: blue;"}**: wt 변수에 따른 n 개의 케이스 선택
+  - **[dplyr::arrange()]{style="color: blue;"}**: 변수의 값을 순서대로 나열
+  - **[dplyr::desc()]{style="color: blue;"}**: 변수의 값을 내림차순으로 나열
+  
+-   알코올을 많이 섭취하는 상위 5개국?
+
+```{r}
+drink %>%
+  top_n(5, wt = total) %>%
+  arrange(desc(total))
+```
+
+-   대한민국 알코올 섭취량 정도 시각화
+
+```{r}
+drink %>%
+  mutate(med = median(total, na.rm = TRUE)) %>%
+  mutate(alcohol = total - med,
+         country = fct_reorder(country, total)
+         ) %>%
+  ggplot(aes(country, alcohol)) +
+  geom_col(fill = sbl) + 
+  geom_vline(aes(
+    xintercept = which(levels(as.factor(country)) == "South Korea")),
+    color = lre,
+    lty = 1
+    ) +
+  labs(x = "총 주류 소비량(litters)",
+       y = "국가",
+       subtitle = "국가 별 총 주류 소비량"
+       ) +
+  coord_flip() + 
+  theme_bw() + 
+  theme(text = element_text(size = 3))
+```
+
+-   롤리팝 그림(lollipop chart)
+    -   **[geom_point()]{style="color: blue;"}**와 **[geom_segment()]{style="color: blue;"}**를 이용하여 좀 더 명확하게 표현한 그림
+
+```{r}
+drink <- drink %>%
+  mutate(alcohol = total - median(total, na.rm = TRUE),
+         acolor = ifelse(alcohol <= 0, "color1", "color2"),
+         country = fct_reorder(country, alcohol)
+         )
+
+drink %>%
+  ggplot(aes(country, alcohol, color = acolor)) +
+  geom_segment(aes(x = country, xend = country, y = 0, yend = alcohol),
+               color = ifelse(drink$country == "South Korea", lre, ldg)
+               ) +
+  geom_point() +
+  scale_color_manual(values = c(sbl, lre)) +
+  coord_flip() + 
+  labs(x = "총 주류 소비량(litters)",
+       y = "국가",
+       subtitle = "국가 별 총 주류 소비량"
+       ) +
+  theme_light() + 
+  theme(text = element_text(size = 4),
+        legend.position = "none"
+        )
+```
+
+### 11.2.2. 파이 그림 pie charts
+
+-   파이 그림을 통해 표현 가능한 것
+    - 크기(빈도, 양)
+    - 순서
+    - 비율
+
+-   전체 대상이 아닌 경우, 막대 그림 사용
+    -   비중으로 해석하는 용도로 사용함
+
+-   파이 그림 관련 ggplot 함수
+    -   **[ggplot2::coord_polar()]{style="color: blue;"}**: 그래프를 평면에서 원으로 전환
+        -   start: 시작점, direction: 1(시계 방향), -1(반시계 방향) 
+    -   **[ggplot2::theme_void()]{style="color: blue;"}**: 배경, 격자, 숫자 라벨 모두 제거
+
+-   기본 그림: 단일 범주형 변수
+```{r}
+#기본 파이 그림
+#범주 변수(group), 빈도 변수(counts)로 정제
+pie_data <- data.frame(group = LETTERS[1:6],
+                       value = c(30, 20, 10, 5, 3, 2)
+                       )
+
+#기본 막대 그림으로 도시 후 좌표 변환
+ggplot(pie_data, aes(x = "", y = value, fill = group)) + 
+  geom_bar(stat = "identity", width = 1) + 
+  coord_polar("y", start = 0) + 
+  theme_void()
+```
+
+
+-   파이 그림의 각 조각내의 중앙에 범례를 추가하기
+    - **[cumsum()]{style="color: blue;"}**: 누적 합
+    - **[cumprod()]{style="color: blue;"}**: 누적 곱
+    - **[cummin()]{style="color: blue;"}**: 누적 최소값
+    - **[cummax()]{style="color: blue;"}**: 누적 최대값
+```{r}
+pie_data <- pie_data %>%
+  arrange(desc(group)) %>%
+  mutate(prop = value / sum(value) * 100) %>%
+  mutate(ypos = cumsum(prop) - 0.5 * prop) #c누적합
+
+#막대 그림
+g1 <- ggplot(pie_data, aes(x = "", y = prop, fill = group)) + 
+  geom_bar(stat = "identity", width = 1, color = "white") + 
+  theme_void() +
+  theme(legend.position = "none") + 
+  geom_text(aes(y = ypos, label = group), color = "white", size = 3)
+
+#파이 그림으로 전환
+g2 <- ggplot(pie_data, aes(x = "", y = prop, fill = group)) + 
+  geom_bar(stat = "identity", width = 1, color = "white") + 
+  coord_polar("y", start = 0, direction = -1) + 
+  theme_void() +
+  theme(legend.position = "none") + 
+  geom_text(aes(y = ypos, label = group), color = "white", size = 3)
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+
+#### 11.2.2.1. 시장 점유율 시각화(tv.streaming.2020.csv)
+
+-    tv.streaming.2020.csv는 2020년 전세계 스트리밍의 시장 점유율을 조사한 데이터셋이다.
+```{r}
+#데이터 로드
+tvms <- read.csv(paste0(data_path, "tv.streaming.2020.csv"))
+str(tvms)
+#결측값 개수 확인
+sum(is.na(tvms))
+na_count(tvms)
+
+dim(tvms)
+```
+
+```{r}
+#기본 파이 그림
+ggplot(tvms, aes(x = "", y = market, fill = streaming)) +
+  geom_bar(stat = "identity", width = 1) + 
+  coord_polar("y", start = 0) + 
+  theme_void() 
+
+#색상 변경
+ggplot(tvms, aes(x = "", y = market, fill = streaming)) +
+  geom_bar(stat = "identity", width = 1) + 
+  #원하는 palette 이름으로 지정하여 변경 가능
+  scale_fill_brewer(palette = 'Paired') +
+  coord_polar("y", start = 0) + 
+  theme_void() 
+
+#파이 그림 각 조각 내 범례 추가
+tvms <- tvms %>%
+  arrange(desc(streaming)) %>%
+  mutate(prop = market / sum(market) * 100) %>%
+  mutate(ypos = cumsum(prop) - 0.5*prop) #cumsum - 누적합
+
+#막대 그림으로 도시
+g1 <- ggplot(tvms, aes(x = "", y = prop, fill = streaming)) + 
+  geom_bar(stat = "identity", width = 1, color = "white") + 
+  theme_void() +
+  theme(legend.position = "none") + 
+  geom_text(aes(y = ypos, label = streaming), color = "white", size = 6)
+
+#파이 그림으로 전환
+g2 <- ggplot(tvms, aes(x = "", y = prop, fill = streaming)) + 
+  geom_bar(stat = "identity", width = 1, color = "white") + 
+  coord_polar("y", start = 0, direction = -1) + 
+  theme_void() +
+  geom_text(aes(label = paste0(round(prop,2), "%")), position = position_stack(vjust = 1), color = "white", size = 6)
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+
+
+#비중 표시
+ggplot(tvms, aes(x = "", y = prop, fill = streaming)) + 
+  geom_bar(stat = "identity", width = 1, color = "white") + 
+  coord_polar("y", start = 0, direction = -1) + 
+  theme_void() +
+  geom_text(aes(x = 1.6, label = paste0(round(prop,2), "%")), 
+            position = position_stack(vjust = .5), color = ldg, size = 6)
+```
+-    파이 그림에서 막대 그림 & 롤리팝 그림으로 전환하여 도시하기
+```{r}
+#막대 그림으로 전환
+g1 <- tvms %>%
+  mutate(streaming = fct_reorder(streaming, -market)) %>% #streaming 점유율이 높은 순으로 정렬
+  ggplot(aes(streaming, market)) + 
+  geom_col(color = "white", fill = sbl) +
+  labs(x = "Tv streaming OS",
+       y = "점유율",
+       subtitle = "2020년 전세계 TV Streaming 점유율"
+  ) +
+  geom_text(aes(label = round(market, 1)), vjust = 2, color = "white", size = 3) +
+  theme_bw() + 
+  theme(text = element_text(size = 8, face = "bold"),
+        axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1))
+  
+
+#롤리팝 그림으로 전환
+g2 <- tvms %>%
+  mutate(streaming = fct_reorder(streaming, market)) %>% #streaming 점유율이 낮은 순으로 정렬
+  ggplot(aes(streaming, market)) + 
+  geom_point(color = sbl) +
+  geom_segment(aes(x = streaming, xend = streaming, y = 0, yend = market), color = sbl) +
+  labs(x = "Tv streaming OS",
+       y = "점유율",
+       subtitle = "2020년 전세계 TV Streaming 점유율"
+  ) +
+  geom_text(aes(label = round(market, 1)), vjust = -0.6, color = ldg, size = 3) +
+  theme_bw() + 
+  theme(text = element_text(size = 8, face = "bold"),
+        axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1))
+
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+### 11.2.3. 히스토그램 histogram
+
+-   관찰 가능한 것
+    - 연속형 데이터의 대략적인 분포
+    - 좌우대칭 여부 및 왜도
+    - 데이터의 범위 및 산포의 정도
+    - 군집 여부
+    - 이상점 여부 
+  
+-   **[geom_histogram()]{style="color: blue;"}**
+    - color: 막대 선 색깔
+    - fill: 막대 채우기 색깔  
+    - bins: 막대의 개수 
+    - binwidth: 막대의 너비
+    - geom_histogram(aes(y = ..density..)): 상대 도수로 변경
+    - geom_density(colour = "색상"): 밀도 함수 표현
+  
+-   커널 밀도 함수 관련 함수
+  -   기본 kernal은 gaussian이다.
+  -   **[geom_density()]{style="color: blue;"}**
+  -   **[stat_dentity()]{style="color: blue;"}**
+      -   adjust = 1(디폴트): smoothing bandwidth 조절 - 평활화
+      -   kernel = c("gaussian", "epanechnikov", "rectangular", "triangular", "biweight", "cosine", "optcosine")
+
+- 기본 그림: 가상 데이터
+
+```{r}
+hist_data <- data.frame(values = rnorm(100, 100, 10))
+
+hist_data %>% 
+  ggplot(aes(x = values)) +
+  geom_histogram(binwidth = 5, color = "white", fill = sbl) +
+  labs(subtitle = "binwidth = 5") +
+  theme_bw()
+```
+```{r}
+hist_data %>% 
+  ggplot(aes(x = values)) +
+  geom_histogram(bins = 17, color = "white", fill = sbl) +
+  labs(subtitle = "bins = 17") +
+  theme_bw()
+```
+```{r}
+diamonds %>% 
+  ggplot(aes(x = carat, y = after_stat(density))) +
+  geom_histogram(bins = 17, color = "white", fill = sbl) +
+  theme_bw()
+```
+-   커널 밀도 그림: 가상 데이터
+
+```{r}
+g1 <- hist_data %>% 
+  ggplot(aes(values)) + 
+  geom_density(adjust = 0.5) + 
+  labs(subtitle = "adjust = 1/2") + 
+  theme_bw()
+
+g2 <- hist_data %>% 
+  ggplot(aes(values)) + 
+  geom_density(adjust = 1) + 
+  labs(subtitle = "adjust = 1") + 
+  theme_bw()
+
+g3 <- hist_data %>% 
+  ggplot(aes(values)) + 
+  geom_density(adjust = 2) + 
+  labs(subtitle = "adjust = 2") + 
+  theme_bw()
+
+gridExtra::grid.arrange(g1, g2, g3, ncol = 3)
+```
+
+#### 11.2.3.1. ggplot2::diamonds
+
+| 변수명 | 설명 |
+|:--------:|:-----------:|
+| carat | 다이아몬드의 무게 |
+| cut | 다이아몬드 컷팅 품질 |
+| color | 다이아몬드의 색상 |
+| clarity | 다이아몬드의 투명도 |
+| depth | 다이아몬드의 깊이 |
+| table | 다이아몬드의 테이블 폭 |
+| price | 다이아몬드의 가격 |
+| x | 다이아몬드의 길이 |
+| y | 다이아몬드의 너비 |
+| z | 다이아몬드의 높이 |
+
+
+-   기본 히스토그램과 커널 밀도 함수
+
+```{r}
+diamonds %>%
+  ggplot(aes(x = carat, y = ..density..)) + 
+  geom_histogram(color = "white", fill = sbl) + 
+  geom_density(adjust = 3, color = lre) + 
+  theme_bw()
+```
+
+
+-   범주별로 구분된 히스토그램: 색상별 가격의 분포 히스토그램
+
+```{r}
+
+diamonds %>%
+  ggplot(aes(x = price, color = color, fill = color)) + 
+  geom_histogram(binwidth = 5, alpha = 0.6) + 
+  theme_bw() + 
+  theme(legend.position = "none",
+        strip.text.x = element_text(size = 8),
+        ) + 
+  labs(y = "counts") + 
+  facet_grid(cut ~ color)
+```
+
+-   쌍별 비교 히스토그램: 색상(color) D와 E의 가격 비교
+    -   y = ..density..: count 대신에 density를 표시해준다.
+
+```{r}
+diamonds %>%
+  ggplot(aes(x = price)) + 
+  geom_histogram(data = subset(diamonds, color == "D"),
+                 aes(y = ..density.., fill = color,
+                     color = "white")
+                 ) + 
+  geom_segment(data = subset(diamonds, color == "D"), 
+               aes(x = mean(price), xend=mean(price), y = 0, yend = 0.0005), 
+              color=ldg, size = 1
+               ) +
+  geom_histogram(data = subset(diamonds, color == "J"),
+                 aes(y = -..density.., fill = color, 
+                     color = "white")
+                 ) +
+  geom_segment(data = subset(diamonds, color == "J"), 
+               aes(x = mean(price), xend=mean(price), y = 0, yend = -0.00025), 
+              color= ldg, size = 1
+               ) +
+  scale_fill_manual(name = "color",
+                    values = c(sbl, lre),
+                    labels = c("D", "J")
+                    ) +
+  theme_bw()
+```
+
+### 11.2.4. 산점도 scatter plots
+
+-   산점도는 x축과 y축으로 이루어진 그래프에 두 변수의 값을 점으로 나타낸 그래프이다.
+    -   두 변수의 관계를 파악하는데 용이하다.
+    -   데이터가 많은 경우 데이터가 겹쳐서 그려지는 경우가 발생한다.
+
+-   overplotting 해결책
+    - **[jitter()]{style="color: blue;"}**: 각 값들을 겹치지 않게 흔들어서 도시
+    - **[geom_bin2d()]{style="color: blue;"}**: 2차원 bin 정의하여 도시, 기본은 양축으로 30개를 가정
+    - **[geom_hex()]{style="color: blue;"}**: 각 값들을 겹치지 않게 흔들어서 도시
+    - **[geom_smooth()]{style="color: blue;"}**: 두 변수들의 관계를 대략적으로 확인
+  
+-   geom_point 관련 옵션
+    - color: 점 색깔    
+    - size: 점 크기  
+    - shape: 점의 모양 
+    - alpha: 점의 투명도(0 ~ 1: 완전 투명 ~ 완전 불투명)
+  
+#### 11.2.4.1 ggplot::diamonds
+
+| 변수명 | 설명 |
+|:--------:|:-----------:|
+| carat | 다이아몬드의 무게 |
+| cut | 다이아몬드 컷팅 품질 |
+| color | 다이아몬드의 색상 |
+| clarity | 다이아몬드의 투명도 |
+| depth | 다이아몬드의 깊이 |
+| table | 다이아몬드의 테이블 폭 |
+| price | 다이아몬드의 가격 |
+| x | 다이아몬드의 길이 |
+| y | 다이아몬드의 너비 |
+| z | 다이아몬드의 높이 |
+
+```{r}
+#데이터 불러오기
+data("diamonds")
+str(diamonds)
+```
+
+-   기본 구조 및 구성 요소 추가와 조정 및 변경 요소 시각화
+```{r}
+#g1: 기본 구조
+g1 <- diamonds %>%
+  ggplot(aes(carat, price)) +
+  geom_point() +
+  labs(subtitle = "origin") + 
+  theme_bw()
+
+#g2: jitter() 추가
+g2 <- g1 + 
+  geom_jitter() +
+  labs(subtitle = "+ jitter") 
+
+#g3: color, size, alpha 추가
+g3 <-  diamonds %>%
+  ggplot(aes(carat, price)) +
+  geom_point(color = sbl, size = 0.5, alpha = 0.1) +
+  labs(subtitle = "+++ color, small size, alpha") +
+  theme_bw()
+
+#g4: geom_bin2d 추가
+g4 <- diamonds %>%
+  ggplot(aes(carat, price)) +
+  geom_bin2d() + 
+  labs(subtitle = "+ bin2d") +
+  theme_bw()
+
+#g5: geom_hex() 추가
+g5 <- diamonds %>%
+  ggplot(aes(carat, price)) +
+  geom_hex(color = "gold") + 
+  labs(subtitle = "+ hex") +
+  theme_bw()
+
+#g6: geom_smooth() 추가
+g6 <- diamonds %>%
+  ggplot(aes(carat, price)) +
+  geom_point(color = sbl) +
+  geom_smooth() +
+  labs(subtitle = "+ smooth") + 
+  theme_bw()
+
+gridExtra::grid.arrange(g1, g2, g3, g4, g5, g6, nrow = 3)
+```
+
+-   혼합된 데이터 분리 선택
+    -   **[dplyr::filter()]{style="color: blue;"}**
+    -   cut = Ideal, color = D
+```{r}
+dia.ID <- diamonds %>%
+  dplyr::filter(cut == "Ideal" & color == "D")
+str(dia.ID)
+
+g1 <- dia.ID %>%
+  ggplot(aes(carat, price)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "rlm", color = "gold") + 
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  geom_smooth(method = "lm", formula = y ~ x + I(x^3), color = "darkgray", se = FALSE) + 
+  geom_smooth(method = "loess", span = 0.3, color = "darkgreen", se = FALSE) + 
+  labs(subtitle = "전체 데이터를 이용한 다양한 적합") +
+  theme_bw()
+```
+-   층화 여부 확인
+
+```{r}
+g2 <- dia.ID %>%
+  ggplot(aes(carat, price, group = clarity)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "rlm", color = "gold", se = FALSE) + 
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(subtitle = "층(clarity)별 구분 적합") +
+  theme_bw()
+
+gridExtra::grid.arrange(g1, g2, ncol = 2)
+```
+
+-   그룹별 적합 적용 
+    - **[aes(group = `var`)]{style="color: blue;"}**: 그룹 변수 지정하여 그룹별 계산이 가능
+    - **[facet_wrap(~`var`)]{style="color: blue;"}**: 지정된 formula 별로 적합시킨 결과를 보여줌
+        - 시각적으로 더 편하다!
+  
+```{r}
+dia.ID %>%
+  ggplot(aes(carat, price)) +
+  geom_point(color = sbl) +
+  geom_smooth(method = "rlm", color = "gold") + 
+  geom_smooth(method = "lm", color = lre) +
+  facet_wrap(~ clarity) + 
+  theme_bw()
+```
+
+### 11.2.5. 히트맵 heatmaps
+
+-   서로 다른 2개의 범주형 변수 간의 관계를 타일 형태로 보여주는 그림
+
+-   히트맵 데이터 구조
+    - 제 1 범주형 변수: x축 상에 위치하는 변수
+    - 제 2 범주형 변수: y축 상에 위치하는 변수
+    - 연속형/이산형 변수: 색상으로 표현할 변수
+    - **[geom_tile()]{style="color: blue;"}**
+    - 색상 조절: 
+        -   **[scico::scale_fill_scico(palette = c("bilbao", "vik", "lajolla" ))]{style="color: blue;"}**
+        -   **[scale_fill_distiller(palette = c("Spectral", "RdPu", "YlOrBr"))]{style="color: blue;"}**
+
+#### 11.2.5.1. 기본 그림: 가상 데이터(heat.data.csv)
+
+```{r}
+#데이터 로드
+heat_data <- read.csv(paste0(data_path, "heat.data.csv"))
+str(heat_data)
+```
+
+-   기본 히트맵 및 다양한 색상 적용하기기
+```{r}
+g1 <- heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() 
+
+g2 <- heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scale_fill_distiller(palette = "Spectral") + 
+  labs(subtitle = "Spectral") +
+  theme(legend.position = "none")
+  
+g3 <- heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scale_fill_distiller(palette = "RdPu") + 
+  labs(subtitle = "RdPu") +
+  theme(legend.position = "none")
+
+g4 <- heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scale_fill_distiller(palette = "YlOrBr") + 
+  labs(subtitle = "YlOrBr") +
+  theme(legend.position = "none")
+
+g5 <- heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scico::scale_fill_scico(palette = "bilbao") + 
+  labs(subtitle = "bilbao") +
+  theme(legend.position = "none")
+
+g6 <-  heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scico::scale_fill_scico(palette = "vik") + 
+  labs(subtitle = "vik") +
+  theme(legend.position = "none")
+
+g7 <-  heat_data %>%
+  ggplot(aes(x, y, fill = value)) + 
+  geom_tile() +
+  scico::scale_fill_scico(palette = "lajolla") + 
+  labs(subtitle = "lajolla") +
+  theme(legend.position = "none")
+
+gridExtra::grid.arrange(g1, gridExtra::arrangeGrob(g2, g3, g4, g5, g6, g7,
+                        ncol = 3), ncol = 2) 
+```
+
+#### 11.2.5.2. 기본 그림 표현(volcano2.csv)
+
+  -   R에 내장되어 있는 volcano 데이터를 이용한 마웅가 화우(Maunga Whau)이 지형 정보 데이터이다.
+      -   오클랜드 화산 지대에 있는 약 50개의 화산 중의 하나이다.
+      -   지형 정보는 10m X 10m 격자 형태로 기록되었다.
+      -   X는 동에서 서, Y는 남에서 북으로 격자선을 나타낸다.
+
+```{r}
+#데이터 로드
+volcano2 <- read.csv(paste0(data_path, "volcano2.csv"))
+str(volcano2)
+```
+
+- 히트맵 적용
+```{r}
+volcano2 %>%
+  ggplot(aes(X, Y, fill = Z)) + 
+  geom_tile() + 
+  theme_bw() + 
+  theme(legend.position = "none")
+```
+
+#### 11.2.5.3. 국내 성씨 본관의 분포 2015(lastname.2015.csv)
+
+```{r}
+#데이터 로드
+names <- read.csv(paste0(data_path, "lastname.2015.csv"))
+str(names)
+#결측값 개수 확인
+sum(is.na(names))
+na_count(names)
+
+head(names)
+#NA 값 채워주기, fill()
+names <- names %>%
+  fill(last)
+head(names)
+
+#데이터 탐색
+names_total <- names %>%
+  fill(last) %>%
+  dplyr::filter(area == "전국") %>%
+  dplyr::filter(last != "계") %>%
+  arrange(desc(total)) #내림차순 정렬
+lastnames <- unique(names_total$last)
+lastnames #김이박최 순으로 많음
+
+#성 개수
+length(lastnames)
+```
+- 국내 빈도 상위 50개의 성씨들
+
+```{r}
+names_50 <- names_total %>%
+  top_n(50)
+
+names_50 %>%
+  ggplot(aes(fct_reorder(last, total), total)) + 
+  geom_col(color = "white", fill = sbl) + 
+  labs(x = "성씨",
+       y = "등록 인구 수",
+       subtitle = "국내 빈도 상위 50개 성씨들(2015)"
+       ) +
+  coord_flip() + 
+  theme_bw()
+```
+-   상위 50개 성의 지역 분포 히트맵
+
+```{r}
+names_50_area <- names %>%
+  fill(last) %>%
+  dplyr::filter(area != "전국") %>%
+  dplyr::filter(last != "계" & last %in% names_50$last)
+
+names_50_area %>% 
+  ggplot(aes(fct_reorder(area, -total), #지역 - total 낮은 순
+             fct_reorder(last, total), #성 - total 높은 순
+             fill = total)) +
+  geom_tile() +
+  geom_text(aes(label = sprintf("%0.2f", round(total/10000, 2)),
+                color = lre),
+            size = 1.5
+            ) +
+  labs(x = "행정구역",
+       y = "성씨",
+       subtitle = "2015년 국내 빈도 상위 50개 성씨들(단위:만명)"
+       ) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "none"
+        ) +
+  scico::scale_fill_scico(palette = "lajolla")
+```
+
+### 11.2.6. 모자이크 그림 mosaic plots
+
+2개 이상의 범주형 데이터의 빈도 시각화를 위한 그림, 교차표 형식으로 되어있는 데이터에 적용 가능하다.
+
+-   ggmosaic::**[geom_mosaic()]{style="color: blue;"}**
+    - aes: product 지정, fill - 관심 변수, weight - 빈도 변수, conds - 데이터 나누는 기준
+    - offset: 첫번째 판(spine)과의 간격 설정
+    - show.legend: TRUE이면 범례를 보여줌
+-   **[aes()의 변수는 반드시 product()를 지정]{style="color: red;"}**
+
+#### 11.2.6.1. tragic accident: titanic(titanic.csv)
+
+```{r}
+#데이터 로드
+titanic <- read.csv(paste0(data_path, "titanic.csv"))
+str(titanic)
+
+#결측값 개수 확인
+sum(is.na(titanic))
+na_count(titanic) 
+```
+
+```{r}
+library(ggmosaic)
+
+mosaic_color <- c(lre, sbl, ngr, "black")
+
+#class에 따른 생존여부 빈도
+g1 <- titanic %>% 
+  ggplot() + 
+  geom_mosaic(aes(weight = freq,
+                  x = product(class), 
+                  fill = survived)) + 
+  theme_mosaic() + 
+  scale_fill_manual(values = mosaic_color)
+
+#class와 age에 따른 생존 여부 빈도
+g2 <- titanic %>%
+  ggplot() + 
+  geom_mosaic(aes(weight = freq,
+                  x = product(class, age),
+                  fill = survived)) + 
+  theme_mosaic() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) + 
+  scale_fill_manual(values = mosaic_color)
+
+#class와 age에 따른 생존 여부 빈도, age 비율 조정
+g3 <- titanic %>%
+  ggplot() + 
+  geom_mosaic(aes(weight = freq,
+                  x = product(class),
+                  conds = product(age),
+                  fill = survived)) + 
+  theme_mosaic() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) + 
+  scale_fill_manual(values = mosaic_color)
+
+gridExtra::grid.arrange(g1, g2, g3, ncol = 3)
+
+```
+
+### 11.2.7. 등고선도 contour plots
+
+-   {x, y, z}로 주어지는 공간 데이터 표현하는 그림으로 표면도와 함께 활용된다.
+
+-   등고선도 관련 함수
+    - **[geom_contour()]{style="color: blue;"}**: 등고선 기본 기능 제공
+    - **[geom_density_2d(aes(color = ..level..))]{style="color: blue;"}**: 등고선 수준에 따라 색상을 적용
+    - **[geom_density_2d_filled()]{style="color: blue;"}**: 등고선 수준에 색상을 채움
+    - **[scale_color_viridis_c()]{style="color: blue;"}**: 녹색 계열의 등고선 적용
+    - **[coord_equal()]{style="color: blue;"}**: x축 및 y축의 비율을 동일하게 맞춰줌
+
+-   **[reshape2::melt()]{style="color: blue;"}**
+    - matrix를 (행, 열, 값)으로 전환한다.
+    - reshape2::melt(data,
+                     id.vars, #식별자 컬럼들
+                     measure.vars, #측정치 컬럼들, 생략시 id.vars에 해당하지 않는 모든 컬럼이 측정치 컬럼으로 취급
+                     na.rm=FALSE) #NA인 행을 결과에 포함시킬지 여부
+
+#### 11.2.7.1. 기본 그림: 가상 데이터
+
+```{r}
+library(reshape2) 
+df <- melt(volcano) #melt 함수로 데이터 전환하기
+head(df)
+
+a <- as.data.frame(volcano)
+class(volcano)
+```
+
+- 기본 그림
+
+```{r}
+ggplot(df, aes(Var1, Var2, z = value)) + 
+  geom_contour(aes(z = value, color = stat(level))) + 
+  scale_color_viridis_c() + 
+  scale_fill_distiller(palette = "Spectral", direction = -1) + 
+  coord_equal() + 
+  theme_bw()
+```
+-   등고선 색깔 적용하기
+
+```{r}
+ggplot(df, aes(Var1, Var2, z = value)) + 
+  stat_contour(geom = "polygon",aes(fill = stat(level))) + 
+  scale_fill_distiller(palette = "Spectral", direction = -1) + 
+  theme_bw()
+```
+
+
+### 11.2.8. 지도 maps
+
+-   지리 공간 데이터를 활용하여 지도를 시각화하는 것이다.
+-   **[geom_polygon()]{style="color: blue;"}**: 지역 간 경계를 구분해 지도를 그린다.
+-   **[.shp 확장자 파일]{style="color: red;"}**로 저장된 데이터를 사용해서 지도를 그린다.
+
+-   **[geom_polygon()]{style="color: blue;"}**
+    -   fill: 채우기 색상
+    -   color: 테두리 색상
+
+#### 11.2.8.1. 지도 데이터 실습(*.shp)
+
+-   데이터 불러오기기
+```{r}
+file_name <- paste0(data_path, "TL_SCCO_CTPRVN.shp")
+map.i <- rgdal::readOGR(file_name,
+                        layer = "TL_SCCO_CTPRVN",
+                        use_iconv = TRUE,
+                        encoding = "euc-kr"
+                        )
+
+map.ko <- fortify(map.i)
+map.ko %>%
+  ggplot(aes(x = long, y = lat, group = group)) + 
+  geom_polygon(size = 0.05, fill = "white", color = "black") + 
+  labs(title = "South Korea", subtitle = "EDA coruse") + 
+  theme_minimal() + 
+  scale_x_discrete(labels = NULL, breaks = NULL) + labs(x = "") + 
+  scale_y_discrete(labels = NULL, breaks = NULL) + labs(y = "") + 
+  theme(legend.position = "none")
+```
+
+-   색상 및 구급차 데이터 추가
+
+```{r}
+ident <- read.csv(paste0(data_path, "geomap.csv"),
+                  fileEncoding = "euc-kr")
+```
+```{r}
+emergency <- read.csv(paste0(data_path, "emergency.csv"),
+                  fileEncoding = "euc-kr")
+
+#구급차 데이터, id 합치기
+emergency <- ident %>%
+  dplyr::left_join(emergency, by = c("area" = "본부")) %>%
+  mutate(id = as.character(id))
+```
+
+-   보유 구급차 데이터를 반영한 지도 나타내기
+    -   지도로 표시하면 도별로 어디가 빈약한지 파악 가능하다.
+    -   서울, 강원도는 많이 보유하고 있고, 충청도쪽과 경상남도쪽은 빈약해 보이는 것을 알 수 있다.
+```{r}
+data <- map.ko %>% dplyr::left_join(emergency, by = "id")
+
+data %>%
+  ggplot(aes(x = long, y = lat)) + 
+  geom_polygon(aes(fill = 보유구급차, group = group)) + 
+  labs(fill = "bilbao") + 
+  theme_minimal() + 
+  scale_x_discrete(labels = NULL, breaks = NULL) + labs(x = "") + 
+  scale_y_discrete(labels = NULL, breaks = NULL) + labs(y = "") + 
+  scico::scale_fill_scico(palette = "bilbao")
+```
+
+---
+
+# 참고 문헌 {-}
+
+1. R Development Core Team. (n.d.). An Introduction to R. Retrieved from [https://cran.r-project.org/doc/manuals/r-release/R-intro.html](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)
+2. 고승곤. (2023). _R과 통계적 방법을 활용한 탐색적 데이터 분석_. KYOWOO.
+3. 권재명. (2017). _실리콘밸리 데이터 과학자가 알려주는 따라 하며 배우는 데이터 과학_. Jpub.
+4. 윌케, K. (저), & 권혜정. (역). (2020). _데이터 시각화 교과서_. 책만.
+
+---
+
+  ⓒ Statistical MethodsⅡ, Gachon University
+
+---

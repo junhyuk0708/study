@@ -1,0 +1,417 @@
+---
+title: "통계 방법론Ⅱ - 탐색적 데이터 분석"
+author: "응용통계학과 이준혁"
+date: "2023-06-10(토)"
+output:
+  html_document:
+    css: styles.css
+    #code_folding: show
+    fig_caption: yes
+    fig_height: 7.5
+    fig_width: 10
+    fig_retina: null
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+    fig_dpi: 300
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+    font-weight: bold;
+  }
+  h1{
+    font-size: 18pt;
+  }
+  h2{
+    font-size: 16pt;
+  }
+  h3{
+    font-size: 14pt;
+  }
+</style>
+
+<br><br><br><br>
+
+---
+
+
+# Ch9. 중앙값 정제(Median Polish)
+
+## 9.1. 중앙값 정제의 이해
+
+**중앙값 정제(median polish)**는 서로 다른 2개의 상황 하에서 관찰된 반응값을 대상으로 각 상활별 효과(effects)와 나머지 잔차(residuals)로 분해하여 데이터의 해석을 돕는 방법이다.
+
+## 9.2. 1991년 부터 2020년까지의 지역별 평균 기온(monthly.1991.2020.csv) 분석
+
+monthly.1991.2020은 국내 219개 위치(location)에서 월별 평균 기온(°C)을 조사한 것이다. 각 위치별로 시작 일자는 서로 다르지만, 종료일은 2020년 12월로 동일하다.
+
+### 9.2.1. 데이터 불러오기
+```{r}
+monthly <- read.csv(paste0(data_path, "monthly.1991.2020.csv"))
+head(monthly)
+```
+
+### 9.2.2. 데이터의 구조 확인
+```{r}
+str(monthly)
+```
+```{r}
+na_count(monthly)
+```
+### 9.2.3. 데이터 구조 정리
+```{r}
+atemp <- data.frame(monthly[, -c(1,2)])
+row.names(atemp) <- monthly$location
+head(atemp)
+```
+
+### 9.2.4. 중앙값 정제
+```{r}
+ma.fit <- medpolish(atemp, 10)
+```
+```{r}
+ma.fit$overall
+```
+```{r}
+head(ma.fit$row, 5)
+```
+```{r}
+head(ma.fit$col, 5)
+```
+```{r}
+range(ma.fit$row)
+```
+
+```{r}
+range(ma.fit$col)
+```
+추정된 열 효과와 행 효과를 크기 순서대로 나열하면 다음과 같다.
+
+```{r}
+mon <- c(1:12)
+coleffect <- ma.fit$overall + ma.fit$col
+check.c <- data.frame(mon, coleffect)
+check.c %>% 
+  ggplot(aes(reorder(mon, coleffect), coleffect)) +
+  geom_point(color = sbl) +
+  geom_vline(xintercept = ma.fit$overall, color = ldg,) +
+  labs(x = "월",
+       y = "평균 온도",
+       subtitle = "1991-2020 평균 온도의 중앙값 정제 결과"
+  ) +
+  coord_flip() +
+  theme_bw()
+```
+```{r}
+loc <- row.names(atemp)
+roweffect <- ma.fit$overall + ma.fit$row
+check.r <- data.frame(loc, roweffect)
+check.r %>% 
+  ggplot(aes(reorder(loc, roweffect), roweffect)) +
+  geom_point(color = sbl) +
+  geom_hline(yintercept = ma.fit$overall, color = ldg) +
+  coord_flip() +
+  labs(x = "위치",
+       y = "평균 온도",
+       subtitle = "1991-2020 평균 온도의 중앙값 정제 결과"
+       ) +
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 3))
+```
+가법 모형 적합 후의 잔차의 패턴을 고찰해 보면 다음과 같다.
+```{r}
+res <- as.data.frame(ma.fit$residuals)
+
+res %>% 
+  mutate(location = row.names(res)) %>% 
+  melt() %>% 
+  group_by(variable) %>% 
+  mutate(outlier = ifelse(is_outlier(value),
+                          location,
+                          as.character(NA))
+         ) %>% 
+  ggplot(aes(x = variable, y = value)) +
+  geom_boxplot() +
+  geom_text(aes(label = outlier),
+            size = 1.5,
+            na.rm = T,
+            hjust = -0.5
+  ) +
+  theme_bw()
+```
+
+-   잔차에서 이상점으로 진단된 행과 열의 값만 선택하여 heatmap 그리면 다음과 같다.
+
+```{r}
+res %>% #데이터 정리
+  mutate(location = row.names(res)) %>%
+  melt() %>%
+  group_by(variable) %>%
+  mutate(outlier = ifelse(is_outlier(value),
+                          location,
+                          as.character(NA))
+  ) %>% 
+  dplyr::filter(outlier != "NA") %>% #이상점으로 진단된 값 추출
+  
+  #히트맵 그리기
+  ggplot(aes(x = variable,
+             y = fct_reorder(location, value),
+             fill = value)) + 
+  geom_tile() +
+  geom_text(aes(label = value),
+            color = ngr,
+            size = 1.5
+            ) + 
+  labs(x = "월",
+       y = "위치",
+       subtitle = "1991~2020 평균 온도의 중앙값 정제 결과"
+       ) +
+  theme_bw() + 
+  scico::scale_fill_scico(palette = "bilbao")
+```
+-   현재의 가법 모형의 타당성을 확인하기 위하여 비교값을 계산한다.
+
+-   계산 함수 적용 종류
+    -   **[base::outer(x, y, fun = "*" ...)]{style="color: blue;"}**`: c(dim(x), dim(y))의 배열 생성하는 함수
+    -   **[base::with(data, R expression)]{style="color: blue;"}**: data 내의 변수 간 연산 결과 저장하는 함수
+
+-   cv: 비교 값
+```{r}
+cv <- with(ma.fit,
+           outer(row, col, "*") / overall 
+      )
+head(cv)
+
+df <- data.frame(loc = row.names(atemp),
+                 cv = as.vector(cv),
+                 res = as.vector(ma.fit$residuals)
+                 )
+head(df)
+```
+-   산점도
+    -   (cv, residuals)에서 음(-)의 선형 관계가 있어 보이므로, 저항선을 통하여 기울기를 추정한다.
+```{r}
+df %>%
+  ggplot(aes(cv, res, label = loc)) + 
+  geom_point(color = sbl, size = 0.5, alpha = 0.3) + 
+  geom_text(size = 1.5, hjust = 0, nudge_y = 0.1, nudge_x = 0.1) + 
+  labs(x = "comparison values",
+       y = "residuals"
+       ) + 
+  theme_bw()
+```
+
+-   기울기가 -0.49이므로 반영하여 패턴을 확인한다./
+    -   수정된 잔차(adjusted residuals)에는 선형 패턴이 존재하지 않는다.
+
+```{r}
+round(rline(res ~ cv, df)$b, 2)
+```
+-    최종적으로 적합된 잔차 확인
+```{r}
+out <- data.frame(iteration = NULL, slope = NULL, intercept = NULL)
+
+iter.limit <- 10
+for(iterations in 1:iter.limit){
+  rfit <- rline(res ~ cv, df, iter = iterations)
+  out <- rbind(out,
+               data.frame(iteration = iterations,
+                          slope = rfit$b,
+                          intercept = rfit$a)
+               )
+}
+```
+-   7번 째 반복 적합 이후 절편과 기울기 수렴한다.
+    - iteration을 7로하여 최종 저항선 추정 진행
+```{r}
+out 
+
+final <- rline(res ~ cv, df, iter = 7)
+df$adres <- final$residual
+#최종 적합 산점도
+df %>%
+  ggplot(aes(cv, adres, label = loc)) + 
+  geom_point(color = sbl, size = 0.5, alpha = 0.3) + 
+  geom_text(size = 1.5, hjust = 0, nudge_y = 0.1, nudge_x = 0.1) + 
+  geom_hline(yintercept =0,
+             color = lre) +
+  labs(x = "comparison values",
+       y = "adjusted residuals"
+       ) + 
+  theme_bw()
+```
+
+## 9.3. 올림픽 수영 기록(swimming.csv)을 이용한 데이터 분석
+
+-   10번의 하계 올림픽에서 여자 자유형 100, 200, 400, 800m 우승자들의 기록(초)로 각 연도별 그리고 시합의 거리별로 정리된 2원 데이터 표이다.
+
+```{r}
+#데이터 로드
+swim <- read_csv(paste0(data_path, "swimming.csv"), show_col_types = FALSE)
+str(swim)
+#결측값 개수 확인
+sum(is.na(swim))
+na_count(swim)
+```
+
+-   데이터 구조 정리
+    -   숫자형으로 저장된 행렬
+
+```{r}
+record <- data.frame(swim[, -1])
+record
+row.names(record) <- swim$year #행이름 변경
+record
+```
+
+-   중앙값 정제, **[stats::medpolish(data, maxiter = n)]{style="color: blue;"}** 사용
+
+```{r}
+sa.fit <- medpolish(record, 10)
+
+sa.fit$overall #공통효과
+head(sa.fit$row, 5) #행효과
+head(sa.fit$col, 5) #열효과
+range(sa.fit$row) #행효과 범위
+range(sa.fit$col) #열효과 범위
+```
+
+-   잔차와 비교값 그림
+    -   잔차의 값이 cv에 따라 증가하는 패턴, 양의 선형관계를 보인다.
+    -   이는 가법 모형보다 승법 모형이 적절하다는 의미이다.
+
+```{r}
+plot(sa.fit)
+```
+
+-   $k=1.1$ 이므로 $p=1-k=1-1.1\approx 0$ 0일 때 멱승 변환은 log 변환이다.
+    -   데이터를 변환하여 가법 모형을 재적합 진행한다.
+
+```{r}
+res <- as.data.frame(sa.fit$residuals) #적합선 기울기
+#비교값
+cv <- with(sa.fit,
+           outer(row, col, "*") / overall
+           )
+df <- data.frame(loc = row.names(record),
+                 cv = as.vector(cv),
+                 res = as.vector(sa.fit$residuals)
+                 )
+rline(res ~ cv, df)$b #기울기(k) 구하기
+```
+
+ 
+-   잔차의 값이 cv에 대한 특정 관계가 존재하지 않는다.
+    -   가법 모형이 적합하다고 할 수 있다.
+
+```{r}
+lrecord <- log(record)
+lrecord
+ta.fit <- medpolish(lrecord, 10)
+
+plot(ta.fit)
+```
+
+```{r}
+distance <- log(c(100,200,400,800))
+coleffect <- ta.fit$overall + ta.fit$col
+check.c <- data.frame(distance, coleffect)
+```
+
+-   추정 열효과 시각화
+```{r}
+check.c %>%
+  ggplot(aes(distance, round(coleffect, 2))) + 
+  geom_point(color = sbl) + 
+  geom_hline(yintercept = ta.fit$overall, color = ldg) + 
+  labs(x = "거리(distance: m)",
+       y = "기록(초)",
+       subtitle = "1968-2004 올림픽 수영 우승자 기록"
+       ) + 
+  theme_bw()
+
+year <- row.names(lrecord)
+roweffect <- ta.fit$overall + ta.fit$row
+check.r <- data.frame(year, roweffect)
+check.r %>%
+  ggplot(aes(year, roweffect)) + 
+  geom_point(color = sbl) + 
+  geom_hline(yintercept = ta.fit$overall, color = ldg) + 
+  labs(x = "년도",
+       y = "기록(초)",
+       subtitle = "1968-2004 올림픽 수영 우승자 기록"
+       ) + 
+  theme_bw()
+```
+
+-   시간에 대한 행 효과를 비교하기 위해서 ratio(비)를 고려해야 한다.
+-   기록된 최초년도 1968년과 비교했을 때 기록이 얼마나 개선되고 있는지를 파악해야 한다.
+    -   각 년도의 기록을 역변환하고 이를 최초 년도의 기록과의 비를 이용하여 비교해야 한다.
+
+-   행 효과 비교 해석
+    -   2004년은 1968년과 비교했을 때 약 10%가 감소되었다.
+        -   즉, 10%가 개선되었다.
+```{r}
+row.origin <- as.vector(exp(ta.fit$row))
+reffect.origin <- row.origin/row.origin[1]
+round(reffect.origin, 2)
+```
+
+-   열효과 비교 해석
+    -   거리에 대한 해석은 100m를 기준으로 200, 400, 800m로 올라갈수록 2.16배, 4.52배, 9.27배의 시간이 더 소요된다.
+        -   이는 장거리로 갈수록 피로도가 쌓이는 것이 반영된 결과라고 판단할 수 있다.
+```{r}
+col.origin <- as.vector(exp(ta.fit$col))
+ceffect.origin <- col.origin/col.origin[1]
+round(ceffect.origin, 2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
