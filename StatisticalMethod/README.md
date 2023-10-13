@@ -14,8 +14,7 @@
   source("swap.R")
   source("eda-funs.R")
 
-<span style="color: red;"><strong>[Put .Rprofile, swap.R, and eda-funs.R files in the path where the project was created]</strong></span>
-
+**프로젝트를 생성한 경로에 .Rprofile, swap.R, eda-funs.R 파일 넣어두기**
 *source 파일명은 본인이 프로젝트 상황에 맞게 설정하기*
 1. 자주 쓰는 함수 정리
 2. 색깔 지정 ex) lre <- "#A50034" #lightRed
