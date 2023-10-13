@@ -1,6 +1,6 @@
 CHAPTER6
 
-##6.1 포아송 평균의 사후분포
+##6.1 ???티? ?????? ???캤???
 
 #1 p.145
 x1 = rep(c(0, 1, 2, 3, 4, 5, 6), c(7, 14, 13, 8, 4, 2, 2))
@@ -23,6 +23,7 @@ par(mfrow=c(1, 1))
 
 theta <- seq(0, 6, length=100)
 
+
 plot(theta, dgamma(theta, a+s1, b+n1), type="l", xlab="theta",ylab="p(theta | x)")
 lines(theta, dgamma(theta, a+s2, b+n2), lty=2)
 lines(theta, dgamma(theta, a, b), lty=3)
@@ -42,7 +43,7 @@ legend(3.5, 1.5, legend=c(paste("City 1"),
 	paste("City 2"), paste("Jeffrey prior")),
 	lty=c(1, 2, 3), bty="n")
 
-##6.2 예측분포
+##6.2 ????????
 
 #1 p.150
 #predictive distribution of X_{n+1}
@@ -60,7 +61,7 @@ ylab="P(x_{n+1}|x_1,...,x_n)", type="h", main="City 1")
 plot(x,dnbinom(x,size=a+s2,prob=(b+n2)/(b+n2+1)), xlab="x_{n+1}",
 ylab="P(x_{n+1}|x_1,...,x_n)",type="h", main="City 2")
 
-##6.3 몬테칼로 근사
+##6.3 ????칼?? ?某?
 
 #1 p.153
 a<-2 ; b<-1
@@ -80,7 +81,7 @@ plot(density(eta), type="l", xlab="theta1-theta2",ylab="posterior density", main
 abline( v= HPD, lty=2)
 text(mean(eta),0.3, "95% HPD interval" )
 
-##6.4 몬테칼로 방법을 이용한 예측분포 추정
+##6.4 ????칼?? ????을 ?結??? ???????? ??정
 
 #1 p.156
 a=2; b=1

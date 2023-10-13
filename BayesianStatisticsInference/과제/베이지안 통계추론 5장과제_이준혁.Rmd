@@ -159,3 +159,45 @@ z=rbinom(N,m,theta)
 plot(table(z)/N)
 ```
 
+
+
+# 4번 문제
+
+사전 확률 : $$\theta = $$
+
+```{r}
+# 후유증을 보인 환자 수와 총 환자 수
+x <- 3  # 성공 (후유증을 보인 환자 수)
+n <- 12  # 시도 (총 환자 수)
+
+# 사전 확률의 매개변수 (Beta 분포)
+alpha_prior <- 1  # 균등분포로 가정
+beta_prior <- 1
+
+# 사후 확률의 매개변수
+alpha_post <- alpha_prior + x
+beta_post <- beta_prior + n - x
+
+# 사후 확률로부터 샘플링하여 13번째 환자가 후유증을 보일 확률을 계산
+set.seed(123)  # 재현 가능한 결과를 위한 시드 설정
+samples <- rbeta(100000, alpha_post, beta_post)  # 사후 분포로부터 샘플 추출
+
+# 13번째 환자가 후유증을 보일 확률의 추정
+prob_new_patient <- mean(samples)
+
+# 결과 출력
+print(paste("13번째 환자가 후유증을 보일 추정 확률: ", round(prob_new_patient, 4)))
+```
+
+# 5번 문제
+
+```{r}
+
+```
+
+# 6번 문제
+
+```{r}
+
+```
+

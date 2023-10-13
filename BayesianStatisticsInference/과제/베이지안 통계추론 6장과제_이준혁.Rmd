@@ -1,0 +1,77 @@
+---
+title: "베이지안 통계추론 6장 과제"
+author: "응용통계학과 이준혁"
+date: "2023-10-13"
+output:
+  html_document:
+    css: styles.css
+    #code_folding: show
+    fig_caption: yes
+    fig_height: 7.5
+    fig_width: 10
+    fig_retina: null
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+    fig_dpi: 300
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+    font-weight: bold;
+  }
+  h1{
+    font-size: 18pt;
+  }
+  h2{
+    font-size: 16pt;
+  }
+  h3{
+    font-size: 14pt;
+  }
+</style>
+
+---
+```{r}
+library(ggplot2)
+```
+
+# 1번 문제
+
+```{r}
+#3 p.147
+a = 1/2; b = 0
+x1 = rep(c(0,1,2,3,4,5), c(3, 2, 4, 3, 2, 1))
+n1 = length(x1)
+s1 = sum(x1)
+theta <- seq(0, 5, length=100)
+
+par(mfrow=c(1,1))
+plot(theta, dgamma(theta, a+s1, b+n1), type="l", xlab="theta",ylab="p(theta | x)")
+lines(theta, 1/sqrt(theta), lty=3)
+
+legend(3.5, 1.5, legend=c(paste("City 1"),
+	paste("City 2"), paste("Jeffrey prior")),
+	lty=c(1, 2, 3), bty="n")
+```
+
