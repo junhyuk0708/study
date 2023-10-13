@@ -15,22 +15,17 @@
   ```R
   source("swap.R")
   source("eda-funs.R")
-
 <br>
 
-**[프로젝트를 생성한 경로에 .Rprofile, swap.R, eda-funs.R 파일 넣어두기]{style="color: red;"}**
+<span style="color: red;">[프로젝트를 생성한 경로에 .Rprofile, swap.R, eda-funs.R 파일 넣어두기]</span>
 
 *source 파일명은 본인이 프로젝트 상황에 맞게 설정하기*
-
 1. 자주 쓰는 함수 정리
 2. 색깔 지정 ex) lre <- "#A50034" #lightRed
 3. 데이터 경로 설정
 4. 패키지 설정
-   
 <br>
-
 ### 3. 생성한 프로젝트 Rstudio로 열기
 - 'EDA' 파일을 연다.
 - 2번에 설정했던 함수 및 패키지 등이 불러와진다.
-<br>  
-** 처음 설정시 오래 걸림 **
+**처음 설정시 오래 걸림**
