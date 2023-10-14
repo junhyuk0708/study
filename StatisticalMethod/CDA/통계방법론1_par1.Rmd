@@ -1,0 +1,78 @@
+---
+title: "통계 방법론1 part1"
+author: "응용통계학과 이준혁"
+date: "2023-10-14(토)"
+output:
+  html_document:
+    css: styles.css
+    #code_folding: show
+    fig_caption: yes
+    fig_height: 7.5
+    fig_width: 10
+    fig_retina: null
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+    fig_dpi: 300
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+    font-weight: bold;
+  }
+  h1{
+    font-size: 18pt;
+  }
+  h2{
+    font-size: 16pt;
+  }
+  h3{
+    font-size: 14pt;
+  }
+  table{
+    font-size: 20px;
+  }
+</style>
+<br><br><br><br>
+
+---
+
+# Part1, 단순 회귀 분석 Simple Regression Analysis
+
+## 예제1. simple.csv: 임의로 선택된 소형 화물의 무게$(x;~g)$과 부피$(y;~cm^3)$
+
+-   무게에 의하여 운송 요금을 결정하는 소형 화물들 중에서 임의로 선택된 58개의 무게(x; weight)과 부피(y; volume)을 조사하였다.
+-   이를 이용하여 중량과 부피간의 관계를 추정하여 운송 계획을 수립하고자 한다.
+
+```{r}
+setwd(getwd())
+getwd()
+data_path
+
+paste0(getwd(), "/data/")
+cargo <- read.csv(paste0(data_path, "simple.csv"))
+cargo
+
+```
+
+

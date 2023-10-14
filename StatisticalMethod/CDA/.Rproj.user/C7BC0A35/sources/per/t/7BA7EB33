@@ -1,6 +1,6 @@
 {
     "id": "7BA7EB33",
-    "path": "C:/Users/GCU/Desktop/CDA/통계방법론2_기말대체(202340338 이준혁).Rmd",
+    "path": "C:/Users/GCU/Desktop/study/StatisticalMethod/CDA/통계방법론2_기말대체(202340338 이준혁).Rmd",
     "project_path": "통계방법론2_기말대체(202340338 이준혁).Rmd",
     "type": "r_markdown",
     "hash": "156027800",
@@ -8,11 +8,11 @@
     "dirty": false,
     "created": 1695452140751.0,
     "source_on_save": false,
-    "relative_order": 6,
+    "relative_order": 4,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "485,0",
+        "cursorPosition": "535,1",
         "scrollLine": "0"
     },
     "folds": "",
