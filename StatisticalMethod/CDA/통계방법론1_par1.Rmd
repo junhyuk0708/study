@@ -65,14 +65,67 @@ knitr::opts_chunk$set(echo = TRUE)
 -   이를 이용하여 중량과 부피간의 관계를 추정하여 운송 계획을 수립하고자 한다.
 
 ```{r}
-setwd(getwd())
-getwd()
-data_path
-
-paste0(getwd(), "/data/")
 cargo <- read.csv(paste0(data_path, "simple.csv"))
-cargo
+str(cargo)
+
+na_count <- function(df){
+  sapply(df, function(y) sum(length(which(is.na(y)))))
+}
+
+na_count(cargo)
+x <- cargo$x
+y <- cargo$y
+Sxy <- sum((x - mean(x)) * (y - mean(y)))
+Sxx <- sum((x - mean(x))^2)
+Syy <- sum((y - mean(y))^2)
+#
+hat_beta1 <- Sxy / Sxx
+hat_beta0 <- mean(y) - hat_beta1*mean(x)
+round(c(hat_beta0, hat_beta1), 2)
+
 
 ```
+
+## 실습 18. 유통 매장 정리 시간 dist.store.csv
+
+```{r}
+dist <- read.csv(paste0(data_path, "dist.store.csv"))
+
+```
+
+```{r}
+str(dist)
+head(dist)
+tail(dist)
+view(dist)
+```
+
+```{r}
+dist <- dist %>% 
+  rename_all(tolower)
+
+head(dist, 5)
+```
+```{r}
+na_count <- function(df){
+  sapply(df, function(y) sum(length(which(is.na(y)))))
+}
+
+na_count(dist)
+```
+
+-   (case, time)의 관계는 직선의 경향을 갖는다.
+
+```{r}
+dist %>% 
+  ggplot(aes(case, time)) +
+  geom_point(color = sbl) +
+  theme_bw()
+```
+
+```{r}
+dest_fit <- lm(time ~ case, data = dist)
+```
+
 
 
