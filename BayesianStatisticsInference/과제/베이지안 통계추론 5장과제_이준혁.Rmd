@@ -81,11 +81,10 @@ HPD.grid
 # 2번 문제
 
 2-(1)
-$$ \alpha=3.0742, \beta=12.1053 $$
-$$ \pi(\theta|x_1,x_2,x_3,\cdots,x_n)\sim B(5.074,20.105) $$
+$\pi(\theta|x_1,x_2,x_3,\cdots,x_n)\sim B(5.074,20.105)$
 ```{r}
-a=3.0742
-b=12.1053
+a=3.0742 #alpha=3.0742
+b=12.1053 #beta=12.1053
 a2=a+2
 b2=b+8
 
@@ -133,11 +132,11 @@ abline(v=HPD,lty=2)
 # 3번 문제
 
 3-(1)
-$$ {\alpha \over \alpha+\beta}=0.4,{\alpha+1 \over \alpha+1+\beta}=0.45 $$
-$$ \alpha=4.4, \beta=6.6 $$
+
+${\alpha \over \alpha+\beta}=0.4,{\alpha+1 \over \alpha+1+\beta}=0.45$
 ```{r}
 # 3-(2)
-a=4.4;b=6.6;x=3;n=10
+a=4.4;b=6.6;x=3;n=10 # alpha=4.4, beta=6.6
 theta=seq(0,1,length=10001)
 ftheta=dbeta(theta,a+x,n-x+b)
 prob=ftheta/sum(ftheta)
@@ -160,10 +159,7 @@ plot(table(z)/N)
 ```
 
 
-
 # 4번 문제
-
-사전 확률 : $$\theta = $$
 
 ```{r}
 # 후유증을 보인 환자 수와 총 환자 수
@@ -191,13 +187,44 @@ print(paste("13번째 환자가 후유증을 보일 추정 확률: ", round(prob
 
 # 5번 문제
 
-```{r}
+5-(1)
 
+경품의 당첨확률 theta의 최우추정치는 0이다.
+
+5-(2)
+
+0이다.
+
+## (3)
+
+$\pi(\theta|x_1, x_2 \cdots,x_n)\sim Beta(0.1,11)$
+
+$f(z|x_1, x_2\cdots,x_n)= {20 \choose z}{Be(11.1,21-z)\over Be(0.1,11)}$
+
+$P(z>=1|x_1,x_2\cdots,x_n)=1-P(z=0|x_1,\cdots,x_n)$
+
+```{r}
+gamma(11.1)*gamma(21)/gamma(32.1)/(gamma(0.1)*gamma(11)/gamma(11.1))
 ```
 
 # 6번 문제
 
+$\theta_1|x_1 \sim Beta(11,11)$
+
+$\theta_2|x_2 \sim Beta(15,7)$
 ```{r}
+a=1; b=1; n=20
+x1=10; x2=14
 
+theta1=rbeta(100000,a+x1,b+n-x1)
+theta2=rbeta(100000,a+x2,b+n-x2)
+xi=log((theta1/(1-theta1))/(theta2/(1-theta2)))
+
+#로그 오즈비 추정치 및 표준오차
+mean(xi); sd(xi)
+
+HPD=HPDsample(xi)
+HPD
+plot(density(xi),type = 'l',xlab = '로그오즈비',main = '로그 오즈비의 사후 분포')
+abline(v=HPD, lty=1)
 ```
-
