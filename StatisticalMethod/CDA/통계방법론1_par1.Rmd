@@ -128,4 +128,107 @@ dest_fit <- lm(time ~ case, data = dist)
 ```
 
 
+# Part1, 다중 회귀 분석 Multiple Regression Analysis
+
+## C-materials cem.materials.csv
+
+```{r}
+cem <- read.csv(paste0(data_path,"cem.materials.csv"))
+str(cem)
+```
+-   변수 이름과 위치 정리
+
+```{r}
+cem <- cem %>% 
+  dplyr::rename_all(tolower) %>% 
+  select(-id) %>% 
+  relocate(y)
+```
+-   결측값 확인
+
+```{r}
+na_count <- function(data){
+  sapply(data, function(y) sum(length(which(is.na(y)))))
+}
+```
+
+-   데이터 시각화: 행렬도(matrix plot)
+
+```{r}
+cem %>% 
+  ggpairs(columns = 1:ncol(.),
+          lower = list(continuous = wrap("points", # continuous = "smooth"
+                                         color = sbl,
+                                         aplha = 0.5)
+                   ),
+          upper = list(continuous = wrap("points", # wrap("cor", size = 2.5)
+                                         color = sbl,
+                                         alpha =0.5)
+                   ),
+          diag = list(continuous = wrap("densityDiag",
+                                        color = "black",
+                                        alpha = 0.5)
+                   ),
+          title = "Component Data") +
+  theme_bw()
+```
+
+-   함수 정의
+    -   원하는 형태의 행렬도(matrix plot) 형식을 결정하여 함수화
+    
+```{r}
+gg_mplot <- function(df, ttl){
+  df %>% 
+  ggpairs(columns = 1:ncol(.),
+          lower = list(continuous = wrap("points", #continuous = "smooth"
+                                         color = sbl,
+                                         alpha = 0.5)
+                       ),
+          upper = list(continuous = wrap("points", #wrap("cor", size = 2.5)
+                                         color = sbl,
+                                         alpha = 0.5)
+                       ),
+          diag = list(continuous = wrap("densityDiag",
+                                        color = "black",
+                                        alpha = 0.5)
+                       ),
+          title = ttl) +
+  theme_bw()
+}
+
+ttl = "Component Data: function 활용"
+gg_mplot(cem, ttl)
+```
+
+
+-   다중 회귀 분석: lm()
+    -   lm() 함수는 단순 회귀 분석과 동일하게 적용된다.
+    -   단, formula를 사전에 지정하는 경우에는 문자형으로 정의되어야 한다.
+
+```{r}
+fml <- "y ~ t1 + t2 + t3 + t4"
+cem_model <- lm(fml, cem)
+summary(cem_model)
+```
+-   구간 추정
+    -   lm()에 의한 model object가 생성
+    
+
+```{r}
+confint(cem_model, level = 0.95)
+```
+
+```{r}
+confint(cem_model, c("t1", "t2"), level = 0.95)
+```
+
+-   가설 검정
+    -   lm()을 적용한 model object의 summary()의 coef를 부분 선택
+  
+```{r}
+summary(cem_model)$coef
+```
+
+
+
 

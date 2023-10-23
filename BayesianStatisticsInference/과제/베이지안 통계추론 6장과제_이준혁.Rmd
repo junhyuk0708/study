@@ -75,3 +75,32 @@ legend(3.5, 1.5, legend=c(paste("City 1"),
 	lty=c(1, 2, 3), bty="n")
 ```
 
+```{r}
+# 파라미터 및 데이터 설정
+a = 1/2
+b = 0
+x <- c(3,2,4,3,2,1)
+n = length(x)
+s = sum(x)
+
+# theta 값의 범위 설정
+theta <- seq(0, 6, length=100)
+
+# 데이터 프레임 생성
+df <- data.frame(
+  theta = theta,
+  posterior = dgamma(theta, a+s, b+n),
+  jeffreys_prior = 1/sqrt(theta)
+)
+
+# ggplot을 사용하여 그래프 그리기
+ggplot(df, aes(x = theta)) +
+  geom_line(aes(y = posterior, color = "사후 확률 분포")) +
+  geom_line(aes(y = jeffreys_prior, color = "Jeffrey 사전 확률 분포"), linetype = "dashed") +
+  labs(title = "Theta에 대한 확률 분포", x = "theta", y = "p(theta | x)") +
+  theme_minimal() +
+  scale_color_manual(values = c("사후 확률 분포" = "blue", "Jeffrey 사전 확률 분포" = "red")) +
+  theme(legend.title = element_blank())
+```
+
+
