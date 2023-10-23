@@ -145,6 +145,11 @@ str(check)
 mean(check$length)
 sd(check$length)
 ```
+
+```{r}
+summary(check)
+```
+
 분포 확인
 
 ```{r}

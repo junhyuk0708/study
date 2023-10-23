@@ -115,3 +115,68 @@ z=rbinom(N,m,theta)
 plot(table(z)/N)
 ```
 
+# Q4
+$$
+\pi(\theta)=1~~f(x|\theta)=\theta^3(1-\theta)^9
+$$
+$$
+\pi(\theta|x)\sim Beta(4,10)
+$$
+$$
+P(X_{n+1}=1|x_1,\cdots,x_n)={4 \over 14}
+$$
+
+# Q5
+
+## (1)
+0
+
+## (2)
+0
+
+## (3)
+$$
+\pi(\theta|x_1,\cdots,x_n)\sim Beta(0.1,11)
+$$
+
+$$
+f(z|x_1,\cdots,x_n)= {20 \choose z}{Be(11.1,21-z)\over Be(0.1,11)}
+$$
+$$
+P(z>=1|x_1,\cdots,x_n)=1-P(z=0|x_1,\cdots,x_n)
+$$
+
+```{r}
+gamma(11.1)*gamma(21)/gamma(32.1)/(gamma(0.1)*gamma(11)/gamma(11.1))
+#1-0.000000000128
+```
+
+# Q6
+$$
+\theta_1|x_1 \sim Beta(11,11)
+$$
+$$
+\theta_2|x_2 \sim Beta(15,7)
+$$
+```{r}
+a=1
+b=1
+n=20
+x1=10
+x2=14
+
+theta1=rbeta(10000,a+x1,b+n-x1)
+theta2=rbeta(10000,a+x2,b+n-x2)
+xi=log((theta1/(1-theta1))/(theta2/(1-theta2)))
+#로그 오즈비 추정치
+mean(xi)
+#로그 오즈비 표준오차
+sd(xi)
+
+HPD=HPDsample(xi)
+HPD
+par(family='AppleGothic')
+plot(density(xi),type = 'l',xlab = '로그오즈비',main = '로그 오즈비의 사후 분포')
+abline(v=HPD, lty=2)
+```
+
