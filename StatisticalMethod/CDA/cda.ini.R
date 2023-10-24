@@ -10,7 +10,7 @@ cda.pkgs <- c("knitr", "markdown",
               "stringr", "forcats", "reshape2", "tidytext", "ggplot2", 
               "rlang", "ggpubr", "GGally", "ggrepel", "scico", "patchwork", 
               "lvplot", "vcd", "vcdExtra", "aplpack", "HH", 
-              "nortest", "car", "gridExtra"
+              "nortest", "car", "gridExtra", "knitr"
               )
 lp <- function(pkg){
  new.pkg <- pkg[!(pkg %in% utils::installed.packages()[, "Package"])]
@@ -37,7 +37,7 @@ data_path <- paste0(getwd(), "/data/")
 #               "viridis", "scico", "patchwork",
 #               "lvplot", "scales", "MASS", "vcd", "vcdExtra",
 #               "rgdal", "plotly", "sf", "aplpack",
-# 		  "gridExtra" #그림 여러 개 표현
+# 		"gridExtra", #그림 여러 개 표현		
 # )
 
 # lp <- function(pkg){

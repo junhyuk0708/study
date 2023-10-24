@@ -1,7 +1,7 @@
 ---
-title: "통계 방법론1"
+title: "통계 방법론1 중간대체"
 author: "응용통계학과 이준혁"
-date: "2023-09-23(토)"
+date: "2023-10-28(토)"
 output:
   html_document:
     css: styles.css
@@ -56,43 +56,44 @@ knitr::opts_chunk$set(echo = TRUE)
 <br><br><br><br>
 
 ---
-```{r}
-library(ggplot2)
-library(gridExtra)
-```
 
-```{r}
-# 1. Normal Population Distribution
-set.seed(123)
-population1 <- rnorm(100000, mean=100, sd=10)
-sample_means1 <- replicate(1000, mean(sample(population1, size=30)))
+# !목차
 
-p1 <- ggplot(data.frame(x=population1), aes(x)) + geom_density() + xlim(80, 120)
-p2 <- ggplot(data.frame(x=sample_means1), aes(x)) + geom_histogram(aes(y=..density..), bins=30) + xlim(97, 103)
+## Is it not time to seek out novelty in data analysis?
+-   생각하기
+-   Part2 Statistical Method - 요약, 비교, 관계
+  -   1. 통계적 의사 결정 Statistical Decision Making
+  -   2. 확률 분포와 그 응용
+  -   3. 확증적 비교 방법 Confirmatory Comparisons
+  -   4. 단순 회귀 분석 Simple Regression Analysis
+  -   5. 다중 회귀 분석 Multiple Linear Regression
+  
+---
 
-# 2. Skewed Population Distribution (Using log-normal as an example)
-population2 <- rlnorm(100000, meanlog=4.5, sdlog=0.8)
-sample_means2 <- replicate(1000, mean(sample(population2, size=30)))
 
-p3 <- ggplot(data.frame(x=population2), aes(x)) + geom_density() + xlim(0, 300)
-p4 <- ggplot(data.frame(x=sample_means2), aes(x)) + geom_histogram(aes(y=..density..), bins=30) + xlim(50, 150)
+# 생각이 필요한 개념 및 주제.
 
-# 3. Exponential Population Distribution
-population3 <- rexp(100000, rate=0.01)
-sample_means3 <- replicate(1000, mean(sample(population3, size=30)))
+-   자유도
+-   
 
-p5 <- ggplot(data.frame(x=population3), aes(x)) + geom_density() + xlim(0, 500)
-p6 <- ggplot(data.frame(x=sample_means3), aes(x)) + geom_histogram(aes(y=..density..), bins=30) + xlim(0, 600)
+# ML 적용 과정 생각하기
 
-# Display plots
-p1
-p2
-p3
-p4
-p5
-p6
-```
+P19,
 
+-   heuristics에 의해서 $\alpha=0.05$로 설정하는 것처럼 머신러닝에서는 heuristics에 의해 선택되는 것이 많이 있다.
+-   A/B test 방법 중에 하나가 T-test로 봐도 되는 것인가?
+-   기본Base 모델인 A모델과 B모델을 비교하고자한다.
+-   모델 선택도 heuristics에 의해서 좋은 모델을 선택한다.
+    -   $$H_0 : \mu_B \leq \mu_A$$, B모델의 성능은 A모델의 성능보다 나쁘거나 같다.
+    -   $$H_1 : \mu_B > \mu_A$$, B모델의 성능은 A모델의 성능보다 좋다.
+    -   같은 샘플을 가지고 ML모델을 적용해서 T-test를 통해서 모델을 비교한다.(대응 T-test)
+
+# 1. 통계적 의사 결정 Statistical Decision Making
+
+## 1.1. 모수와 통계량
+
+-   **모수:** 모집단의 특징으로 **[상수(constant)]{style="color: red;"}**
+-   **통계량:** 표본에서의 결과이며 **[변수(variable)]{style="color: red;"}**
 
 ```{r}
 unit1 = c(10, 10, 10, 50, 30, 40, 50, 40, 30 ,50)
@@ -110,134 +111,148 @@ ggplot(df, aes(x = Sample.Mean)) +
   labs(title="모평균과 표본 평균(n = 2)", x="표본 평균", y="빈도") +
   ylim(0, 1) +
   theme_bw() + 
-  geom_vline(xintercept=30, linetype="dashed", color = "brown")
+  geom_vline(xintercept=30, linetype="dashed", color = lre)
+```
+
+-   모든 통계량은 고유의 분포를 갖는다. 이를 **[표본 분포(sampling distribution) ]{style="color: red;"}**라고 한다.
+-   모든 모집단의 평균이 의미가 있는가?
+    -   평균만으로는 분포의 형태, 이상치의 영향, 데이터가 가지는 의미를 파악하기에는 어려움이 있어 보인다.
+  
+```{r}
+# 1. Normal Population Distribution
+set.seed(123)
+population1 <- rnorm(1000, mean=100, sd=5)
+sample_means1 <- replicate(1000, mean(sample(population1, size=30)))
+
+p1 <- ggplot(data.frame(x=population1), aes(x)) + geom_density() + xlim(80, 120)
+p2 <- ggplot(data.frame(x=sample_means1), aes(x)) + geom_histogram(aes(y=..density..), bins=30) + xlim(97, 103)
+gridExtra::grid.arrange(p1, p2, ncol = 2)
 ```
 ```{r}
-# x 축을 위한 데이터 벡터 생성
-x <- seq(80, 120, by = 0.1)
+# 2. Gamma Distribution
+population2 <- rgamma(1000, shape=1, scale=100)
+sample_means2 <- replicate(1000, mean(sample(population2, size=30)))
 
-# 정규 분포의 확률밀도함수 계산
-y <- dnorm(x, mean = 100, sd = 5)
+p3 <- ggplot(data.frame(x=population2), aes(x)) + geom_density() + xlim(0, 300)
+p4 <- ggplot(data.frame(x=sample_means2), aes(x)) + geom_histogram(aes(y=..density..), bins=30) + xlim(50, 150)
+gridExtra::grid.arrange(p3, p4, ncol = 2)
 
-# 데이터 프레임 생성
-df <- data.frame(x, y)
+```
+```{r}
+# 3. Exponential Distribution
+population3 <- rexp(1000, rate=0.005)
+sample_means3 <- replicate(1000, mean(sample(population3, size=30)))
 
-y <- replicate(1000, mean(rnorm(30, mean = 100, sd = 5)))
+p5 <- ggplot(data.frame(x=population3), aes(x)) + geom_density() + xlim(0, 1000)
+p6 <- ggplot(data.frame(x=sample_means3), aes(x)) + geom_histogram(aes(y=..density..), bins=30) + xlim(0, 600)
+gridExtra::grid.arrange(p5, p6, ncol = 2)
+```
+
+###  대수의 법칙 Law of Large Numbers
+
+```{r}
+# 데이터 생성
+n <- 10000
+
+# Normal(100, 10)
+normal_1 <- rnorm(n, mean=100, sd=10)
+cum_normal_1 <- cumsum(normal_1) / (1:n)
+
+# Normal(90, 20)
+normal_2 <- rnorm(n, mean=90, sd=20)
+cum_normal_2 <- cumsum(normal_2) / (1:n)
+
+# Uniform(40, 120)
+uniform_data <- runif(n, min=40, max=120)
+cum_uniform <- cumsum(uniform_data) / (1:n)
 
 # 그래프 그리기
-g1 <- ggplot(df, aes(x = x, y = y)) +
-    geom_line() +
-    ggtitle("Normal Distribution PDF") +
-    xlab("x") +
-    ylab("Density") +
-    theme_test()
+plot_df <- data.frame(
+  Iteration = 1:n,
+  Normal_100_10 = cum_normal_1,
+  Normal_90_20 = cum_normal_2,
+  Uniform_40_120 = cum_uniform
+)
 
-g2 <- ggplot(data.frame(y), aes(y)) +
-  geom_histogram(bins=30, fill=sbl, color='black') +
-  theme_bw()
-
-# 두 개의 그래프 배열하여 출력
-grid.arrange(g1, g2,nrow=1)
-```
-7page 나머지는 감마분포?
-
-
-```{r}
-
-```
-
-  
-```{r}
-# x 값 범위와 확률밀도함수 계산
-x <- seq(0, 300, by = 1)
-lambda <- 1 / 20
-y <- lambda * exp(-lambda * x)
-
-# 데이터 프레임 생성
-df <- data.frame(x, y)
-df
-
-z <- replicate(1000, mean(rnorm(30, mean = 100, sd = 5)))
-
-# 그래프 생성
-ggplot(df, aes(x = x, y = y)) +
-  geom_line() +
-  ggtitle("Exponential Distribution PDF with Mean 200") +
-  xlab("x") +
-  ylab("Density") +
-  coord_cartesian(xlim = c(0, 300), ylim = c(0, 0.025))
+ggplot(plot_df, aes(Iteration)) +
+  geom_line(aes(y = Normal_100_10, color = "Normal(100, 10)")) +
+  geom_line(aes(y = Normal_90_20, color = "Normal(90, 20)")) +
+  geom_line(aes(y = Uniform_40_120, color = "Uniform(40, 120)")) +
+  labs(y = "표본 평균", x = "표본 크기", title = "[LLM] 분포의 형태와 산포 그리고 표본 크기에 따른 표본 평균 값의 변화") +
+  theme_bw() +
+  scale_color_manual(values = c(sbl, lre, lgo))
 ```
 
 
+-   산포가 작고 정규분포일 때 수렴이 더 빠른 것을 알 수 있다.
+-   $n_0<n_1$이어도 항상 $n_0$에서의 요약값보다 참값에 근접하지는 않다.
+
+### 중심 극한 정리 Central Limit Theorem; CLT
+
+-   **[모집단 분포와 관계없이,]{style="color: red;"}** 표본 크기(n)가 증가함에 따라 표본 평균의 분포는 정규 분포로 근사한다.
+-   표본 크기(n)가 커질수록 표본 평균의 분산이 작아진다.
+
+    -   표준 오차(Standard Error; SE)
+        -   통계량의 **[표준 편차]{style="color: red;"}**
+        -   표본 오차를 수량화한 것으로 **[그 값이 작을수록 바람직]{style="color: red;"}**
+$$SE(\bar{y}) = \frac{\sigma}{\sqrt{n}}$$
+
+
+
+### 중요 모수와 통계량
+
+|  | 모수 | 통계량값 | 정의범위 |
+|:------:|:----:|:-------:|:--------:|
+| 비율 - 이산형 | $p$ | $\hat{p} = \frac{1}{n}\sum_{i=1}^{n} y_i$ | $y_i = 0,1$ |
+| 평균 간격 - 이산형 | $\lambda$ | $\hat{\lambda} = \frac{1}{n}\sum_{i=1}^{n} y_i$ | $y_i = 0,1,2,...$ |
+| 평균 - 연속형 | $\mu$ | $\bar{y} = \frac{1}{n}\sum_{i=1}^{n} y_i$ | $y_i = [-\infty, \infty]$ |
+| 분산 | $\sigma^2$ | $s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(y_i - \bar{y})^2$ | $\forall y_i$ |
+
+$$\bar{y} = \frac{1}{n}\sum_{i=1}^{n} y_i = \frac{1}{n}y_1 + \frac{1}{n}y_2 + \dots + \frac{1}{n}y_n$$
+
+-   **[표본 평균의 평균]{style="color: red;"}**은 모평균이다. 
+    -   $E(\bar{y}) = \mu$
+-   정보 자체는 연속형이 더 많이 내포하고 있기 때문에 어떻게 하면 이산형 변수를 근사화할 수 있지에 대한 고민이 중요하다.
+-   예를 들어 사람의 키가 170.5cm라는 값이 있는데 이를 '키가 크다'라고 분류해버리면 이는 정보의 손실에 해당한다.
+
+## 1.2. 중요 통계량의 표본 분포
+
+-   표본 분포는 (1)표본 크기(n)의 영향을 받고 (2)통계량의 표본 오차를 표현한다.
+
+### 카이 제곱 분포 $\chi^2$
+
+-   카이 제곱분포
+    -   표준정규분포 제곱합(Sum of Squared)의 분포
+    -   $Z_i \sim N(0,1)$, i = 1, 2, ..., v가 상호 독립일 때
+    -   $C = \sum_{i=1}^{v} Z_i^2 \sim \chi^2(v)$, $v$는 자유도
+    -   $E(C) = v$
+    -   $\text{Var}(C) = 2v$
+    -   평균이 커지면 분산이 커지는 분포이다.
+    
+* 두 표본이 서로 독립이라면, $P(X=x, Y=y) = P(X=x)P(Y=y)$
+
+-   카이제곱 분포의 **[가법성]{style="color: red;"}**
+    -   가법성 개념이 중요하다.
+        -   계산이 편리해진다. -> 해석이 용이해진다.
+        
+$$C_1 \sim \chi^2(v_1),~C_2 \sim \chi^2(v_2)~\text{상호 독립이라면,}$$
+
+$$C_1 + C_2 \sim \chi^2(v_1 + v_2)$$
+
+-   실무적으로 상호 독립을 설명하기가 어렵다.
+    -   랜덤하게 추출되었으면 상호독립일 가능성이 높다.
+    -   **[교차표]{style="color: red;"}**를 정리해서 검증하면 좋다.
+
 ```{r}
-# 파라미터 설정
-lambda <- 1 / 20  # 지수 분포 파라미터
-n <- 30  # 표본 크기
-reps <- 1000  # 반복 횟수
+# x 축을 위한 데이터 벡터 생성 (0부터 80까지)
+x <- seq(0, 80, by = 0.1)
 
-# 표본평균을 저장할 빈 벡터 초기화
-sample_means <- numeric(reps)
-
-# 1,000번 반복하여 표본평균 계산
-for (i in 1:reps) {
-  sample <- rexp(n, rate = lambda)  # 지수 분포에서 n개의 표본 추출
-  sample_means[i] <- mean(sample)  # 표본평균 계산
-}
-
-# 결과를 데이터 프레임으로 변환
-df <- data.frame(Sample.Mean = sample_means)
-
-# 히스토그램 그리기
-ggplot(df, aes(x = Sample.Mean)) +
-  geom_histogram(binwidth = 5, fill = sbl, alpha = 0.7) +
-  ggtitle("Histogram of Sample Means (n = 30)") +
-  xlab("Sample Mean") +
-  ylab("Frequency")
-```
-
-
-
-```{r}
-# 초기 설정
-num_samples <- 30  # 표본의 크기
-num_reps <- 1000  # 반복 횟수
-
-# 빈 벡터를 생성하여 결과를 저장
-results_rnorm <- numeric(num_reps)
-results_runif <- numeric(num_reps)
-results_rchisq <- numeric(num_reps)
-
-# 1000번 반복
-for (i in 1:num_reps) {
-  # n=30의 표본을 정규분포에서 추출
-  sample_rnorm <- rnorm(num_samples, mean=100, sd=10)
-  #dnorm(sample_rnorm, mean = 100, sd = 5)
-  sample_runif <- runif(num_samples, min = 0, max = 100)
-  sample_rchisq <- rchisq(num_samples, 10)  # 자유도(df)가 10
-  
-  # 계산한 통계량을 results 벡터에 저장 (예: 표본 평균)
-  results_rnorm[i] <- mean(sample_rnorm)
-  results_runif[i] <- mean(sample_runif)
-  results_rchisq[i] <- mean(sample_rchisq)
-}
-# 결과를 확인
-hist(results_rnorm)
-hist(results_runif)
-hist(results_rchisq)
-```
-
-
-# page15 자유도에 따른 카이제곱분포의 형태
-```{r}
-# x 축을 위한 데이터 벡터 생성 (0부터 30까지)
-x <- seq(0, 30, by = 0.1)
-
-# 자유도가 1, 2, 3, 5, 10인 카이제곱 분포의 확률밀도함수 계산
-y_df1 <- dchisq(x, df = 1)
-y_df2 <- dchisq(x, df = 2)
-y_df3 <- dchisq(x, df = 3)
-y_df5 <- dchisq(x, df = 5)
-y_df10 <- dchisq(x, df = 10)
+# 자유도가 4, 15, 29, 39, 49인 카이제곱 분포의 확률밀도함수 계산
+y_df1 <- dchisq(x, df = 4)
+y_df2 <- dchisq(x, df = 14)
+y_df3 <- dchisq(x, df = 29)
+y_df5 <- dchisq(x, df = 39)
+y_df10 <- dchisq(x, df = 49)
 
 # 데이터 프레임 생성
 df <- data.frame(x, y_df1, y_df2, y_df3, y_df5, y_df10)
@@ -249,12 +264,168 @@ ggplot(df, aes(x = x)) +
   geom_line(aes(y = y_df3, color = 'df = 29')) +
   geom_line(aes(y = y_df5, color = 'df = 39')) +
   geom_line(aes(y = y_df10, color = 'df = 49')) +
-  ggtitle("Chi-Squared Distributions with Different Degrees of Freedom") +
+  ggtitle("자유도에 따른 카이제곱분포의 형태") +
   xlab("x") +
   ylab("Density") +
-  scale_color_manual(values = c('red', 'blue', 'green', 'purple', 'orange')) +
-  theme_minimal()
+  scale_color_manual(values = c(lre, sbl, ngr, 'purple', lgo)) +
+  theme_bw()
 ```
+
+-   고려 사항
+    -   언제 사용하는가?
+        -   (1)모분산의 통계적 추론
+        -   (2)범주형 변수의 **[독립성/동일성 검정]{style="color: red;"}**
+    -   분포의 모수는 무엇인가?
+        -   표본 크기(n)에 의하여 결정되는 **[자유도]{style="color: red;"}**
+    -   확률 계산하는 R Code
+    
+```{r}
+qchisq(0.025, df = 49) #31.6
+qchisq(0.975, df = 49) #70.2
+```
+
+---
+
+### t분포 $t_{\nu}$
+
+- 독립변수 $Z$ 와 $C$ 가 각각 $N(0,1)$, $C \sim \chi^2(v)$ 인 경우를 가정하면,
+
+$$ T = \frac{Z}{\sqrt{C/v}}~\sim t(v) $$
+
+- $E(T) = 0$
+- $Var(T) = \frac{v}{v-2}, v > 2$
+
+---
+
+-   Why t ?
+
+$$ \bar{y} \sim N \left( \mu, \frac{\sigma^2}{n} \right) $$
+
+$$ Z = \frac{\bar{y} - \mu}{\sqrt{\sigma^2/n}} \sim N(0,1) $$
+
+$$ \frac{(n-1)s^2}{\sigma^2} \sim  \chi^2(n-1) $$
+
+따라서,
+
+$$ T = \frac{Z}{\sqrt{\frac{(n-1)s^2}{\sigma^2(n-1)}}} = \frac{\bar{y} - \mu}{\sqrt{s^2/n}} \approx t(n-1) $$
+
+
+-   t-분포와 정규분포 비교
+
+```{r}
+# x 범위 정의
+x <- seq(-5, 5, by=0.01)
+
+# 표준 정규 분포
+pdf_norm <- dnorm(x, mean=0, sd=1)
+
+# t-분포 (자유도 3, 10, 25)
+pdf_t3 <- dt(x, df=3)
+pdf_t10 <- dt(x, df=10)
+pdf_t25 <- dt(x, df=25)
+
+# 데이터프레임 생성
+df <- data.frame(x, pdf_norm, pdf_t10, pdf_t3, pdf_t25)
+
+# 그래프 그리기
+ggplot(df, aes(x=x)) +
+  geom_line(aes(y=pdf_norm, color='Normal Distribution')) +
+  geom_line(aes(y=pdf_t10, color='t-Distribution (df=10)'), linetype="dashed") +
+  geom_line(aes(y=pdf_t3, color='t-Distribution (df=3)'), linetype="dotted") +
+  geom_line(aes(y=pdf_t25, color='t-Distribution (df=25)'), linetype="twodash") +
+  labs(title="Standard Normal vs. t-Distributions",
+       x="Value",
+       y="Density",
+       color="Distribution") +
+  theme_bw()
+```
+
+-   오른쪽과 왼쪽 꼬리가 두껍다. 정규분포에 비해 변동성 증가한다.
+    -   why? t분포는 작은 표본 크기에서의 표본 평균의 분포를 설명하기 때문에 이러한 특성을 가진다.
+-   고려 사항
+    -   언제 사용하는가?
+        -   모분산을 모르는 경우, 모평균에 대한 통계적 추론
+    -   분포의 모수는 무엇인가?
+        -   표본 크기(n)에 의하여 결정되는 **[자유도]{style="color: red;"}**
+    -   확률 계산하는 R Code
+    
+```{r}
+qt(0.025, df = 10) # 결과: -2.23
+qt(0.025, df = 30) # 결과: -2.04
+qnorm(0.025) # 결과: -1.96
+qt(0.975, df = 10) # 결과: 2.23
+qt(0.975, df = 30) # 결과: 2.04
+qnorm(0.975) # 결과: 1.96
+```
+-   이를 통해서 n이 커짐에 따라서 정규 분포로 근사하는걸 알 수 있다.
+
+---
+
+### F분포 $F_{\nu1, \nu2}$
+
+F-분포는 두 개의 자유도 $\nu_1$과 $\nu_2$를 가진 카이제곱 분포의 비율에 대한 분포로 정의된다.
+
+$F = \frac{C/\nu_1}{U/\nu_2}$
+
+
+$E(F) = \frac{\nu_2}{\nu_2 - 2}, \quad \nu_2 > 2$
+
+$Var(F) = \frac{2\nu_2(\nu_1+\nu_1)}{\nu_1(\nu_2-2)^2(\nu_2-4)}, \quad \nu_2 > 4$
+
+-   why F?
+
+$$(n_1 - 1) \frac{s_1^2}{\sigma_1^2} \sim \chi^2(n_1-1)$$
+
+$$(n_2 - 1) \frac{s_2^2}{\sigma_2^2} \sim \chi^2(n_2-1)$$
+
+$$F = \frac{\frac{(n_1-1)s_1^2}{\sigma_1^2} / (n_1 - 1)}{\frac{(n_2-1)s_2^2}{\sigma_2^2} / (n_2 - 1)} = \frac{s_1^2/\sigma_1^2}{s_2^2/\sigma_2^2} \sim F(n_1-1, n_2-1)$$
+
+
+
+
+```{r}
+# x 범위 정의
+x <- seq(0, 5, by=0.01)
+
+# F 분포 자유도 조합 정의
+dfs <- list(c(10,10), c(10,30), c(10,5), c(30,10), c(30,30), c(30,5), c(5,10), c(5,30), c(5,5))
+
+# 각 자유도 조합에 대한 F 분포 계산
+pdfs <- lapply(dfs, function(df) df(x, df1=df[1], df2=df[2]))
+
+# 데이터프레임 생성
+df_data <- data.frame(x = rep(x, length(dfs)),
+                      y = do.call(c, pdfs),
+                      df = factor(rep(sapply(dfs, paste, collapse="-"), each=length(x))))
+
+# 그래프 그리기
+ggplot(df_data, aes(x=x, y=y, color=df)) +
+  geom_line() +
+  labs(title="F distribution for various degrees of freedom",
+       x="Value",
+       y="Density",
+       color="Degrees of Freedom") +
+  theme_bw()
+```
+
+-   고려 사항
+    -   언제 사용하는가?
+        -   (1)모분산의 비에 대한 통계적 추론
+        -   (2)분산 분석
+    -   분포의 모수는 무엇인가?
+        -   표본 크기(n)에 의하여 결정되는 **[자유도]{style="color: red;"}**
+    -   확률 계산하는 R Code
+
+```{r}
+qf(0.025, df1 = 5, df2 = 30) #0.161
+qf(0.975, df1 = 5, df2 = 30) #3.03
+```
+
+---
+
+## 1.3. 통계적 추론 Statistical Inference
+
+-   표본 오차가 존재한다면, 이를 의사 결정 과정에 반영할 수 있어야 한다.
 
 
 
