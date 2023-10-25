@@ -1,0 +1,282 @@
+---
+title: "수리통계학 Ⅱ - chap 6 실습"
+author: "이하늘, 가천대학교 응용통계학과 202340339"
+date: 2023-04-15(SAT)
+output:
+  html_document:
+    code_folding: show
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 10
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+  }
+  h1{
+    font-size: 22pt;
+  }
+  h2{
+    font-size: 20pt;
+  }
+  h3{
+    font-size: 18pt;
+  }
+</style>
+
+<br>
+
+# 1. 타이핑 오타의 수 평균 \(\theta\)인 포아송 분포를 따른다고 한다. 무정보 사전분포 제프리 사전분포를 가정하기로 하였다. 처음 6페이지를 보니 오타수가 3,2,4,3,2,1이었다. 주어진 정보를 가지고 승진이의 평균 페이지 당 오타수인 \(\theta\)의 사후분포를 유도하고 R로 사후분포의 밀도함수를 그려보아라.
+
+
+\[
+n = 6, \displaystyle\sum_ x_i, \overline{x_1} = 2.5
+\]
+
+```{r}
+a = 1/2; b = 0
+x <- c(3,2,4,3,2,1)
+n = length(x); s = sum(x)
+
+postmean.theta = (a+s)/(b+n)
+
+theta=seq(0,6,length=100)
+
+plot(theta, dgamma(theta, a+s, b+n), type="l", xlab="theta",ylab="p(theta | x)")
+lines(theta, 1/sqrt(theta), lty=3)
+
+legend(3.5, 0.4, legend=c(paste("오타수")
+                          , paste("Jeffrey prior")),
+       lty=c(1, 3), bty="n")
+
+```
+
+# 2. 보험사 상품의 수 X는 평균 \(\theta\)인 포아송 분포, 사전분포 Gamma(1,1) 가정
+
+## 2-(1). 이번 달 영업사원이 12개 보험 상품 판매, \(\theta\)의 사후분포를 구하라. \(\theta\)의 사전평균과 사후평균의 차이를 비교해 보아라.
+
+
+\[ 
+\mu = \frac{\alpha}{\beta}  \\ 
+사후분포\\
+\pi(\theta|x_1,\cdots,x_n)\sim Gamma(\alpha+x, \beta + 1) \\
+\alpha=1, \beta=1 \\
+\pi(\theta|x_1,\cdots,x_n)\sim Gamma(1+12 =13, 1+1 = 2) 
+\]
+
+```{r}
+# install necessary packages
+library(ggplot2)
+library(tidyverse)
+
+# prior parameters
+alpha_prior <- 1
+beta_prior <- 1
+
+# observed data
+x <- 12
+
+# posterior parameters
+alpha_posterior <- alpha_prior + x
+beta_posterior <- beta_prior + 1
+
+# prior and posterior means of theta 
+prior_mean_theta <- alpha_prior / beta_prior 
+posterior_mean_theta <- alpha_posterior / beta_posterior 
+
+print(paste("Prior mean of theta: ", prior_mean_theta))
+print(paste("Posterior mean of theta: ", posterior_mean_theta))
+
+# plot the density of the samples for the posterior distribution of theta 
+theta_values <- seq(from = 0 , to =20 , by =0.01)
+prior_density <- dgamma(theta_values , shape = alpha_prior , rate = beta_prior)
+posterior_density <- dgamma(theta_values , shape = alpha_posterior , rate = beta_posterior)
+
+df <- data.frame(theta_values, prior_density, posterior_density)
+colnames(df) <- c("Theta", "Prior", "Posterior")
+
+
+df_long <- gather(df, Distribution, Density, -Theta)
+
+ggplot(df_long, aes(x=Theta, y=Density)) +
+  geom_line(aes(color=Distribution)) +
+  labs(title="Prior and Posterior Distributions of Theta") 
+
+```
+
+\[ 
+\theta 의 사전평균 => \mu = \frac{\alpha}{\beta}  = \frac{1}{1} = 1 \\
+\theta 의 사후평균 => \mu = \frac{13}{2}  = 6.5 
+\]
+
+
+## 2-(2). 새로 고용된 신입 영업사원이 첫 달에 8개의 보험 상품을 팔았다고 했을 때 이 신입사원이 다음 달에 7~9개의 보험 상품을 팔게 될 확률을 구하라.
+
+\[ 
+사후분포\\
+\pi(\theta|x_1,\cdots,x_n)\sim Gamma(\alpha+x, \beta + 1) \\
+\alpha=1, \beta=1 \\
+\pi(\theta|x_1,\cdots,x_n)\sim Gamma(1+8 =9, 1+1 = 2) \\
+X|θ \sim Poisson(θ) \\
+\]
+
+\[
+다음 달에 7\sim9개의 보험 상품을 팔게 될 확률 \\
+P(Y=7 or Y=8 or Y=9 | X=8) \\
+P(Y=k | θ) (k=7, 8, 9) \\
+P(Y < 9) - P(Y < 7)
+\]
+
+```{r}
+theta <- rgamma(n = 10000, shape = 9 , rate = 2)
+prob <- mean(dpois(x = c(7:9), lambda = theta))
+print(prob) #[1] 0.05334251
+
+pgamma(9,9,2)-pgamma(7,9,2) #[1] 0.05499919
+```
+
+# 3. 하루 동안 방문하는 네덜란드인의 수 X는 평균 \(\theta\)인 포아송 분포, 사전분포 Gamma(2,1) 가정, 4월 1일부터 10일까지 열흘 동안 관측한 결과 총 12명의 네덜란드인이 백화점을 방문
+
+## 3-(1). \(\theta\)의 사후분포 구하고, R로 사후분포의 밀도함수 그리기
+
+
+\[ 
+\mu = \frac{\alpha}{\beta}  \\ 
+사후분포\\
+\pi(\theta|x_1,\cdots,x_n)\sim Gamma(\alpha+x, \beta + 10) \\
+\alpha=2, \beta=1 \\
+\pi(\theta|x_1,\cdots,x_n)\sim Gamma(2+12 =14, 1+10 = 11) 
+\]
+
+```{r}
+# R 코드
+a = 2; b=1
+s = 12; n = 10
+theta <- seq(0, 3, length.out = 1000)
+plot(theta, dgamma(theta, a+s, b+n), type="l", xlab="theta",ylab="p(theta | x)")
+legend("topright","Posterior",lty=1,lwd=2)
+```
+
+
+## 3-(2). \(\theta\)의 95% 사후구간(HPD)를 구하고 위 그림 위에 표시하라.
+
+
+```{r}
+a = 2; b=1
+s = 12; n = 10
+theta <- seq(0, 3, length.out = 1000)
+plot(theta, dgamma(theta, a+s, b+n), type="l", xlab="theta",ylab="p(theta | x)")
+legend("topright","Posterior",lty=1,lwd=2)
+
+HPDsample <- function(theta,level=0.95){
+  N=length(theta)
+  theta.sort=sort(theta)
+  M=ceiling(N*level)
+  nCI=N-M
+  CI.width=rep(0,nCI)
+  for(i in 1:nCI) CI.width[i]=theta.sort[i+M]-theta.sort[i]
+  index=which.min(CI.width)
+  HPD=c(theta.sort[index], theta.sort[index+M])
+  return(HPD)
+}
+
+posterior<- rgamma(10000, shape = a+s, rate = b+n)
+
+HPD=HPDsample(posterior) #95% 최대사후구간
+abline(v=HPD,lty=3, col = "red")
+```
+
+
+## 3-(3). 몬데칼로 기법을 사용하여 \(log\theta\)의 사후밀도함수와 95% 사후구간(HPD)을 그림으로 나타내라.
+
+
+```{r}
+# 로그 변환된 theta
+log_theta <- log(theta)
+
+
+plot(density(log_theta), type="l", xlab="log(theta)",ylab="p(theta | x)")
+legend("topleft","log theta Posterior",lty=1,lwd=2)
+posterior_1 <- dgamma(log_theta, a+s, b+n)
+
+HPD=HPDsample(posterior_1) #95% 최대사후구간
+abline(v=HPD,lty=3, col = "red")
+```
+
+
+# 4. 특정 암환자 200명을 랜덤으로 뽑아 100명씩 그룹을 나누었다. 위약 그룹은 225개, 치료제 그룹은 210개 독립적으로 Gamma(1,1) 사전분포, 몬데칼로 방법으로 로그 세타1/세타2의 사후평균과 95% 최대사후구간 구하라.
+
+\(\alpha\)와 \(\beta\)는 사전분포의 파라미터 (\(\alpha=1, \beta=1\)),
+s1,s2(발견된 종양수 \(s1 = 225, s2 = 210\)), n1, n2(\(n1 = n2 = 100\))
+
+\[ 
+사후분포\\
+\pi(\theta|x_1,\cdots,x_n)\sim Gamma(\alpha+s, \beta + n) \\
+\theta_1|x_1\sim Gamma(1+225, 1 + 100) = Gamma(226,101) \\
+\theta_1|x_2\sim Gamma(1+210, 1 + 100) = Gamma(211,101)
+\]
+```{r}
+a<-1 ; b<-1
+n1<- 100; s1<- 225 ; n2<- 100;   s2<- 210 ; 
+nsim<-10000
+theta1.sim = rgamma(nsim,a+s1,b+n1)
+theta2.sim = rgamma(nsim,a+s2,b+n2)
+
+eta=log(theta1.sim/ theta2.sim)
+mean(eta) #[1] 0.06929097
+var(eta)
+
+HPD=HPDsample(eta)
+HPD #[1] -0.1216082  0.2550266
+
+par(mfrow=c(1,1))
+plot(density(eta), type="l", xlab="log(theta1/theta2)",ylab="posterior density", main="")
+abline( v= HPD, lty=2)
+text(mean(eta),0.3, "95% HPD interval" )
+```
+
+\[ 
+사후평균 = 0.06929097\\
+최대사후구간: -0.1216082, 0.2550266
+\]
+
+<br>
+  
+  
+  
+# References {-}s
+  
+[R tutorial](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)
+
+
+--------------------------------------------------------------------------------------------------
+  
+  ⓒ Statistical Methods, Gachon University
+
+--------------------------------------------------------------------------------------------------
+  
+

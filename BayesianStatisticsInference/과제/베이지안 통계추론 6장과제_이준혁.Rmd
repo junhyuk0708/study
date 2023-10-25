@@ -1,7 +1,7 @@
 ---
 title: "베이지안 통계추론 6장 과제"
 author: "응용통계학과 이준혁"
-date: "2023-10-13"
+date: "2023-10-20"
 output:
   html_document:
     css: styles.css
@@ -59,48 +59,128 @@ library(ggplot2)
 # 1번 문제
 
 ```{r}
-#3 p.147
 a = 1/2; b = 0
-x1 = rep(c(0,1,2,3,4,5), c(3, 2, 4, 3, 2, 1))
-n1 = length(x1)
-s1 = sum(x1)
-theta <- seq(0, 5, length=100)
-
-par(mfrow=c(1,1))
-plot(theta, dgamma(theta, a+s1, b+n1), type="l", xlab="theta",ylab="p(theta | x)")
-lines(theta, 1/sqrt(theta), lty=3)
-
-legend(3.5, 1.5, legend=c(paste("City 1"),
-	paste("City 2"), paste("Jeffrey prior")),
-	lty=c(1, 2, 3), bty="n")
-```
-
-```{r}
-# 파라미터 및 데이터 설정
-a = 1/2
-b = 0
 x <- c(3,2,4,3,2,1)
 n = length(x)
 s = sum(x)
+postmean.theta = (a+s)/(b+n)
+theta=seq(0,6,length=100)
 
-# theta 값의 범위 설정
-theta <- seq(0, 6, length=100)
+#gamma(15.5,6)
+plot(theta, dgamma(theta, a+s, b+n), type="l", xlab="theta",ylab="p(theta | x)")
+lines(theta, 1/sqrt(theta), lty=3)
 
-# 데이터 프레임 생성
-df <- data.frame(
-  theta = theta,
-  posterior = dgamma(theta, a+s, b+n),
-  jeffreys_prior = 1/sqrt(theta)
-)
-
-# ggplot을 사용하여 그래프 그리기
-ggplot(df, aes(x = theta)) +
-  geom_line(aes(y = posterior, color = "사후 확률 분포")) +
-  geom_line(aes(y = jeffreys_prior, color = "Jeffrey 사전 확률 분포"), linetype = "dashed") +
-  labs(title = "Theta에 대한 확률 분포", x = "theta", y = "p(theta | x)") +
-  theme_minimal() +
-  scale_color_manual(values = c("사후 확률 분포" = "blue", "Jeffrey 사전 확률 분포" = "red")) +
-  theme(legend.title = element_blank())
+legend(4, 0.4,
+        legend=c(paste("TYPO"),
+        paste("Jeffrey")),
+        lty=c(1, 3), bty="n")
 ```
 
+# 2번 문제
+
+## 2-(1)
+
+```{r}
+alpha_prior <- 1
+beta_prior <- 1
+x <- 12
+
+# posterior parameters
+alpha_posterior <- alpha_prior + x
+beta_posterior <- beta_prior + 1
+
+# 사전 / 사후
+prior_mean_theta <- alpha_prior / beta_prior 
+posterior_mean_theta <- alpha_posterior / beta_posterior 
+
+print(paste("사전 평균: ", prior_mean_theta))
+print(paste("사후 평균: ", posterior_mean_theta))
+```
+
+## 2-(2)
+
+```{r}
+pgamma(9,9,2)-pgamma(7,9,2)
+```
+
+# 3번 문제
+
+## 3-(1),(2)
+
+```{r}
+HPDsample <- function(theta,level=0.95){
+  N=length(theta)
+  theta.sort=sort(theta)
+  M=ceiling(N*level)
+  nCI=N-M
+  CI.width=rep(0,nCI)
+  for(i in 1:nCI) CI.width[i]=theta.sort[i+M]-theta.sort[i]
+  index=which.min(CI.width)
+  HPD=c(theta.sort[index], theta.sort[index+M])
+  return(HPD)
+}
+
+
+a <- 2
+b <- 1
+s <- 12
+n <- 10
+theta <- seq(0, 3, length.out = 1000)
+plot(theta, dgamma(theta, a+s, b+n), type="l", xlab="theta",ylab="p(theta | x)")
+legend("topright","사후 분포",lty=1,lwd=2)
+posterior<- rgamma(10000, shape = a+s, rate = b+n)
+HPD=HPDsample(posterior)
+abline(v=HPD,lty=3, col = "red")
+```
+
+
+## 3-(3)
+
+```{r}
+log_theta <- log(theta) #로그
+
+
+plot(density(log_theta), type="l", xlab="log(theta)",ylab="p(theta | x)")
+legend("topleft","로그 사후분포",lty=1,lwd=2)
+posterior_1 <- dgamma(log_theta, a+s, b+n)
+
+HPD=HPDsample(posterior_1)
+abline(v=HPD,lty=3, col = "red")
+```
+
+
+# 4번 문제
+
+```{r}
+HPDsample <- function(theta,level=0.95){
+  N=length(theta)
+  theta.sort=sort(theta)
+  M=ceiling(N*level)
+  nCI=N-M
+  CI.width=rep(0,nCI)
+  for(i in 1:nCI) CI.width[i]=theta.sort[i+M]-theta.sort[i]
+  index=which.min(CI.width)
+  HPD=c(theta.sort[index], theta.sort[index+M])
+  return(HPD)
+}
+
+a <- 1
+b <- 1
+n1 <- 100
+n2 <- 100
+s1 <- 225
+s2 <- 210
+
+nsim=10000
+theta1=rgamma(nsim,a+s1,b+n1)
+theta2=rgamma(nsim,a+s2,b+n2)
+eta=log(theta1/theta2)
+
+mean(eta)
+
+HPD=HPDsample(eta)
+par(mfrow=c(1,1))
+plot(density(eta),type='l')
+abline(v=HPD,lty=2, col="red")
+```
 
