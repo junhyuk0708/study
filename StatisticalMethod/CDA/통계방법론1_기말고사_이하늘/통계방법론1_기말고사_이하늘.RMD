@@ -1,0 +1,2275 @@
+---
+title: "통계 방법론 I - CH2~7 기말고사 대체 실습"
+author: "이하늘, 가천대학교 응용통계학과 201932142"
+date: 2022-12-10(SAT)
+output:
+  html_document:
+    code_folding: show
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 10
+    highlight: haddock
+    self_contained: no
+    theme: cosmo
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+  }
+  h1{
+    font-size: 22pt;
+  }
+  h2{
+    font-size: 20pt;
+  }
+  h3{
+    font-size: 18pt;
+  }
+</style>
+
+<br>
+
+# Chap2. Data and Statistics
+
+## 2.1 Types of Data
++ count: 특정 속성을 가지지 않는 데이터로 음이 아닌 정수 값만 취할 수 있는 형태이다. ex) 동전 N번 던졌을 경우 n 번의 앞면의 개수가 나왔을 때 n이 가지는 값
++ categorical: 범주형 데이터를 의미하며, 클래스 데이터나 팩터형 데이터로 불린다. 범주형 데이터가 가지는 클래스를 수준이라고 한다. ex) 성별, 혈액형 
++ ordered: 순서형 데이터를 의미하며, 개개의 값들이 이산적이고 그들 사이에 순서 관계가 존재하는 형태이다. ex) 만족도, 성적
++ interval: 구간형 데이터를 의미하며, 데이터의 연속된 측정 구간 사이의 간격이 동일한 경우이다. 절대적 원점이 존재하지 않는다. ex) 온도, 주가지수
++ ratio: 비율형 데이터를 의미하며, 절대적 원점이 존재하고 숫자 간의 비율이 산술적 의미를 가진다. ex) 키, 무게, 압력
+
+## 2.2 Data Display and Calculation
+숫자형 데이터를 사용할 경우 1. 계산 도중 반올림을 하면 안된다. 2. 최종 데이터는 원본 데이터와 자릿수를 맞춰주는 것이 가능하다. 3. 표준편차를 통해 신뢰할 수 있는 자릿수를 얻을 수 있다.
+
+## 2.3 Importing Data
+해당 책에서는 R 프로그램과 R에서 제공하는 'HH' 패키지에서 대부분의 데이터를 가져온다.
+
+## 2.5 Data Rearrangement
+데이터 정렬은 'reshape2' 패키지를 사용한다.
+
+## 2.7 Code Files for Statistical Analysis and Data Display (HH)
+
+```{r}
+#install.packages('HH')
+library(HH) #해당 패키지 로드
+
+#install.packages('reshape2')
+library(reshape2) #해당 패키지 로드
+
+#데이터프레임 형태 만들기
+wide <- data.frame(Names=LETTERS[1:5], x=1:5, y=6:10) #3개의 변수(Names,x,y)
+wide
+
+#reshape2::melt를 사용하여 여러 컬럼으로 구성된 데이터를 데이터 식별자(id), 측정변수(variable), 측정값(value)이라는 3개 컬럼으로 변환.
+long <- melt(wide, id="Names") 
+long
+
+#reshape2::dcast - melt()된 데이터를 다시 여러 컬럼으로 변환. dcast는 결과로 데이터프레임 반환.
+#formula - "id변수~variable 변수" 형태
+wideagain <- dcast(Names ~ variable, value="value", data=long)
+wideagain
+```
+
+## 2.A Appendix: Missing Values in R
+```{r}
+#read.table - txt 파일을 불러오는 함수
+AA <- read.table(text="
+                 x y
+                 1 2
+                 3 NA
+                 5 6
+                 ", header=TRUE)
+AA
+
+#sapply - 주어진 데이터에 함수를 적용하여 벡터나 행렬 또는 배열로 결과를 반환하는 함수
+#각 컬럼 별 데이터 타입 확인
+sapply(AA, class) #x, y 모두 integer 출력
+
+BB <- read.table(text="
+                 x y
+                 1 2
+                 3 999
+                 5 6
+                 7 .
+                 9 10
+                 ", header=TRUE, na.strings=c("999", "."))
+#na.strings - NA로 인식할 문자나 숫자 입력
+BB
+
+#각 컬럼 별 데이터 타입 확인
+sapply(BB, class) #x, y 모두 integer 출력
+
+CC <- read.table(text="
+                 x y
+                 1 2
+                 3 999
+                 5 6
+                 7 .
+                 9 10
+                 ",header=TRUE)
+CC
+
+#각 컬럼 별 데이터 타입 확인
+sapply(CC, class) #x-integer, y-character -> .으로 인해 모두 문자형으로 인식
+CC$y
+```
+
+```{r}
+abcd <- data.frame(x=c(1,2,NA,4,5,6,7,8),
+                   y=c(6,5,8,NA,10,9,12,11), ch=c(NA,"N","O","P","Q","R","S","T"),
+                   stringsAsFactors = FALSE) 
+# stringsAsFactors - 문자열 데이터가 있을 경우 자동으로 클래스를 facotr로 변환.
+abcd   
+
+#각 컬럼 별 데이터 타입 확인
+sapply(abcd,class) # x-numeric, y-numeric, ch-character
+#stringsAsFactors=FALSE로 지정했기 때문
+
+xyplot(y ~ x, data=abcd, labels=abcd$ch, 
+       panel=panel.text, col=c("red", "blue"))
+#문자형의 NA는 표시되지만 수치형 NA는 표시되지 않는다. - O,P가 표시되지 않음.
+
+```
+
+```{r}
+#NA 산술
+3 + NA #NA
+sum(3, NA) #NA
+sum(3, NA, na.rm=TRUE) #3, na.rm - na값 제외 후 계산 여부
+abcd$x #1 2 NA 4 5 6 7 8
+mean(abcd$x) #NA
+mean(abcd$x, na.rm=TRUE) #4.714286
+
+```
+
+```{r}
+#linear model(선형 모델)은 NA에 대한 기본값이 (na.action=na.omit)로 NA값을 제거하고 작동한다.
+#lm - 선형 모델 적용
+a.lm <- lm(y ~ x, data=abcd) 
+
+#predict-선형 모델 예측
+predict(a.lm)
+
+#(na.action=na.exclude)를 사용하면 모델 적용시에는 NA가 제거되지만
+#데이터 자체의 값에서는 보존이 되어 predict 적용시 NA가 출력된다.
+b.lm <- lm(y ~ x, data=abcd, na.action=na.exclude)
+ 
+predict(b.lm) #3,4 - NA 출력
+
+```
+
+
+<br>
+
+# Chap3. Statistics Concepts
+
+## 3.3 Concepts That Are Used When Discussing Distributions
+### 3.3.4 Displays of Univariate Data
+데이터 표현에 관한 다양한 방법이 제시된다. 
+
+### 3.3.4.1 Histogram
+
+```{r}
+#파이프라인 사용을 위해 'tidyverse' & 'magrittr' 패키지 로드
+library(tidyverse)
+library(magrittr)
+
+#남성 기대수명의 빈도 분포
+#tv-HH 패키지 제공 데이터
+data(tv)
+
+#as.matrix - 행렬로 변환
+tmp <- as.matrix(table(cut(tv$male.life.exp,breaks=seq(49.5,79.5,5))))
+
+#차원(행,열) 이름 지정
+dimnames(tmp) <- list("Male Life Expectancy" 
+       = c("50--54","55--59","60--64","65--69","70--74","75--79"),
+       " "="Frequency")
+tmp #남성의 평균 수명 빈도분포표 출력
+
+#hist - 히스토그램
+hist(tv$male.life.exp, xlab="male.life.exp",ylab="Count",
+            main = "Life Expectancy for Males")
+#hist(tv$male.life.exp, xlab="male.life.exp",ylab="Count",
+#     main = "Life Expectancy for Males")
+
+```
+
+### 3.3.4.2 Stem-and-Leaf Display
+데이터 자체의 값을 볼 수 있다는 장점이 있다.
+```{r}
+#stem - 줄기잎 그림 출력
+stem(tv$male.life.exp)
+```
+
+### 3.3.4.3 Boxplots
+최소값, q1, 중위수, q3, 최대값을 박스-그림으로 볼 수 있다.
+```{r}
+#quantile - 분위수 값(기본값: 0, 0.25, 0.5, 0.75, 1)
+quantile(tv$male.life.exp)
+
+#boxplot - 박스-수염 그림
+(male_stat <- boxplot(tv$male.life.exp)) #개수, 신뢰구간 등 박스그림 정보 저장
+boxplot(tv$male.life.exp, horizontal = TRUE)
+points(male_stat$stats[[3]], 1, col='red', pch = 20)
+```
+
+## 3.4 Three Probability Distributions
+세 가지의 확률 분포에 대해 소개한다.
+
+- 이항 분포(이산형 분포)
+- 정규 분포(연속형 분포)
+- t 분포(연속형 분포)
+
+### 3.4.1 The Binomial Distribution
+이항 분포는 연속된 n번 독립적 시행에서 각 시행이 확률 p를 가질 때의 이산확률분포로 정의된다. 
+k번의 성공, (n-k)번의 실패일 경우 이항 분포의 확률질량함수는 다음과 같다.
+
+$$
+Pr(K=k) = {n\choose k}  p^k (1-p)^{n-k}
+$$
+이항분포의 평균 $ \mu = np $, 표준편차 $ \sigma = \sqrt{np(1-p)} $이다.
+
+이항 분포 관련 R 함수
+
++ pbinom(q, size, prob, lower.tail = TRUE, log.p = FALSE): 누적분포함수
++ dbinom(x, size, prob, log = FALSE): 확률밀도함수 $ P(X=x) $
++ qbinom(p, size, prob, lower.tail = TRUE, log.p = FALSE): 누적분포함수의 역함수
+
+```{r}
+pbinom(size=15, prob=.4, q=6) #0.6098
+pnorm(q=6.5, mean=15*.4, sd=sqrt(15*.4*(1-.4))) #0.6039 #pnorm-정규분포의 누적분포함수
+dbinom(size=15, prob=.4, x=6) #0.2066 
+
+#정규분포의 P(5.5 < x < 6.5) = .2079
+diff(pnorm(q=c(5.5, 6.5), mean=15*.4, sd=sqrt(15*.4*(1-.4)))) #0.2079 
+```
+
+
+### 3.4.2 The Normal Distribution
+정규 분포는 대칭인 종 모양을 갖는 분포로 평균과 중간값이 같고, 분포의 중앙에 있다. 
+평균 $ \mu $, 표준편차 $ \sigma $를 가질 때 확률밀도함수는 다음과 같다.
+
+$$
+f(x) = {1\over \sigma\sqrt{2\pi}}\exp(-{(x-\mu)^2\over2\sigma^2}), X \sim N(\mu, \sigma^2)
+$$
+만약 $X$가 평균 $ \mu $, 표준편차 $ \sigma $를 가지는 정규분포를 따른다면 표준정규분포는 다음과 같다.
+
+$$
+\begin{aligned}
+Z &= {X-\mu \over \sigma} , Z \sim N(0, 1)\\
+f(z) &= {1\over \sqrt{2\pi}}\exp(-{x^2\over2})
+\end{aligned}
+$$
+
+```{r}
+#HH 패키지를 통한 역동적 그래프 그리기
+#표준 정규 분포
+NTplot(shiny=TRUE) 
+
+#mu = 100, sd = 5
+NTplot(mean0=100, mean1=NA, xbar=NA, xlim=c(75, 125),
+sd=5, digits=6, zaxis=TRUE, cex.z=0.6,
+cex.prob=.9, shiny=TRUE)
+
+#평균이 다른 2개의 그래프 겹쳐그리기 mu1=8, mu2=8.411, sd=2
+NTplot(mean0=8, mean1=8.411, sd=2, n=64, cex.prob=1.3,
+shiny=TRUE)
+
+```
+```{r}
+#정규 분포 관련 R 함수 - 표준정규분포
+dnorm(1.645,m=0,s=1) #0.1031108 - dnorm(확률밀도함수)
+pnorm(1.645,m=0,s=1) #0.9500151 - pnorm(누적확률함수)
+qnorm(0.95,m=0,s=1) #1.644854 - qnorm(분위수함수)
+```
+### 3.4.3 The (Student's) t Distribution
+t분포는 모집단이 정규분포를 하더라도 분산 $ \sigma^2 $이 알려져 있지 않고 표본의 수가 적은 경우에 평균 $\mu$에 대한 신뢰구간 추정 및 가설검정에 유용하게 쓰이는 분포이다. t분포는 '모집단은 정규분포를 이룬다는 가정'이 있어 평균 = 0, 분산 = 1인 정규분포를 따른다. t분포 수식은 다음과 같다.
+
+$$
+\begin{aligned}
+T &= {\bar X - \mu\over s/\sqrt{n}}, t \sim t(n-1) \\
+&여기서, \bar X = 표본평균, \mu = 모평균, s/\sqrt{n} =표준오차, n=자유도
+\end{aligned}
+$$
+t분포는 표본크기 $n>=30$이면 정규분포에 근사하게 된다. 
+
+```{r}
+#t 분포 관련 R 함수
+xbar <- 8.5
+s <- sqrt(4)
+n <- 25
+s.xbar <- s/sqrt(n)
+s.xbar #0.4
+qt(.975, df=24) #2.063899 - qt(분위수함수)
+8.5 + c(-1,1) * 2.064 * 0.4 #95% 신뢰구간[7.6744 9.3256]
+
+#Fig. 3.17 Confidence interval plot for the t distribution
+NTplot(xbar=8.5,sd=2,xlim=c(7.0,10),type="confidence",
+       alpha.right=.025,alpha.left=0.025,distribution.name="t",n=25,df=24)
+```
+
+## 3.6 Estimation
+### 3.6.3 Criteria for Point Estimators
+좋은 추정량에 대한 조건이다.
+
++ 불편성(unbiasedness): 모수가 $\theta$이고, $\hat\theta$가 해당 추정량이라고 정의했을 때, $E[\hat\theta]=\theta$를 만족할 경우 불편성을 만족한다고 한다.
++ 일치성(consistency): 표본 크기 $n$이 증가함에 따라서 추정량이 불편성을 충족시키는 방향으로 움직이는 현상을 의미한다.
++ 효율성(sufficiency, efficiency): 불편성을 만족시키는 두 개의 추정량이 있다고 가정했을 때, $E[\hat\theta_1]=\theta$, $E[\hat\theta_2]=\theta$ 이 중에서 불확실성(분산)이 적은 추정량을 효율적 추정량이라고 한다. $Var[\hat\theta_1]<Var[\hat\theta_2]$이라면 $\hat\theta_1$이 효율적 추정량이 된다.
+
+
+## 3.9 Power and Operating Characteristic (O.C.) (Beta) Curves
+OC curve라고 불리는 검사특성곡선은 품질관리 부분에서 많이 사용된다. 품질을 관리할 때 LOT(로트)로부터 샘플링 검사를 하는 경우 어떤 불량율을 같는 LOT가 합격할 확률을 표현한 곡선을 말한다.
+
+```{r}
+#one-sample t-test를 사용한 OC곡선 작성
+PowerT <- power.t.test(n=12, sd=2, delta=1.4,type="one.sample",
+alternative="one.sided")
+NTplot(PowerT, beta=TRUE, power=TRUE)
+```
+## 3.11 Sampling
+샘플링 관련한 챕터이다.
+
+### 확률적 샘플링 종류
++ 3.11.1 Simple Random Sampling:
+전체 $N$개의 모집단에서 $n$개의 표본을 랜덤으로 추출하는 방법으로 단순 무작위 추출법이라고 불린다. $N \choose n$으로 구성된 모든 부분집합들이 표본으로 선택될 확률이 같도록 설계된 표본추출방법이다.
+
+```{r}
+#sample(N, n)
+#ex
+x <- 1:10
+sample(x,3) #replace-복원추출여부 기본값은 FALSE
+```
+
++ 3.11.2 Stratified Random Sampling:
+층화추출법으로 모집단을 비슷한 성질을 갖는 2개 이상의 동질적인 층으로 구분하고, 각 층으로부터 단순 무작위 추출방법을 적용하여 표본을 추출하는 방법이다.
+ex)행정구역으로 나누어 각 행정구역에서 표본 추출
+
++ 3.11.3 Cluster Random Sampling:
+군집(집락)추출법으로 모집단을 여러 개의 군집으로 나눈 뒤 일부를 추출하여 추출된 군집에서 일부 또는 전부를 표본으로 추출하는 방법이다. 
+ex) 행정구역 몇 개를 선정해 해당 데이터를 모두 사용
+
++ 3.11.4 Systematic Random Sampling:
+계통추출법으로 모집단의 목록표를 이용하여 최초의 표본단위만 무작위로 추출하고, 나머지는 일정한 간격($k$)을 두고 표본을 추출하는 방법이다.
+ex) 시계열 데이터의 대표값을 샘플링하는데 주로 이용
+
+### 비확률적 샘플링 종류
++ Quota Sampling(할당표본추출법):
+모집단이 여러 가지 특성으로 구성되어있는 경우 각 특성에 따라 층을 구성한 다음 층별 크기에 비례하여 표본을 배분하거나 동일한 크기의 표본을 조사원이 그 층 내에서 직접 선정하여 조사하는 방법
+
++ Snowball Sampling(눈덩이(표본)추출법): 
+눈덩이를 굴리면 커지는 것처럼 소수의 응답자를 찾은 다음 이들과 비슷한 사람들을 소개받아 가는 식으로 표본을 추출하는 방법
+
++ Purpose Sampling(판단추출법): 
+조사원이 자신의 지식과 경험에 의해 모집단을 가장 잘 대표한다고 여겨지는 표본을 주관적으로 판단하여 표본을 추출하는 방법
+
++ Convenience Sampling(편의추출법(임의추출법)): 
+모집단에 대한 정보가 전혀 없거나 모집단의 구성요소들 간의 차이가 별로 없다고 판단될 때 표본선정의 편리성에 기준을 두고 조사원이 마음대로 표본을 선정하는 방법
+<br>
+
+<br>
+
+# Chap4. Graphs
+그래프는 데이터의 패턴을 감시하고 표시하는데 유용하게 쓰인다. 데이터를 이해하기에 가장 좋은 방법이라고 할 수 있다. 4장에서는 유용하게 쓰이는 다양한 그래프의 유형을 제시하고 설명한다. *lattice* 패키지를 이용해서 그래프의 디자인과 사용에 중점을 둔다. 또한 *ggplot2* 패키지도 함께 사용하여 다양한 시각화 기법을 익힌다. 
+
+```{r}
+#사용 패키지 불러오기
+library(HH)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(lattice)
+library(gridExtra)
+```
+
+## 4.1 What Is a Graph?
+그래프는 숫자 표의 정보를 기하학적으로 표현한 것이다. 해당 예제는 기본적인 *plot* 함수를 사용하여 그린 $x,y$ 두 변수의 2차원 산점도이다. 주요 그래프 옵션은 다음과 같다.
+
++ xlab, ylab: x축, y축 이름
++ main: 그래프 제목
++ pch: 점의 종류
++ cex: 점의 크기(기본값 = 1)
++ col: 색상
++ xlim, ylim: x축, y축 값의 범위
++ type: 그래프 유형, 점(p), 선(l), 점과 선 모두(b), 초기화(n) 등
+
+```{r}
+data(njgolf) #데이터 로드 - HH 패키지
+str(njgolf) #데이터 변수 확인
+
+#library(dplyr) 내에 있는 with 함수를 사용하여 데이터명 사용 줄이기
+with(njgolf, { 
+  plot(NULL,xlim = c(0,25000), ylim=c(50000,250000), xlab="Lot Size",
+       ylab="Selling Price", main="Single Family Homes", type="n")
+  points(lotsize[lotsize>0],sprice[lotsize>0],pch=3,col="blue")
+  points(lotsize[lotsize==0],sprice[lotsize==0],pch=1,col="red")
+  legend("bottom", legend=c("Zero", "Positive"), pch=c(3,1), col=c("blue", "red"))
+  
+})
+```
+
+### pch - 점의 종류
+```{r}
+example(points) #실행하면 모든 점에 대한 그래프와 내용을 확인할 수 있음
+#해당 코드로 점의 종류(pch)의 모양과 값을 확인할 수 있음
+```
+
+### lattice 패키지의 xyplot 사용
+lattice 패키지에서 제공하는 *xyplot()* 함수를 사용하면 조건부 그래프도 쉽게 그릴 수 있다는 것이 장점이다. xyplot(y~x) 형식이 기본이다.
+
+```{r}
+#ifelse 함수를 사용하여 그룹 나누기
+njgolf$leg <- ifelse(njgolf$lotsize==0,"Zero","Positive") 
+
+#groups - 그룹 지정, auto.key - 범례 여부(자동으로 위치 지정)
+with(njgolf, {
+  xyplot(sprice~lotsize,xlab="Lot Size",
+       ylab="Selling Price", main="Single Family Homes", pch=c(3,1), col=c("blue","red"),
+       groups=leg, auto.key = TRUE)
+})
+```
+
+### ggplot2 패키지 사용
+*ggplot2* 패키지는 현재 R의 시각화 패키지 중 가장 많이 쓰이는 패키지로 기본 틀만 작성해놓으면 간단하고 다양하게 시각화를 할 수 있다는 장점이 있다.
+
+*ggplot()* 함수를 사용하여 기본 틀을 작성한다고 생각하면 된다. 이후 + 기호를 덧붙여 *geom_point(산점도)*, *geom_line(선) *등 새로운 레이어들을 추가시켜 다양하게 작업할 수 있다.
+
+```{r}
+#library(ggplot2)
+ggplot(njgolf, aes(x=lotsize, y=sprice, shape=leg)) + #기본 틀: x축, y축, 모양 변수
+  geom_point(aes(color=leg)) + #색깔 변수
+  labs(title="Single Family Homes", x = "Lot Size", y="Selling Price")+ #제목, xlab, ylab 설정
+  scale_shape_discrete(name="leg") #범례 제목 추가(shape-모양으로 구분, color-색깔로 구분)
+```
+ 
+## 4.3 Scatterplots
+산점도(scatter plots)는 한 변수 로트 크기가 x축(수평축 또는 축)에 있고 다른 변수 스프라이스가 y축(수직축 또는 좌표)에 있는 일반 2차원 그림입니다.
+
+해당 예제는 1992년 3월부터 1994년 9월까지 뉴저지주 마운트 로렐에 있는 105개 단독주택의 침실 수, 식당 면적 및 주방 면적별 판매 가격에 대한 산점도이다.
+
+```{r}
+with(njgolf, {
+  a<- xyplot(sprice~beds,ylab="Selling Price", main="beds", 
+             pch=c(3,1), col=c("blue","red"),groups=leg)
+  b<- xyplot(sprice~drarea,ylab="Selling Price", main="Dining Room Area", 
+             pch=c(3,1), col=c("blue","red"),groups=leg)
+  c<- xyplot(sprice~kitarea,ylab="Selling Price", main="Kitchen Area", 
+             pch=c(3,1), col=c("blue","red"),groups=leg)
+  grid.arrange(a,b,c, nrow=1) #library(gridExtra)
+})
+```
+
+### ggplot2 패키지 사용
+```{r}
+#전체적인 틀 만들기(공통적인 부분)
+gg <- ggplot(njgolf, aes(y=sprice, color=leg))+ 
+  theme(legend.position="bottom") + scale_color_discrete(name="Lot Size") +
+  scale_shape_discrete(guide="none")
+
+#하나씩 x축 데이터 값 및 title 지정
+g1 <- gg + geom_point(aes(x=beds, shape=leg)) + labs(title="beds")
+g2 <- gg + geom_point(aes(x=drarea, shape=leg)) + labs(title="Dining Room Area")
+g3 <- gg + geom_point(aes(x=kitarea, shape=leg)) + labs(title="Kitchen Area")
+
+#한꺼번에 그리기(top=textGrop으로 전체 title 지정)
+grid.arrange(g1, g2, g3, ncol=3,top=textGrob("Measures of Dwelling Size"))
+```
+
+## 4.4 Scatterplot Matrix
+산점도 행렬(Scatter Plot Matrix)은 다변량 데이터에서 변수 쌍 간의 산점도들을 그린 그래프를 말한다. 산점도 행렬을 사용하면 여러 변수가 있을 때 모든 변수 간 산점도를 손쉽게 그릴 수 있고, 이를 들여다보면 변수들 간 상관관계 등의 특징을 쉽게 찾을 수 있다. *xyplot* 함수는 조건부 plot을 그리기 유용한다. 해당 예제는 lot size 별 산점도이다.
+
+```{r}
+#layout - 추출시 행, 열 지정(열,행 순서)
+with(njgolf, {
+  a<- xyplot(sprice~beds|leg,ylab="Selling Price", main="beds", 
+             pch=c(3,1), col=c("blue","red"), groups=leg, layout=c(1,2))
+  b<- xyplot(sprice~drarea|leg,ylab="Selling Price", main="Dining Room Area", 
+             pch=c(3,1), col=c("blue","red"),groups=leg, layout=c(1,2))
+  c<- xyplot(sprice~kitarea|leg,ylab="Selling Price", main="Kitchen Area", 
+             pch=c(3,1), col=c("blue","red"),groups=leg, layout=c(1,2))
+  grid.arrange(a,b,c, nrow=1) 
+})
+```
+
+
+### ggplot2 패키지 사용
+*ggplot2* 패키지를 통해 조건부 그래프를 그리기 위해서는 *facet* 함수를 사용하면 된다.
+
++ facet_wrap(~factor, ncol=nc, nrow=nr): factor값에 따라 sub그래프 그려줌
++ facet_grid(factor1~factor2): factor1 level을 행, factor2 level을 열로 하여 격자로 sub그래프를 그려줌
+
+```{r}
+#전체적인 틀 만들기(공통적인 부분)
+gg <- ggplot(njgolf, aes(y=sprice, color=leg))+ 
+  theme(legend.position="bottom") + scale_color_discrete(name="Lot Size") +
+  scale_shape_discrete(guide="none") + 
+  facet_wrap(~leg, ncol=1) #조건 변수 지정 및 행,열 설정
+
+#하나씩 x축 데이터 값 및 title 지정
+g1 <- gg + geom_point(aes(x=beds, shape=leg)) + labs(title="beds")
+g2 <- gg + geom_point(aes(x=drarea, shape=leg)) + labs(title="Dining Room Area")
+g3 <- gg + geom_point(aes(x=kitarea, shape=leg)) + labs(title="Kitchen Area")
+
+#한꺼번에 그리기(top=textGrop으로 전체 title 지정)
+grid.arrange(g1, g2, g3, ncol=3,top=textGrob("Measures of Dwelling Size"))
+```
+
+### 그림 4.5 구현
+다차원 데이터에 대한 산점도를 그리는 방법은 다양하다. R에서 기본으로 제공하는 *pairs* 함수를 사용하면 원하는 변수들만 사용해서 다차원 산점도를 작성할 수 있다.
+
+```{r}
+pairs(~sprice+lotsize+beds+drarea+kitarea+cfee,data=njgolf)
+```
+
+### lattice 패키지의 splom 함수 사용
+*splom* 함수는 *xyplot*과 비슷하며 조건부 산점도 행렬을 그릴 때 주로 사용된다. 형식(~변수|조건 변수)을 지정해주고 그룹 및 색상 등 추가로 옵션을 지정한다. group을 지정해주면 해당 그룹 별 색상이나 모양을 다르게 할 수 있다.
+
+```{r}
+#select - dplyr 패키지 내에 있는 함수로 필요한 변수만 선택할 때 사용된다.
+#%>% - dplyr 패키지 내에 있는 함수로 파이프라인이라고 불리며 순서대로 작업이 진행될 때 사용되며  코드의 가독성을 높여주는 장점이 있다. 
+#::를 사용하는 이유는 패키지마다 겹치는 함수 이름이 있기 때문에 dplyr 패키지 내의 select 함수를 정확하게 사용하기 위함이다.
+dat <- njgolf %>% dplyr::select(c(sprice,lotsize,beds,drarea,kitarea))
+
+splom(~dat, data=njgolf, group = leg, pch=c(3,1), col=c("blue","red"),varname.cex=0.7)
+
+#key 옵션에서 title이나 각 조건 그래프 별 제목 등을 설정할 수 있다.
+splom(~dat|leg, data=njgolf, group = leg,
+      pch=c(3,1),col=c("blue","red"),varname.cex=0.7,
+      key = list(text=list(c("Positive","zero")),
+                 points=list(pch=c(3,1), col=c("blue","red"))))
+```
+
+### ggplot2 패키지 확장 패키지 GGally 사용
+다변량 산점도 행렬은 *ggplot2* 패키지의 확장 패키지인 *GGally* 패키지의 *ggpairs()* 함수로 그릴 수 있다. 해당 함수는 산점도와 상관계수, 히스토그램까지 확인할 수 있다.
+
+```{r}
+#library(GGally)
+#aes 설정으로 조건 변수 설정
+ggpairs(dat, aes(color=njgolf$leg)) 
+```
+
+## 4.6 Example—Life Expectancy
+data(tv)를 사용하여 기대 수명에 관한 시각화를 다양하게 진행한다. 변수 설명은 아래와 같다.
+
++ life.exp: 출생시 기대수명 
++ ppl.per.tv: Tv 1대당 인원 수 
++ ppl.per.phys: 의사 당 인원 수 
++ fem.life.exp: 출생 시 여성 기대 수명 
++ male.life.exp: 출생 시 남성 기대 수명
+
+```{r}
+#데이터 불러오기
+data(tv)
+```
+
+## 4.7 Scatterplot Matrices—Continued
+국가 별 여성 평균 수명과 남성의 평균 수명을 산점도로 비교한다. plot 함수를 사용할 때에는 *abline* 함수를 사용하면 y=ax+b 형태의 직선을 그릴 수 있다.
+
+```{r}
+#그림 4.8
+#y=1의 직선을 추가
+#text 함수로 해당 좌표 값 표시
+mi <- which.max(tv$male.life.exp) #최대값 찾기
+tv$fem.life.exp[mi] #남자 기대수명 최대값 인덱스를 사용한 여자 기대수명 값 찾기
+
+with(tv, {
+  plot(fem.life.exp, male.life.exp, xlim=c(50,85),ylim=c(50,85),
+       xlab="Femlae",ylab="Male",main="Life Expectancy",pch=16,col="skyblue")
+  abline(a=0, b=1, lwd=2, col='gray')
+  text(fem.life.exp[mi], male.life.exp[mi], labels ="(82,76)", pos=4) 
+})
+```
+
+### ggplot2 패키지 사용
+```{r}
+gg <- ggplot(tv, aes(x=fem.life.exp, y=male.life.exp)) #기본 틀
+
+gg + geom_point(color = "skyblue") + 
+  geom_abline(intercept=0, slope=1, color = "gray") + #abline과 같은 기능
+  annotate("text", x=83, y=76, label="(82,76)", size=3) + #text 추가 기능
+  coord_cartesian(xlim = c(50, 85), ylim = c(50, 85)) #xlim, ylim 조정 함수
+```
+
+### 그림 4.9 - 산점도 다양하게 그리기
+```{r}
+#plot 사용
+
+#a. text 값으로 표시
+with(tv, {
+  plot(male.life.exp ~ fem.life.exp, type="n",
+     xlim=c(50,85), ylim=c(50,85),cex=1)
+  title("a. abbreviated names", cex=.8)
+  text(y=male.life.exp, x=fem.life.exp, abbreviate(row.names(tv)), 
+       cex=.8, col = "skyblue")
+  abline(a=0, b=1)
+})
+
+#b. 특정 데이터 표시
+with(tv, {
+  plot(male.life.exp ~ fem.life.exp, type="n",
+     xlim=c(50,85), ylim=c(50,85),cex=1)
+  points(y=male.life.exp, x=fem.life.exp, pch=16, cex=.6,col = "skyblue")
+  title("b. simulated interactive", cex=.8)
+  text(y=tv$male.life.exp[2], x=tv$fem.life.exp[2], row.names(tv)[2], cex=.8, adj=1)
+  abline(a=0, b=1)
+})
+
+#c. x,y 범위 안 맞추기
+with(tv, {
+  plot(male.life.exp ~ fem.life.exp, type="n",pch=16,cex=1)
+  points(y=male.life.exp, x=fem.life.exp, pch=16, cex=.6,col = "skyblue")
+  title("c. square, unequal scale", cex=.8)
+})
+
+#d. c그림에 abline 추가
+with(tv, {
+  plot(male.life.exp ~ fem.life.exp, type="n",pch=16,cex=1)
+  points(y=male.life.exp, x=fem.life.exp, pch=16, cex=.6,col = "skyblue")
+  title("d. x=y line, square, unequal scale", cex=.8)
+  abline(a=0, b=1)
+})
+
+#e. 회귀선 추가 - lm 함수 사용(y~x)
+with(tv, {
+  plot(male.life.exp ~ fem.life.exp, type="n",pch=16,cex=1,
+       xlim=c(50,85), ylim=c(50,85))
+  points(y=male.life.exp, x=fem.life.exp, pch=16, cex=.6,col = "skyblue")
+  title("e. same xlim and ylim, unequal scale,\nleast squares line", cex=.8)
+  abline(a=0, b=1)
+  abline(lm(male.life.exp ~ fem.life.exp), col="red")
+})
+```
+
+### ggplot2 패키지 사용
+```{r}
+#a 
+gg <- ggplot(tv, aes(x=fem.life.exp, y=male.life.exp)) #기본 틀
+
+gg + geom_text(aes(label=rownames(tv)), col = "skyblue") +
+  geom_abline(intercept=0, slope=1, color = "gray") + 
+  labs(title = "a. abbreviated names") +
+  coord_cartesian(xlim = c(50, 85), ylim = c(50, 85)) #xlim, ylim 조정 함수
+
+#b
+gg + geom_point(color = "skyblue") + 
+  geom_abline(intercept=0, slope=1, color = "gray") + 
+  annotate("text", x=tv$male.life.exp[2], y=tv$fem.life.exp[2],
+           label=rownames(tv)[2], size=3) + 
+  labs(title = "b. simulated interactive") +
+  coord_cartesian(xlim = c(50, 85), ylim = c(50, 85)) 
+
+#c
+gg + geom_point(color = "skyblue") + 
+  labs(title = "c. square, unequal scale") 
+
+#d
+gg + geom_point(color = "skyblue") + 
+  geom_abline(intercept=0, slope=1, color = "gray") + 
+  labs(title = "d. x=y line, square, unequal scale")
+
+#e
+gg + geom_point(color = "skyblue") + 
+  geom_abline(intercept=0, slope=1, color = "gray") + 
+  stat_smooth(method = "lm", formula = y ~ x, #회귀선 추가 코드
+              geom = "smooth", col="red") + 
+  labs(title = "e. same xlim and ylim, unequal scale,\nleast squares line") +
+  coord_cartesian(xlim = c(50, 85), ylim = c(50, 85)) 
+
+```
+
+### 그림 4.10 산점도 행렬 구현 - pairs & splom 함수
+
+```{r}
+#pairs 함수
+#dat <- tv[,c(4,5,1,2,3)]와 같은 결과 - 파이프라인 사용
+dat <- tv %>% dplyr::select(fem.life.exp, male.life.exp, life.exp, ppl.per.tv, ppl.per.phys)
+pairs(dat)
+
+#splom 함수
+splom( ~ dat,
+      main=list("Televisions, Physicians, and Life Expectancy", cex=1.4),
+      axis.text.cex=.5,pch=19,
+      cex=.7, varname.cex=1)
+```
+
+### ggplot2 패키지 사용
+```{r}
+#library(GGally)
+#aes 설정으로 조건 변수 설정
+ggpairs(dat) 
+```
+
+## 4.8 Data Transformations
+데이터를 올바르게 탐색하고 이해하기 위해서 데이터를 변환(재표현)해야 하는 경우에 사용하는 방법들을 소개한다.
+
+아래 그림 4.14의 산점도 행렬을 보면 `life.exp` 변수와 `ppl.per.tv`, `ppl.per.phys` 변수의 관계에서 L자 모양의 패턴이 보이는데 이는 자료의 분포가 한쪽으로 기울어졌다는 의미이기 때문에 올바른 추론을 위해 *log* 변환을 시행한다. 해당 장에서는 주로 비대칭성 자료에 대한 변환(재표현)을 다룬다.
+
+```{r}
+#그림 4.14
+tv %>% dplyr::select(life.exp, ppl.per.tv, ppl.per.phys) %>% splom(
+               main=list("Televisions, Physicians, and Life Expectancy", cex=1.4),
+               pch = 19, col="skyblue")
+
+#그림 4.15 - log 변환 후 산점도 행렬
+tv %>% dplyr::mutate(logtv = log(ppl.per.tv), logphys = log(ppl.per.phys)) %>%
+  dplyr::select(life.exp, logtv, logphys) %>% 
+  splom(main=list("Televisions, Physicians, and Life Expectancy", cex=1.4),
+  pch = 19, col="skyblue")
+```
+
+자료의 변형(재표현)을 하는 목적은 비선형적인 변수 간의 관계를 선형적으로, 조금 더 알아보기 쉽게 하기 위함이다. 이때, *변환의 사다리(ladder of transforms)* 방법을 많이 사용하는데 이는 $x$ 를 $f(x)$로 변환시키는 것으로 함수 $f()$는 단조함수(꾸준히 증가하거나 꾸준히 감소하는 함수)만이 변환시키는 함수로서 가치가 있다고 한다. 이 방법은 자료 분석에서 가장 많이 활용되는 변환 방법이고 거듭 곱(power, 멱승)형의 변환이 이루어 진다. Box-Cox 변환으로 알려져 있는 식은 다음과 같다.
+
+$$
+y = 
+\begin{cases}
+x^p, p>0\\
+log(x), p=0\\
+-x^p, p<0
+\end{cases}
+$$
+$p=1$(무변환)을 기준으로 사다리를 오르락 내리락하면서 변환하는 방법이다.
+
+## 4.9 Life Expectancy Example—Continued
+해당 장에서는 4.8에서 언급했던 자료의 변환(재표현)을 사용하여 시각화를 진행한다. *HH* 패키지에서 제공하는 *ladder* 함수로 $p$ 값의 변화에 따른 `life.exp`와 `ppl.per.phys` 변수 간의 관계를 확인한다.
+
+```{r}
+#그림 4.17
+ladder(life.exp ~ ppl.per.phys, data=tv,
+       main="Ladder of Powers for Life Expectancy and People per Physician",
+       par.strip.text=list(cex=1), #그림 내 텍스트 크기
+       dsx="ppp", dsy="le") #각 행과 열 이름인 xlab, ylab 지정
+```
+
+또한 *lattice* 패키지 내에 있는 *bwplot* 함수를 사용하면 기본 r에서 제공하는 boxplot보다 더 부드러운 그림을 그릴 수 있다. 또한 그룹 별 boxplot을 그리는 것도 가능하다. 
+아래 그림은 *ladder.f* 혹은 *ladder.fstar* 함수를 이용하여 `ppl.per.phys`가 $p$ 값이 변함에 따라 분포가 어떻게 변화하는지 boxplot을 그려 확인한다.
+
+```{r}
+x <- sort(tv[,"ppl.per.phys"])
+y <- ladder.f(x) #변환의 사다리 적용
+
+#그룹 생성
+g <- paste("ppp ^",names(y))
+g <- ordered(g, g) #순서형 변수로 변환
+g <- g[col(as.matrix(y))]
+gg <- y
+gg[] <- ''
+
+#boxplot 그리기
+bwplot(unlist(y) ~ unlist(gg) | g, layout=c(6,1), xlab="", ylab="",
+       horizontal=FALSE,
+       main=list("ppl.per.phys_boxplots", cex=1),
+       par.strip.text=list(cex=1),
+       scales=list(relation="free", cex=.8))
+```
+
+## 4.10 Color Vision
+
+R에서는 다양한 시각화 기능이 지원되는만큼 color와 관련된 패키지가 많다. 해당 책에서는 *RColorBrewer* 패키지를 통해 다양한 색깔을 보여준다.
+
+```{r}
+library(RColorBrewer)
+
+#패키지에 내재된 모든 색상의 파레트 출력
+display.brewer.all(n=10,exact.n=FALSE)
+
+#각각의 파레트에 대한 색상정보 확인
+brewer.pal.info
+
+#사용된 정확한 색상을 확인할 수 있다. 
+brewer.pal(9,"Greens") #개수, 원하는 색상
+
+#얻은 색상 정보로 위의 예제 그림 색상 변환해보기 - #A1D99B
+ladder(life.exp ~ ppl.per.phys, data=tv,
+       main="Ladder of Powers for Life Expectancy and People per Physician",
+       par.strip.text=list(cex=1),
+       dsx="ppp", dsy="le", col="#A1D99B")
+```
+
+<br>
+
+<br>
+
+# Chap5. Introductory Inference
+해당 챕터에서는 통계적 추론과 관련한 내용을 다루며 다양한 예제를 통해 신뢰구간과 가설검정을 실습하고 진행한다. 3장에서 다루었던 *NTplot*함수를 통해 신뢰구간 시각화를 진행한다.
+
+```{r}
+#사용 패키지 불러오기
+library(HH)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(lattice)
+```
+
+## 5.1 Normal (z) Intervals and Tests
+정규분포 그 중에서도 표준 정규분포에 대한 신뢰구간과 가설 검정을 진행한다. 해당 책에서는 *HH* 패키지에서 제공하는 *NTplot* 함수를 사용하여 정규분포 및 t분포에 대한 검정과 신뢰 구간을 나타내는 그림을 그린다. 해당 함수는 기각역, 신뢰구간 등 가설검정에 대한 다양한 시각화를 진행하기 좋다.  
+
+
+`NTplot` 함수의 다양한 옵션을 지정할 수 있다.
+
++ *mean0*: 모평균의 값 
++ *xbar*: 표본평균의 값    
++ *sd*: 모표준편차의 값, 표본의 크기(n)를 설정하면 자동으로 표준오차 계산
++ *n*: 표본의 크기
++ *alpha.right*: 우측의 유의수준  
++ *alpha.left*: 좌측의 유의수준  
++ 만약 alpha.left, alpha.right를 동시에 설정하면 좌측검정, 우측검정의 결과값을 동시에 보여준다.    
++ *distribution.name*: 분포의 형태(normal, z,t,binomial)  
++ `type = "confidence"`:신뢰구간의 하한 상한 계산
++ `shiny = TRUE`: 모델의 파라미터를 변경에 따른 검정과 신뢰구간의 변화가 나타남
+
+### 5.1.1 Test of a Hypothesis Concerning the Mean of a Population Having Known Standard Deviation
+모집단의 표준 편차 $\sigma$ 가 알려진 경우 모집단의 평균에 관한 가설 검정과 구간 추정을 시각화한다.
+
+이때, $\sigma_{\overline{y}} = \frac{\sigma}{\sqrt{n}}$이고, $z_{cale} = \frac{\overline{y} - \mu_0} {\sigma_{\overline{y}}}$이다. 아래는 각 검정의 신뢰구간을 나타내었다.
+
+
++ 우측검정: $(\overline{y} - z_{\alpha}\frac{\sigma}{\sqrt{n}}, + \infty)$
++ 좌측검정: $(- \infty, \overline{y} + z_{\alpha}\frac{\sigma}{\sqrt{n}})$
++ 양측검정: $(\overline{y} - z_{\alpha}\frac{\sigma}{\sqrt{n}}, \overline{y} + z_{\alpha}\frac{\sigma}{\sqrt{n}})$
+
+#### 우측 검정(one-sided)
+```{r}
+#우측 검정
+#기각역
+NTplot(mean0=0,xbar=1.8,sd=1,alpha.right=0.05,
+       alpha.left=0,shiny=FALSE,n=1,distribution.name="normal")
+#신뢰구간
+NTplot(mean0=0,xbar=1.8,sd=1,type="confidence",
+       alpha.left=0.05,alpha.right=0,shiny=FALSE,n=1,distribution.name="normal")
+
+```
+
+#### 좌측 검정(one-sided)
+```{r}
+#좌측 검정
+#기각역
+NTplot(mean0=0,xbar=-1.8,sd=1,alpha.right=0,
+       alpha.left=0.05,shiny=FALSE,n=1,distribution.name="normal")
+#신뢰구간
+NTplot(mean0=0,xbar=-1.8,sd=1,type="confidence",
+       alpha.left=0,alpha.right=0.05,shiny=FALSE,n=1,distribution.name="normal")
+
+```
+
+#### 양측 검정(two-sided)
+```{r}
+#양측 검정
+#기각역
+NTplot(mean0=0,xbar=1.8,sd=1,alpha.right=0.025,
+       alpha.left=0.025,shiny=FALSE,n=1,distribution.name="normal")
+#신뢰구간
+NTplot(mean0=0,xbar=1.8,sd=1,type="confidence",
+       alpha.left=0.025,alpha.right=0.025,shiny=FALSE,n=1,distribution.name="normal")
+```
+
+### 5.1.2 Confidence Intervals for Unknown Population Proportion p
+모집단 비율 $p$가 알려져 있지 않은 경우 모집단 비율의 구간 추정에 관한 내용이다.
+
+표본 크기가 $n$이고, 어떤 Y가 성공한 개수라면 $\hat{p} = \frac{Y}{n}$이고, $\hat{p}$는 모비율 $p$의 점추정량이다. 이때, 모비율 $p$의 $100(1-\alpha)\%$ 신뢰구간은 다음과 같이 나타낸다. 이때, $\sigma_{\overline{p_0}} = \sqrt{\frac{p_0(1-p_0)}{n}}$이고, 
+$z_{cale} = \frac{\hat{p} - p_0}{\overline{p_0}}$이다.
+
+$$
+\hat{p} \pm z_{\frac{\alpha}{2}} \sqrt{\frac{\hat{p}(1-\hat{p})}{n}}
+$$
+
+## 5.2 t-Intervals and Tests for the Mean of a Population Having Unknown Standard Deviation
+해당 장에서는 t-분포에 대해서 다루는데 t-분포란 모집단 표준편차를 알 수 없을 때 표본 평균과 모집단 평균 사이 표준화된 거리를 설명하며, 관측값은 정규 분포를 따르는 모집단에서 추출된다. t-분포는 표준정규분포와 비슷한 점이 많은데 평균이 $0$이고, 대칭형이다. t-분포는 모집단의 표준쳔차를 알 수 없거나 작은 표본 크기일 때 유용하게 쓰인다. 표본 크기가 커질 수록 정규분포와 비슷해진다. t-분포의 검정통계량 식은 다음과 같다.
+
+$t_{cale} = \frac{\overline{y} - \mu} {S/\sqrt{n}}$
+
+
+### t.test 실습 예제
+t.test 함수의 옵션은 다음과 같다.
+
++ *alternative*: "two.sided"-양측 검정, "less"-좌측 검정, "greater"-우측 검정
++ mu: 모집단의 평균
++ var.equal: 분산의 동질성 여부
++ conf.level: 신뢰수준$(1-\alpha)$
+
+$H_0: \mu = 10$
+$H_1: \mu \not = 10$
+```{r}
+#t.test 실습 - One sample t-test(하나의 변수의 모평균이 특정값과 같은지 검정)
+data(vocab)
+vocab.t <-t.test(vocab$score, mu=10)
+
+vocab.t
+```
+분석 결과 t검정통계량 값이 10.08, 유의확률 p값이 6.372e-14로 유의수준 0.05보다 작기 때문에 귀무가설($H_0$)를 기각한다. 즉, score 변수의 모평균은 10이라고 할 수 없다.
+
+### t-분포 시각화
+*NTplot* 함수에서 distribution = 't'로 지정해주면 t분포에 대한 기각역과 신뢰구간을 시각화할 수 있다. t분포는 자유도(degrees of freedom)$(n-1)$도 같이 입력해주어야 한다.
+```{r}
+#그림 5.4
+with(vocab, {
+  mu0 <- mean(score)
+  sd0 <- sd(score)
+  n0 <- length(score)
+  #기각역
+  NTplot(mean0=mu0, sd=sd0, alpha.right=0.025, alpha.left=0.025,
+         distribution.name="t",n=n0, df=n0-1) #df-자유도
+  #신뢰구간
+  NTplot(mean0=mu0, sd=sd0, type="confidence", shiny=FALSE,
+         alpha.right=0.025, alpha.left=0.025,
+         distribution.name="t",n=n0, df=n0-1)
+})
+
+#t.test 검정 결과를 NTplot에 바로 넣어도 위와 같은 그림이 나온다.
+#기각역
+NTplot(vocab.t)
+#신뢰구간
+NTplot(vocab.t, type="confidence")
+```
+
+### HH 패키지 내에 있는 chisq 함수
+HH 패키지에서는 카이제곱(*chisq*)분포, F분포에 대한 시각화 기능도 제공한다. 아래 그림 5.5는 자유도 $df=12$, 표본분산 $s^2=15$일 때의 95% 신뢰구간에 대한 것이다.
+
+카이제곱 관련 R 함수 종류
+
++ dcisq(x, df, ncp=0, log=FALSE): 확률밀도함수, ncp - 비중심모수 값, log - 논리값 설정(TRUE이면 확률값은 log(p))
++ pchisq(q, df, ncp=0, lower.tail=TRUE, log.p=FALSE): 누적분포함수, lower.tail - TRUE이면 $P(X<=x)$, FALSE이면 $P(X>x)$
++ qchisq(p, df, ncp=0, lower.tail=TRUE, log.p=FALSE): 누적분포함수의 역함수(분위수 함수)
++ rchisq(n, df, ncp=0): 임의추출함수
+
++ HH 패키지 chisq
++ chisq.setup(df, xlim.in): 카이제곱분포의 틀 잡기, xlim.in - x의 범위
++ chisq.curve(df, col, alpha): 카이제곱분포 그래프 그리기
+```{r}
+#그림 5.5
+s2 <- 15
+df <- 12
+qch <- qchisq(c(.025, .975), df=12) #분위수 계산
+old.omd <- par(omd=c(.05,.88, .10,1)) #마진 세팅 벡터(아래, 왼쪽, 위, 오른쪽)
+chisq.setup(df=12, ylab="Density") #세팅 - 틀 그리기
+
+#그래프 추가
+chisq.curve(df=12, col='blue', alpha=c(.025, .025), axis.name=expression(chi^2))
+
+#모분산에 대한 구간 추정
+#(df/분위수)
+axis(1, at=qch, labels=round(12/qch, 2), line=3.5, lwd=0, lwd.ticks=0)
+axis(1, at=-4, line=3.5, labels=expression(nu ~ "/" ~ chi^2), xpd=TRUE, lwd=0, lwd.ticks=0)
+#((S^2*df)/분위수)
+axis(1, at=qch, labels=round(s2*12/qch, 2), line=5, lwd=0, lwd.ticks=0)
+axis(1, at=-4, line=5, labels=expression(s^2 ~ nu ~ "/" ~ chi^2), xpd=TRUE, lwd=0, lwd.ticks=0)
+
+#특정 값에 대한 카이제곱 구간 그리기
+chisq.observed(15, df=12, axis.name=expression(chi^2))
+
+axis(3, at=13, line=-.5, labels=expression(s^2==15), xpd=TRUE, lwd=0, lwd.ticks=0)
+```
+
+```{r}
+#기각역 그래프
+old.omd <- par(omd=c(.05,.88, .05,1))
+chisq.setup(df=12, ylab="Density") 
+chisq.curve(df=12, col='blue', axis.name=expression(chi^2))
+chisq.observed(24, df=12)
+```
+
+## 5.4 Comparisons of Two Populations Based on Independent Samples
+상호독립인 두 모집단에 비교에 대한 검정, 신뢰구간 등을 다루는 장이다.
+
+### 5.4.1 Confidence Intervals on the Difference Between Two Population Proportions
+모비율이 $p_1, p_2$이고, 상호독립인 두 이항모집단으로부터 각각 $m, n$개의 확률표본을 추출하여 얻은 두 모비율 간의 차이에 대한 분포와 신뢰구간은 다음과 같다. 
+
+
++ 중심극한정리를 이용하였을 때,$m, n$이 충분히 클 때($\geq30$)
+
+$$
+(\hat{p}_1-\hat{p}_2) \sim N(p_1-p_2,\frac{p_1q_1}{m}+ \frac{p_2q_2}{n}) \\
+Z = \frac{(\hat{P}_1-\hat{P}_2)-(p_1-p_2)}{\sqrt{\frac{p_1q_1}{m}+ \frac{p_2q_2}{n}}} \sim N(0,1) \\
+[(\hat{P}_1-\hat{P}_2)\pm z_{\alpha/2}\sqrt{\frac{\hat{p}_1(1-\hat{p}_1)}{m}+ \frac{\hat{p}_2(1-\hat{p}_2)}{n}}]
+$$
+
+
++ $m, n$이 크지 않을 때($\leq30$)
+
+$$
+합동표본비율 \hat{p} = \frac{mp_1+np_2}{m+n}\\
+Z = \frac{\hat{p}_1-\hat{p}_2}{\sqrt{\hat{p}(1-\hat{p})(\frac{1}{m}+\frac{1}{n})}} \sim N(0,1)
+$$
+
+
+### 5.4.2 Confidence Interval on the Difference Between Two Means
+두 모집단 평균의 차이에 대한 신뢰구간을 정의한다. 이때 모분산 $\sigma^2$는 알려져 있지 않은 경우에 대한 신뢰구간이다.
+
+1. 등분산(두 모분산이 동일한 경우)
+$$
+합동표본분산(S^2_p) 사용 \\
+S^2_p = \frac{(n_1-1)s^2_1+(n_2-1)s^2_2}{n_1+n_2-2}\\
+[(\overline{y}_1-\overline{y}_2)\pm t_{\frac{\alpha}{2}, n_1+n_2-2}S_p\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}]
+$$
+
+2. 이분산(두 모분산이 동일하지 않은 경우)
+이때, 세터스퀘이트의 공식을 이용하여 자유도 df의 근사치를 구한다.
+$$
+df = \frac{(s^2_1/n_1+s^2_2/n_2)^2}{\frac{(s^2_1/n_1)^2}{n_1-1}+\frac{(s^2_2/n_2)^2}{n_2-1}} \\
+[(\overline{y}_1-\overline{y}_2)\pm t_{\frac{\alpha}{2}, df}\sqrt{\frac{s^2_1}{n_1}+\frac{s^2_2}{n_2}}]
+$$
+
+
+### 5.4.3 Tests Comparing Two Population Means When the Samples Are Independent
+위의 내용들을 참고하여 모분산 $\sigma^2$가 알려져 있지 않은 경우의 두 모집단 평균 차이에 대한 검정을 한다. 이때 t 검정통계량 값은 다음과 같다.
+
+$$
+t_{cale} = \frac{\overline{y}_1-\overline{y}_2}{s_p\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}}
+$$
+
+```{r}
+#table 5.4
+data(cereals)
+
+#빈도 확인
+table(cereals[,c("mfr","type")])
+
+#subset
+cerealsC <- filter(cereals, type=="C" & mfr %in% c("K","G")) %>% mutate(mfr = factor(mfr)) %>% dplyr::select("mfr", "carbo")
+
+ 
+#mfr 그룹 별 boxplot 그리기 + 점 표시
+bwplot(carbo ~ mfr, data=cerealsC) + dotplot(carbo ~ mfr, data=cerealsC)
+
+
+#two-sample t-test
+t.t <- t.test(carbo ~ mfr, data=cerealsC, var.equal=TRUE)
+
+t.t
+```
+해석: 
+
++ 귀무가설: $H_0: 그룹 G와 그룹 K의 탄수화물 평균의 차이는 없다.$
++ 귀무가설: $H_1: 그룹 G와 그룹 K의 탄수화물 평균의 차이는 있다.$
++ $p-value = 0.7344$
++ 검정통계량 $t = -0.34148$
++ 유의수준 $0.05 < p-value = 0.7344$로 귀무가설 기각 못함. 즉, 두 그룹 간의 탄수화물 평균의 차이는 없다고 해석할 수 있다.
+
+
+### NTplot
+```{r}
+with(cerealsC,{
+  mm<-tapply(carbo, mfr, mean) #그룹별 평균
+  vv<-tapply(carbo, mfr, var) #그룹별 분산
+  ll<-tapply(carbo, mfr, length) #그룹별 크기
+  #합동 분산
+  s2p <- ((ll-1) %*% vv) / sum(ll-1)
+  
+  #t-검정통계량
+  tt <- -diff(mm) / (sqrt(s2p) * sqrt(sum(1/ll)))
+  
+  tt #-0.3414773
+  #NTplot - 그림 5.6
+  t.t <- t.test(carbo ~ mfr, data=cerealsC, var.equal=TRUE)
+  NTplot(t.t, zaxis=TRUE) 
+})
+```
+
+### 5.4.4 Comparing the Variances of Two Normal Populations
+두 모분산 차이와 비에 대한 신뢰구간은 다음과 같다.
+$$
+F = \frac{s^2_1/\sigma^2_1}{s^2_2/\sigma^2_2} \sim F(n_1-1, n_2-1)\\
+[\frac{s^2_1/s^2_2}{F_{\alpha/2}(n_1-1, n_2-1)}, \frac{s^2_1/s^2_2}{F_{1-\alpha/2}(n_1-1, n_2-1)}]
+$$
+
+## 5.5 Paired Data
+쌍체표본이란 동일한 성질을 갖는 쌍으로 구성된 표본을 말하며 짝지어진 표본이라고 불린다. 대표적으로 운동 전, 후의 체중 변화에 대한 데이터가 있다. 쌍체표본의 차이 $d$의 표본평균 $\overline{d}$에 대한 분포는 다음과 같다.
+$$
+\overline{d} \sim N(\mu_d, \frac{s_d^2}{n})\\
+t_{cale} = \frac{\overline{d}}{s_d/\sqrt{n}} , [\overline{d} \pm t_{\alpha/2}\frac{s_d}{\sqrt{n}}]
+$$
+
+## 5.6 Sample Size Determination
+해당 장에서는 적절한 표본크기를 정의하기 위한 내용을 다룬다.
+
++ 특정한 폭(추정 오차)와 $100(1-\alpha)%$하에서 모평균 $\mu$의 추정에 필요한 표본크기
++ 1종 오류 $\alpha$와 검정력 $1-\beta$에 대한 검정
+
+### 5.6.1 Sample Size for Estimation
+추정에 필요한 표본 크기$n$는 다음의 식에 의해 정의된다. 이때, $W$는 차이를 탐지하기 위한 효과의 크기를 의미하고, $\phi^{-1}$은 표준정규분포의 역 누적 분포(CDF)를 의미한다.
+
+$$
+W = 2z_{\alpha/2}\frac{\sigma}{\sqrt{n}}\\
+n = \frac{4\sigma^2(\phi^{-1}(1-\alpha/2))^2}{W^2}
+$$
+
+### 5.6.2 Sample Size for Hypothesis Testing
+해당 챕터에서는 one-sample, one-sided 검정의 표본 크기 및 검정력에 대한 그림을 그린다.
+이때 모표준편차는 $\sigma=3$으로 알려져 있다. 
+
+$$
+n = \sigma^2(\phi^{-1}(1-\alpha)+\phi^{-1}(1-\beta))^2 / \delta^2, \delta = W
+$$
+```{r}
+mean0 <- 1
+delta <- 2
+mean1 <- mean0 + delta
+sd <- 3
+alpha <- .05 #제 1종 오류(알파)
+beta <- .20 #제 2종 오류(베타)
+power <- 1-beta #검정력
+
+#위의 식에 대입해서 표본크기 직접 구하기
+n <- sd^2 * (qnorm(1-alpha) + qnorm(1-beta))^2 / delta^2 
+n #13.91075
+
+#그림 5.9
+tmp <- NTplot(mean0=mean0, mean1=mean1, sd=sd, n=n,
+         key.axis.padding=6, cex.main=1.5,
+         cex.top.axis=1.8, cex.prob=1.5,
+         prob.labels=FALSE,
+         digits.axis=5, digits.float=3, digits.left=3,
+         xhalf.multiplier=.8, yhalf.multiplier=.6,
+         zaxis=TRUE, z1axis=TRUE, cex.z=1)
+tmp
+``` 
+
+
+### power.t.test 사용하여 적절한 표본 크기 구하기
+R에서 제공하는 *power.t.test* 함수를 사용하여 우리가 원하는 검정력과 수준에 맞추어 t.test에 필요한 적절한 표본 수를 계산할 수 있다.
+
+```{r}
+#직접 구하기
+alpha <- .05
+power <- .80
+beta <- 1-power
+delta <- 1
+sd <- 2
+
+sd^2*(qnorm(1-alpha) + qnorm(1-beta))^2 / delta^2 #24.73023
+
+#power.t.test 사용하여 구하기
+PTT <- power.t.test(delta=delta, sd=sd, sig.level=alpha, power=power,
+             type="one.sample", alternative="one.sided")
+PTT #n=26.13751
+#그림 5.10 왼쪽
+NTplot(PTT, zaxis=TRUE)
+```
+
+### 표본 크기에 따른 검정력 직접 계산하기 - 초기 표본 크기가 0이 아닐 때
+```{r}
+n0 <- 30 #초기 표본 크기
+#임계값
+t.critical <- qt(1-alpha, df=n0-1)
+t.critical #1.699
+
+nn <- 23:30
+names(nn) <- nn
+nn
+
+##각 표본 크기에 따른 검정력
+pt(t.critical, df=nn-1, ncp=delta/(sd/sqrt(nn)), lower=FALSE)
+##     23     24     25     26     27     28     29     30
+## 0.7568 0.7722 0.7868 0.8006 0.8136 0.8258 0.8374 0.8483
+
+##목표 검정력에 가장 가까운 표본 크기를 새 표본 크기로 선택 후 새로운 임계값 및 검정력 계산
+t.critical <- qt(1-alpha, df=26-1)
+t.critical #1.708141
+##새로운 임계값에 대한 검정력
+pt(t.critical, df=nn-1, ncp=delta/(sd/sqrt(nn)), lower=FALSE)
+##     23     24     25     26     27     28     29     30
+## 0.7540 0.7695 0.7842 0.7981 0.8112 0.8235 0.8352 0.8461
+
+#그림 5.10 오른쪽
+NTplot(NTplot(PTT), n=30, df=29, main=NA,
+                zaxis=TRUE, cex.z=1)
+```
+
+우리가 원했던 검정력 0.8 값은 power.t.test를 사용했을 때와 같이 26과 27 사이에 가장 가깝게 나타나는 것을 확인할 수 있다.
+
+## 5.7 Goodness of Fit
+해당 장에서는 적합도 검정을 다루는데 가정된 확률이 정해져 있을 때와 가정된 확률이 정해져 있지 않을 때 데이터가 가정된 확률에 적합하게 따르고 있는가를 검정하는 것이다. 카이제곱 적합도 검정의 검정통계량을 사용한다.
+
++ $H_0$: 관측값(데이터)는 가정한 확률분포를 따른다.
++ $H_1$: 관측값(데이터)는 가정한 확률분포를 따르지 않는다.
+
+$\chi^2 = \sum{\frac{(O-E)^2}{E}}$
+
+### 5.7.2 Example—Test of Goodness-of-Fit to a Discrete Uniform Distribution
+해당 예제는 이산형 균일 분포에 대한 적합도 검정이다. 주사위를 30번 던졌을 때 나온 횟수로 카이제곱 적합도 검정을 진행한다.
+
+```{r}
+dice <- sample(rep(1:6, c(3,7,5,8,1,6)))
+dice
+table(dice) #빈도표
+chisq.test(table(dice))
+```
+해석: 
+
++ 귀무가설: $H_0:$ 해당 데이터는 균일 분포를 따른다.
++ 귀무가설: $H_1:$ 해당 데이터는 균일 분포를 따르지 않는다.
++ $p-value = 0.2359$
++ 검정통계량 $\chi^2 = 6.8$
++ 유의수준 $0.05 < p-value = 0.2359$로 귀무가설 기각 못함. 즉, 해당 데이터는 균일 분포를 따른다고 할 수 있다.
+
+```{r}
+#그림 5.11-위의 결과 시각화하기
+old.omd <- par(omd=c(.05, .88, .05, 1))
+chisq.setup(df=5, ylab="Density")
+chisq.curve(df=5, col='blue', axis.name=expression(chi^2))
+chisq.observed(6.8, df=5, axis.name=expression(chi^2))
+par(old.omd)
+```
+
+### 5.7.3 Example—Test of Goodness-of-Fit to a Binomial Distribution
+해당 예제는 이항 분포에 대한 적합도 검정이다. 관심있는 분야는 가족 내 여자아이의 수에 대한 예제이다. 이때, $n=5, p=0.4$
+
+```{r}
+Observed <- c(13, 18, 20, 18, 6, 5)
+names(Observed) <- 0:5
+## binomial proportion p=.4 is specified
+Expected <- dbinom(0:5, size=5, p=.4)*80
+names(Expected) <- 0:5
+chisq.test(Observed, p=Expected, rescale.p=TRUE) #rescale.p - p 입력 인자의 합이 1이 되도록 rescaling
+```
+해석: 
+
++ 귀무가설: $H_0:$ 해당 데이터는 이항 분포를 따른다.
++ 귀무가설: $H_1:$ 해당 데이터는 이항 분포를 따르지 않는다.
++ $p-value = 8.496e-06$
++ 검정통계량 $\chi^2 = 31.215$
++ 유의수준 $0.05 > p-value = 8.496e-06$로 귀무가설 기각. 즉, 해당 데이터는 이항 분포를 따른다고 할 수 없다.
+
+```{r}
+#그림 5.12
+#관측빈도와 기대빈도에 대한 그림
+update(
+c(
+Observed = xyplot(Observed ~ 0:5,
+                  horizontal=FALSE, origin=0, col="#727EB5",
+                  panel=panel.barchart, ylim=c(-1, 28)),
+"Binomial p=.4" = xyplot(Expected ~ 0:5,
+                  horizontal=FALSE, origin=0, col="#727EB5",
+                  panel=panel.barchart, ylim=c(-1, 28))
+),
+between=list(x=1), scales=list(alternating=FALSE), ylab=NULL)
+```
+
+## 5.8 Normal Probability Plots and Quantile Plots
+Q-Q plot을 이용하여 데이터에 대한 모집단이 정규모집단을 따른다는 가정을 검증할 수 있다. 수집 데이터를 표준정규분포의 분위수와 비교하여 그리는 그래프이다. 또는 서로 다른 두 데이터의 분포가 같은지 파악하기 위해서도 사용된다. x축이 정규분포의 분위수, y축이 수집 데이터의 분위수로 만약 정규성을 만족한다면 직선의 형태를 띄게 된다.
+R에서는 *qqplot* 함수를 사용하여 그릴 수 있다.
+
+### 5.8.1 Normal Probability Plots
+다양한 분포를 만들고 이에 대해 qqplot을 그려 각 분포의 형태일 때의 qqplot 모양을 확인하는 예제이다.
+```{r}
+#그림 5.13
+
+#랜덤 난수 생성 - 정규분포, 균일분포
+qqnorm.dat <- data.frame(
+  normal=rnorm(100,0,1),
+  uniform=runif(100,-3,3))
+
+#데이터 변형 - 다양한 분포 모양 생성
+qqnorm.dat <- within(qqnorm.dat, {
+  `heavy-tailed` <- normal/uniform
+  `thin-tailed` <- normal*exp(-abs(normal))
+  `positively skewed` <- normal^2
+  `negatively skewed` <- -`positively skewed`
+  quantiles <- qnorm(ppoints(length(normal)))
+})
+
+#qqplot 그릴 데이터 프레임 생성
+qqnorm.dat <- data.frame(lapply(qqnorm.dat, sort), check.names=FALSE) 
+head(qqnorm.dat)
+
+#qqplot 그리기
+xyplot(normal + uniform + `negatively skewed` + `positively skewed` +
+         `thin-tailed` + `heavy-tailed` ~ quantiles, data=qqnorm.dat, outer=TRUE,
+       ylab="Observed values", xlab="Quantiles of Standard Normal",
+       col=likertColor(2)[2],
+       scales=list(rot=0, alternating=FALSE, y=list(relation="free")), 
+       between=list(x=1, y=1), layout=c(2,3))
+
+## 각 분포 별 히스토그램 그리기
+tmp <- lapply(qqnorm.dat, histogram, nint=15, col="blue") #분포 별 히스토그램
+update(do.call(latticeExtra:::c.trellis, c(tmp[-3], list(layout=c(2,3)))),
+       xlab="Observed Values")
+```
+
+### Example—Comparing t-Distributions
+t분포의 자유도가 변화함에 따라 정규분포와의 차이를 비교해서 그려보는 예제이다.
+
+```{r}
+points <- ppoints(100) ##ppoints -n개의 0~1 사이의 점으로 된 수열 생성
+
+#분위수 데이터 프레임
+qqt.data <- data.frame(
+  ppoints=points,
+  q3=qt(points, 3),
+  q5=qt(points, 5),
+  q7=qt(points, 7),
+  qn=qnorm(points))
+#데이터 생성
+qqt.data <- within(qqt.data, {
+  d3 <- dt(q3, 3)
+  d5 <- dt(q5, 5)
+  d7 <- dt(q7, 7)
+  dn <- dnorm(qn)
+})
+head(qqt.data)
+
+#분위수 비교 그림(qqplot) 그리기
+xyplot(q3+q5+q7+qn ~ qn, data=qqt.data, type="l", aspect="iso", ylab="distribution",
+       par.settings=list(superpose.line=list(lty=c(5,4,2,1))),
+       auto.key=list(space="right", border=TRUE,
+                     text=c("t, 3 df", "t, 5 df", "t, 7 df", "normal"),
+                     lines=TRUE, points=FALSE))
+```
+t분포의 자유도가 커질 수록 정규분포와 비슷한 직선의 형태가 되는 것을 알 수 있다.
+
+
+## 5.9 Kolmogorov–Smirnov Goodness-of-Fit Tests
+콜모고로프 스미르노프 검정 방법은 데이터의 누적분포함수와 비교하고자 하는 분포의 누적분포함수 간의 최대 거리를 통계량으로 사용하는 적합도 검정 방법이다. R에서는 *ks.test* 함수를 사용하여 검정할 수 있다. 이때, alternative="two-sided", "greater", "less"로 각각 지정해서 양측 검정, 우측 검정, 좌측 검정을 시행할 수 있다.
+
+### 5.9.1 Example—Kolmogorov–Smirnov Goodness-of-Fit Test
+해당 예제는 자유도 5인 t분포와 표준정규분포를 따르는 300개의 랜덤 표본을 추출하여 *ks.test*를 수행한다.
+
+먼저 각각의 분포가 자유도가 2인 t분포를 따르는지 검정한다.
+
+```{r}
+#t분포 난수 생성
+rt5 <- rt(300, df=5)
+#표준정규분포 난수 생성
+rnn <- rnorm(300)
+
+ks.test(rt5, function(x)pt(x, df=2))
+
+```
+해석: 
+
++ 귀무가설: $H_0:$ 해당 데이터는 자유도가 2인 t분포를 따른다.
++ 귀무가설: $H_1:$ 해당 데이터는 자유도가 2인 t분포를 따르지 않는다.
++ $p-value = 0.4555$
++ 검정통계량 $D = 0.049449$
++ 유의수준 $0.05 < p-value = 0.4555$로 귀무가설 기각 못함. 즉, 해당 데이터는 자유도가 2인 t분포를 따른다고 할 수 있다.
+```{r}
+ks.test(rnn, function(x)pt(x, df=2))
+```
+해석: 
+
++ 귀무가설: $H_0:$ 해당 데이터는 자유도가 2인 t분포를 따른다.
++ 귀무가설: $H_1:$ 해당 데이터는 자유도가 2인 t분포를 따르지 않는다.
++ $p-value = 0.02043$
++ 검정통계량 $D = 0.087405$
++ 유의수준 $0.05 > p-value = 0.02043$로 귀무가설 기각. 즉, 해당 데이터는 자유도가 2인 t분포를 따른다고 할 수 없다.
+
+이제 두 데이터가 같은 분포로부터 나왔는지 two-sample test를 진행한다.
+```{r}
+ks.test(rt5, rnn)
+```
+해석: 
+
++ 귀무가설: $H_0:$ 해당 두 데이터는 같은 분포로부터 나왔다.
++ 귀무가설: $H_1:$ 해당 두 데이터는 같은 분포로부터 나오지 않았다.
++ $p-value = 0.4543$
++ 검정통계량 $D = 0.07$
++ 유의수준 $0.05 < p-value = 0.4543$로 귀무가설 기각 못함. 즉, 두 데이터는 같은 분포로부터 나왔다고 할 수 있다.
+
+<br>
+
+<br>
+
+```{r}
+#사용 패키지 불러오기
+library(HH)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(lattice)
+library(gridExtra)
+```
+
+# Chap6. One-Way Analysis of Variance
+분산분석(ANOVA-Analysis of Variance)는 3개 이상 다수의 집단을 비교할 때 사용하는 가설검정 방법을 의미한다. t-test는 두 개의 집단을 비교할 때 사용되었던 방법이다.
+
+분산분석의 종류
+
++ One-way ANOVA: 독립변수 1개, 종속변수 1개일 때
++ Two-way ANOVA: 독립변수 2개, 종속변수 1개일 때
++ MANOVA(Multiple): (one-way)독립변수 1개, 종속변수 2개일 때, (two-way)독립변수 2개, 종속변수 2개일 때
++ ANCOVA(공분산분석): 특정한 독립변수를 두고, 나머지 독립변수는 공변량(Covariance)로 분석하는 방법
+
+
+분산분석은 F-분포를 이용한다.
+
+$H_0$: 모든 집단의 평균은 같다.($\mu_1 = \mu_2=...=\mu_r$)
+$H_1$: 모든 $\mu_i$는 같지 않다.
+
+R에서 분산분석을 실행하는 함수는 *aov*와 *anova* 함수가 있다.  
+
++ aov: Formula = lm(종속변수 ~ 독립변수, data), *summary* 함수를 이용하여 p-value 확인
++ anova: summary(aov)와 동일한 결과를 볼 수 있다.
+
+## 6.1 Example—Catalyst Data
+해당 예제는 catalyst 데이터를 사용하여 그룹 별 concent의 평균 차이가 있는지 검정한다.
+```{r}
+#데이터 로드
+data("catalystm")
+
+#그림 6.1 그룹 별 박스플롯 그리기
+bwplot(concent ~ catalyst, data=catalystm,
+       panel=panel.bwplot.superpose, groups=catalyst,
+       ylab=list("concentration"),
+       xlab=list("catalyst"))
+```
+
+박스플롯 그림을 확인했을 때, D 그룹의 평균이 다른 그룹들에 비해 현저히 낮게 나타나고 있음을 확인했다. 
+`aov` 함수를 통해 ANOVA(분산분석)을 실시해보았다.
+
+```{r}
+#종속변수 ~ 그룹
+catalystm1.aov <- aov(concent ~ catalyst, data=catalystm)
+
+#aov 함수 요약
+summary(catalystm1.aov)
+
+#anova 함수 사용 요약
+anova(catalystm1.aov)
+
+```
+
+해석: 
+
++ 귀무가설: $H_0: catalyst 그룹 별 concent 평균의 차이는 없다.$
++ 대립가설: $H_1: catalyst 그룹 별 concent 평균의 차이는 있다.$
++ $p-value = 0.00144$
++ 검정통계량 $F-value = 9.916$
++ 유의수준 $0.05 > p-value =0.00144$로 귀무가설 기각. 즉,  catalyst 그룹 별 concent 평균의 차이는 있다고 해석할 수 있다.
+
+summary(aov)와 anova 함수 사용 시의 결과가 소수점 자릿수를 제외하고는 동일하게 나타나는 것을 확인할 수 있다.
+
+`model.tables` 함수를 통해 aov와 같은 모델 개체에 대한 요약 테이블을 나타내준다. *type* = "means", "effects" 등으로 평균, 효과 등 원하는 유형에 대한 요약 테이블을 나타낸다.
+
+
+```{r}
+#모델에 대한 평균 요약 테이블
+model.tables(catalystm1.aov, "means")
+```
+
+전체 평균은 54.49, A: 56.9, B: 55.77, C:53.23, D:51.12의 평균으로 나타난다. 위에서 박스플롯으로 확인했듯이 D 그룹이 다른 그룹과의 차이가 나타난다.
+
+
+## 6.4 Random Effects
+해당 예제에서는 catalyst 데이터를 활용하여 임의 효과(random effect)에 대한 실습을 진행한다.
+
+먼저 고정 효과와 임의 효과에 대한 차이를 확인해보겠다.
+
++ 고정 효과(Fixed effect):
+  + 요인의 수준을 실험자가 직접 지정한 경우, 실험자는 오직 이 수준들의 비교에만 관심이 있다.
+  + EX) 여학생과 남학생의 시험 성적을 비교하고자 할 때, 성별을 고정효과라고 한다.
+  + 모형: $y_{ij} = \mu+\tau_i+\epsilon_{ij},\epsilon_{ij}\sim N(0,\sigma^2)$
+  + $\tau_i$: i번째 수준의 효과
+  + 가설: $H_0: \tau_1=\tau_2=...=\tau_t=0$, $H_1: not \space H_0$
+  
++ 임의 효과(Random effect):
+  + 요인의 수준이 임의추출된 경우
+  + 수준의 효과는 확률변수로 간주되며 분포를 가정한다.
+  + 모형: $y_{ij} = \mu+\tau_i+\epsilon_{ij},\tau_i\sim N(0,\sigma^2_\tau),\epsilon_{ij}\sim N(0,\sigma^2)$
+  + $\tau_i$: i번째 수준의 효과, 고정효과모형과는 다르게 확률변수이다.
+  + 가설: $H_0:\sigma^2_\tau=0$, $H_1:\sigma^2_\tau>0$
+
+7장 다중비교에서 더 자세한 내용을 다루겠지만 `mmc` 함수를 사용하면 분산분석 후 어느 집단에서 차이가 나타나는지 사후 검정을 실시하고 mmcplot으로 시각화할 수 있다. 해당 예제에서는 다양한 다중비교 중 `Tukey`의 방법을 사용했다.
+
+```{r}
+#linfct(그룹 = "방법")
+catalystm.mmc <-
+  mmc(catalystm1.aov, linfct = mcp(catalyst = "Tukey"))
+
+#요약
+catalystm.mmc
+```
+
+요약을 보면 $mca 부분에 각 그룹 별로 1대1 비교한 추정치와 95% 신뢰구간이 나타나는데 신뢰구간이 0을 포함하는 경우에는 그 그룹 간에는 평균 차이가 없다고 해석한다. 즉, A-D, B-D 그룹에서는 차이가 나타나는 것이다. 더 해석하기 쉽도록 신뢰구간에 대한 시각화를 진행하겠다.
+
+```{r}
+#그림 6.2 다중비교 시각화
+mmcplot(catalystm.mmc, style="both")
+```
+
+해당 그립에서 아래 Tiebreaker 그림이 각 그룹 별 차이에 대한 신뢰구간을 나타내는 그림인데, 빨간색으로 표시된 부분은 0을 포함하지 않아 평균 차이가 있는 것으로 도출된 그룹이다. 위에서 요약 값으로 확인한 것과 동일한 결과이다. 
+
+
+## 6.7 Example-Batch Data  
+해당 예제는 batch 데이터를 사용하여 Batch 별 Calcium의 평균에 차이가 있는지 검정한다.
+
+```{r}
+#데이터 로드
+data(batch)
+
+#각 그룹 별 박스플롯
+bwplot(Calcium~Batch,data=batch)
+```
+
+박스플롯을 보면 1,2,3 그룹과 4,5 그룹 간의 평균 차이가 있을 것으로 보인다. 분산분석을 실시한다.
+
+```{r}
+#분산분석 진행
+batch1.aov <- aov(Calcium~Batch,data=batch)
+summary(batch1.aov)
+anova(batch1.aov)
+```
+
+해석: 
+
++ 귀무가설: $H_0: Batch 그룹 별 Calcium 평균의 차이는 없다.$
++ 대립가설: $H_1: Batch 그룹 별 Calcium 평균의 차이는 있다.$
++ $p-value = 0.003626$
++ 검정통계량 $F-value = 5.5352$
++ 유의수준 $0.05 > p-value =0.003626$로 귀무가설 기각. 즉,  Batch 그룹 별 Calcium 평균의 차이는 있다고 해석할 수 있다.
+
+
+분산분석의 기본 가정 중 하나는 등분산성을 만족하는 것이다. 여기서, 등분산이란 그룹간의 분산이 서로 같다는 것을 의미한다.  
+등분산 검정의 귀무가설과 대립가설은 다음과 같다.  
+
++ H0: 모든 분산이 동일하다. (등분산성을 만족한다.)
++ H1: 모든 분산이 동일하지않다. (등분산성을 만족하지 않는다.)
+
+해당 예제에서는 *Homogeneity of Variance test*를 통해 각 그룹 별 등분산성을 만족하는지 화인하고 결과를 시각화한다.
+HH 패키지에서 제공하는 *hovBF* 함수를 사용한다. Folmula(종속변수~독립변수(그룹))
+*hovplotBF* 함수를 사용하여 등분산성 테스트 결과를 시각화 할 수 있다.
+
+```{r}
+#등분산성 test
+hovBF(Calcium~Batch,data=batch)
+```
+
+해석: 
+
++ 귀무가설: $H_0: Batch 그룹 별 Calcium 모든 분산이 동일하다.$
++ 대립가설: $H_1: Batch 그룹 별 Calcium 모든 분산이 동일하지 않다.$
++ $p-value = 0.9978$
++ 검정통계량 $F-value = 0.032193$
++ 유의수준 $0.05 < p-value =0.9978$로 귀무가설 기각 못함. 즉, 등분산성을 만족한다고 해석할 수 있다.
+
+
+```{r}
+#그림 6.3 - 등분산성 테스트 시각화
+hovplotBF(Calcium~Batch,data=batch)
+```
+
+왼쪽 패널의 경우, 그룹 간 평균을 기준으로 동질성 검정을 실시한 그림이고,
+중앙 패널의 경우, 그룹 간 중앙값을 기준으로,
+오른쪽 패널의 경우, 중앙 패널에 절대값을 적용한 그림이다.  
+
+## 6.8 Example—Turkey Data
+해당 예제는 Turkey 데이터를 활용하여 처리 효과를 비교하는데 사용되는 직교대비 실습을 진행한다.
+직교대비는 평균의 특정 선형결합에 대한 가설을 검정하는데 사용되는 방법이다.
+대조는 귀무 가설이 참일 때 비교의 기대값이 0이 되도록 둘 이상의 평균을 비교하는 것이다.
+
+### 6.8.2 Data Description
+
+```{r}
+#데이터 로드
+data(turkey)
+
+#그룹 별 박스플롯
+bwplot(wt.gain ~ diet, data=turkey, groups=diet,
+       panel=panel.bwplot.superpose, xlab="diet", ylab="Weight Gain")
+```
+
+박스플롯에서는 B2 그룹이 다른 그룹과의 큰 차이가 나타나고, control 그룹 또한 가장 낮은 평균을 보인다.
+
+먼저 분산분석을 진행한다.
+
+```{r}
+#ANOVA
+turkey.aov <- aov(wt.gain ~ diet, data=turkey)
+summary(turkey.aov)
+anova(turkey.aov)
+```
+
+해석: 
+
++ 귀무가설: $H_0: Diet 그룹 별 몸무게 평균의 차이는 없다.$
++ 대립가설: $H_1: Diet 그룹 별 몸무게 평균의 차이는 있다.$
++ $p-value = 5.6e-14$
++ 검정통계량 $F-value = 81.67$
++ 유의수준 $0.05 > p-value =0.5.6e-16$로 귀무가설 기각. 즉,  Diet 그룹 별 몸무게 평균의 차이는 있다고 해석할 수 있다. 
+
+각 다이어트 방법 별 체중 증가 평균에 대한 table을 `model.tables` 함수를 사용하여 확인했다. *se=TRUE* 옵션은 표준오차에 대한 값도 나타낸다는 의미이다.
+
+```{r}
+model.tables(turkey.aov,type="means",se=TRUE) #se=TRUE - 평균 차이에 대한 표준오차 값
+```
+
+전체 평균은 6.53, control 그룹이 3.783으로 가장 낮고, 각 다이어트 방법 별 체중 증가 평균이 가장 큰 것은 B2 방법이다.
+
+
+
+## 6.8.4 Interpretation  
+다양한 처리 형태에 대한 비교가 필요할 때 직교 대비를 사용하게 된다. 
+해당 책에서는 단순 다중비교 뿐만 아니라 4가지의 알아내고자 하는 것을 제시했다.
+
+1. trt.vs.control: 단순한 대조군과 처리군에 대한 비교로 첨가제를 먹은 칠면조와 그렇지 않은 칠면조를 비교하는 것
+2. additive: 첨가제 A와 첨가제 B의 간의 차이
+3. amount: 첨가제에 1의 양을 추가했을 때와 2의 양을 추가했을 때의 차이(첨가제 양에 대한 비교)
+4. interaction between additive and amount: 첨가제 종류와 첨가제 양의 상호작용
+
+R의 *contrasts* 함수를 이용해서 대비계수를 직접 설정하거나 자동적으로 설정할 수 있다.
+
+```{r}
+#대비계수 자동 설정
+contrasts(turkey$diet)
+```
+
+```{r}
+#대비계수 직접 설정 - 위에서 소개한 4가지에 따라서 각각 다른 weight를 준다는 느낌
+contrasts(turkey$diet)<-
+  cbind(control.vs.treatment=c(1,-.25,-.25,-.25,-.25),
+        A.vs.B = c(0,.5,.5,-.5,-.5),
+        amount = c(0,.5,-.5,.5,-.5),
+        A.vs.B.by.amount = c(0,.5,-.5,-.5,5))
+contrasts(turkey$diet)
+```
+
+각 첨가제(Diet) 별 체중 증가(wt.gain)에 대한 평균을 대비계수에 따라서 계산해보았다.
+그룹 별 계산은 dplyr 패키지 내에 있는 *tapply*를 사용하였다.
+
+```{r}
+with(turkey,{
+  tapply(wt.gain, diet, mean) %*% contrasts(diet)
+})
+
+```
+
+앞서 설정한 contrasts(대비)에 따른 검정을 진행한다. *split*에 보고자 하는 대비를 넣어주면 각각 검정이 시행되어 결과가 나온다.
+
+```{r}
+turkey2.aov <- aov(wt.gain~diet,data=turkey)
+#기본 ANOVA
+summary(turkey2.aov)
+
+#결과창이 너무 길어 한 줄로 나타나지 않을 때 넓이 조절해주는 옵션
+old.width <- options(width=67)
+
+#대비에 따른 비교 검정
+summary(turkey2.aov,
+        split=list(diet=list(
+          control.vs.treatment=1,
+          A.vs.B=2,
+          amount=3,
+          A.vs.B.by.amount=4
+        )))
+options(old.width)
+```
+
+anova 해석: 
+
++ 귀무가설: $H_0: Diet 그룹 별 몸무게 평균의 차이는 없다.$
++ 대립가설: $H_1: Diet 그룹 별 몸무게 평균의 차이는 있다.$
++ $p-value = 5.6e-14$
++ 검정통계량 $F-value = 81.67$
++ 유의수준 $0.05 > p-value =0.5.6e-16$로 귀무가설 기각. 즉,  Diet 그룹 별 몸무게 평균의 차이는 있다고 해석할 수 있다. 
+대비에 따른 비교 검정 해석:
+A.vs.B.by.amount에 대해서는 $p-value=0.0609$로 나와 0.1 수준에서 귀무가설을 기각할 수 있었다. 나머지 비교들은 모두 0.05 수준에서 귀무가설을 기각하여 해당 관심 비교 대상에 대해 차이가 나타나고 있음을 확인할 수 있다.
+
+
+
+## 6.A Appendix: Computation for the Analysis of Variance  
+catalystm 데이터에 대한 분산을 직접 계산하는 예시이다.
+
+```{r}
+#데이터 로드
+data(catalystm)
+
+#분산분석
+catalystm.aov <- aov(concent ~ catalyst,
+                     data=catalystm)
+anova(catalystm.aov)
+
+#효과(기본값="effects")에 대한 요약 테이블
+model.tables(catalystm.aov)
+
+#proj - 모델을 행렬로 반환하는 함수
+Proj <- proj(catalystm.aov)
+Proj <- cbind(Proj,Sum=apply(Proj,1,sum))
+Proj
+
+#각 열 별 x^2 계산
+apply(Proj,2,function(x) sum(x^2))
+```
+
+catalyst 즉, 효과에 대한 sum of squares의 값이 85.67, 잔차에 대한 SS값이 34.56으로 나타났다. 
+그렇다면 더미변수로 적용한 lm에서도 동일한 결과가 나타나는지 확인한다.
+
+
+```{r}
+#기본 대비 계수
+contrasts(catalystm$catalyst)
+
+#모델 매트릭스로 변환
+X <- model.matrix(catalystm.aov)[,2:4]
+X
+
+#일반 선형 회귀 적용 - A가 기본으로 통제 그룹
+catalystm.lm <-
+  lm(concent ~ X[,"catalystB"]+X[,"catalystC"]+
+       X[,"catalystD"],data=catalystm)
+
+anova(catalystm.lm)
+```
+
+해당 결과 각 요인들에 대한 SS 값을 모두 합쳐보면 위에서 계산한 85.67의 값이 도출된다.
+
+## 6.B Object Oriented Programming
+다양한 변수 class에 대해 그림이 어떻게 그려지는지 확인한다.
+
+```{r}
+tmp <- data.frame(AA=c(5,6,8,7,8),
+                  BB=factor(letters[c(5,6,8,7,8)]),
+                  CC=ts(c(5,6,8,7,8)),
+                  stringsAsFactors = FALSE)
+tmp
+
+#각 변수의 class 확인
+sapply(tmp,class)
+
+```
+
+AA는 numeric, BB는 factor, CC는 ts로 나타난다. 여기서 ts는 시계열 데이터로 생각할 수 있다.
+각 클래스에 대해 `plot` 함수를 지정했을 때의 결과를 살펴본다.
+
+```{r}
+#일반 산점도
+plot(tmp$AA)
+
+#barchart
+plot(tmp$BB)
+
+#선 그림
+plot(tmp$CC)
+```
+
+
+```{r}
+class(catalystm.aov)
+
+summary(catalystm.aov)
+
+old.par <- par(mfrow=c(1,4))
+
+#잔차에 대한 그림 4가지
+plot(catalystm.aov)
+#한번에 보여주기
+par(old.par)
+```
+
+
+<br>
+
+<br>
+
+# Chap7. Multiple Comparisons
+
+Chap6에서 분산분석(ANOVA)을 통해 3개 이상 다수의 집단을 비교하였다.
+이때, 대립가설은 $H_1$: 모든 $\mu_i$는 같지 않다.로 즉, 적어도 하나의 집단 간은 차이가 존재한다는 의미이다.
+
+하지만 분산분석 결과로는 집단 간의 차이 존재 여부만 확인할 수 있을 뿐 어느 집단 간에서 차이가 나타나는지 
+그 차이는 어느 정도 되는지 확인할 수 없다.
+
+이때 사용하는 분석이 Chap7의 내용인 Multiple Comparisons(다중 비교, 사후 분석)이다.
+다중 비교를 통해 모평균 사이의 크고 작음을 구체적으로 설명하는 개별 비교를 수행한다.
+
+ex) 집단이 A,B,C 3개라면 3번의 비교를 진행하는 것이다.
+A-B, A-C, B-C
+
+
+개별 검정 뿐 아니라 한 연구의 에러를 줄이는 방법이 필요하다. 
+즉, 한 연구에서 나올 수 있는 잘못된 결과를 줄이자 라는 것이 다중 비교 보정의 핵심이다. 
+
+여기서 family-wise type 1 error 의 개념이 등장한다. 
+
++ Family-wise type 1 error rate (FWER): 한 연구에서 적어도 한 개의 잘못된 결론 (false positive)이 나올 수 있는 확률
+ex)FWER이 0.05 라면 한 연구에서 적어도 1개의 잘못된 결론이 나올 확률이 0.05 라는 것
+
+## 7.1 Multiple Comparison Procedures 
+다중 비교 보정 방법에는 Bonferroni, Tukey, Dunnett, Scheffe가 있다.
+
+* `Bonferroni`
+  + test의 수가 n이고, FWER 를 0.05 로 통제할 때, 개별 테스트의 유의수준을 alpha/m 으로 설정 
+  + 모든 검정이 실제로 연관성이 없는 경우 (null인 경우), 아래 식이 m이 클수록 대략적으로 만족됨.
+  + 보수적(귀무가설을 웬만하면 기각하지 않는다)
+$FWER = 1-(1-\alpha/m)^m = \alpha$
+
+* `Tukey`
+  - 집단의 크기가 같은 경우 사용하는 것이 바람직
+  - 모든 가능한 두 평균 간의 비교에 유용
+  - 대체로 보수적
+
+* `Dunnett`
+  - 하나의 집단을 기준으로 다른 집단들과 차이에 대하여 분석하는 방법 ex)치료군 vs 대조군(다른 치료군들은 관심 없음)
+  - 높은 검정력
+  - 모든 집단 조합에 대해 검정하지 않음
+
+* `Scheffe`
+  - 여러 개의 대비를 동시에 비교하거나 표본이 서로 다를 때 유용
+  - 가장 보수적 검정으로 비교적 높은 신뢰도
+
+### 7.1.3 The Dunnett Procedure for Comparing One Mean with All Others
+위에서 살펴 본 다중 비교 방법 중 `Dunnett` 방법을 적용한 예시이다.
+
+```{r}
+#분산분석 실행
+data(weightloss) #HH 패키지 내의 데이터 로드
+
+weightloss.aov <- aov(loss ~ group,data=weightloss)
+
+summary(weightloss.aov)
+```
+
+해석: 
+
++ 귀무가설: $H_0: 그룹 별 loss 평균의 차이는 없다.$
++ 대립가설: $H_1: 그룹 별 loss 평균의 차이는 있다.$
++ $p-value = 6.88e-08$
++ 검정통계량 $F-value = 15.07$
++ 유의수준 $0.05 > p-value=6.588e-08$로 귀무가설 기각. 즉, 그룹 별 loss 평균의 차이는 있다고 할 수 있다.
+
+
+```{r}
+#그림 7.1 - 그룹 별 loss 값 박스 플롯
+ggplot(weightloss, aes(x=group, y=loss)) + 
+  geom_boxplot()
+```
+
+그룹 간 차이가 나타나는 것이 보이고, 그 중에서도 D 그룹이 다른 그룹 들에 비해 낮은 평균을 가지고 있는 것을 확인했다.
+
+이후, Dunnett 기법을 적용하여 D그룹을 control group으로 지정하여 다른 그룹 간의 비교를 하고 시각화를 진행한다.
+
+R에서는 `glht`함수를 통해 일반화된 선형 가설 검정과 다중비교를 진행할 수 있다.  
+우측검정: (alternative='greater'), dunnett 방법: mcp를 통해 linfct의 옵션을 세부적으로 설정
+
+* `glht(model,linfct=mcp(그룹변수=다중비교방법))`  
+  - *model*: 분산분석의 결과가 저장된 객체
+  - *linfct*: 다중비교 방법을 지정
+
+```{r}
+weightloss.dunnett <- glht(weightloss.aov,
+                           linfct = mcp(group=contrMat(rep(10,5), base=4)),
+                           alternative = 'greater')
+weightloss.dunnett #각 그룹 간의 평균 차이 값 확인
+summary(weightloss.dunnett) #결과 요약
+```
+
+summary 결과를 보면 각 그룹과 D의 평균 차이의 결과가 나온다. 모든 그룹과 D에서 차이가 있는 것으로 나오지만, 
+C그룹과 D그룹의 차이에서는 p-value 값이 0.04로 아주 큰 차이가 나타난다고는 볼 수 없다.
+
+```{r}
+#시각화
+plot(weightloss.dunnett)
+```
+
+시각화 그림을 통해서도 모두 평균 차이의 boundary가 0 이상임을 확인할 수 있고, C-D의 그림은 0과 매우 가까운 것으로 보아
+아주 큰 차이가 나타나지는 않는다.
+
+### mmc 적용
+`HH` 패키지 내에 있는 *mmc* 함수를 통해서도 다중 비교를 진행할 수 있다.
+`mmc`함수의 경우의 입력방법은 앞서 살펴본 `glht`함수와 상당히 유사하다.  
+
+
+```{r}
+weightloss.mmc <-
+  mmc(weightloss.aov,
+      linfct = mcp(group=contrMat(rep(10,5), base=4)),
+      alternative = 'greater')
+weightloss.mmc #결과 요약(summary 하지 않아도 됨)
+```
+
+```{r}
+#시각화
+mmcplot(weightloss.mmc, h=c(.80, .20), style="both")
+```
+
+`glht` 함수를 적용했을 때와 동일한 결과가 도출된다.
+
+
+### 7.1.4 Simultaneously Comparing All Possible Contrasts Scheff´e and Extended Tukey
+이번에는 다중 비교 보정 방법 중 Scheff의 방법을 적용하는 예시이다. 사용 데이터는 turkey이다.
+
+```{r}
+#데이터 로드
+data(turkey)
+
+turkey.aov <- aov(wt.gain ~ diet, data=turkey)
+summary(turkey.aov)
+
+#그룹 별 박스 플롯
+ggplot(turkey, aes(x=diet, y=wt.gain)) + 
+  geom_boxplot()
+```
+
+6장에서 살펴본 결과와 동일하게 그룹 별 차이가 있음을 확인할 수 있다.
+
+Scheff의 사후 분석을 하기 위해서는 비교할 대상에 대한 contrast matrix를 생성한다.
+
+```{r}
+#scheffe method에 calpha 구하기
+scheffe.quantile <- sqrt(4*qf(.95,4,25))
+
+#contrast matrix 생성
+turkey.lmat <-
+  cbind(control.vs.treatment=c(1,-.25,-.25,-.25,-.25),
+        A.vs.B              =c(0, .5,  .5, -.5, -.5 ),
+        amount              =c(0, .5, -.5,  .5, -.5 ),
+        A.vs.B.by.amount    =c(0, .5, -.5, -.5,  .5 ))
+row.names(turkey.lmat) <- row.names(contrasts(turkey$diet))
+
+```
+
+첫 번째의 경우 control과 나머지 그룹을 비교하기 위해 (1,-.25,-.25,-.25,-.25)로 설정한 것을 확인할 수 있다.
+나머지 contrast matrix들도 비교하고자 하는 집단에 따라 구성됐다.
+
+
+이제 `mmc`를 사용하여 Scheff의 사후 분석을 진행한다. focus.lmat에 constrast matrix를 넣어줘야 한다.
+```{r}
+turkey.mmc <- mmc(turkey.aov, calpha=scheffe.quantile, focus="diet",
+                  focus.lmat=turkey.lmat,
+                  estimate.sign=0, order.contrasts=FALSE)
+turkey.mmc$lmat #summary 결과
+```
+
+95% 신뢰구간에서 0을 포함한 경우는 해당 집단 간의 평균 차이가 없다고 해석한다. 사후 분석 결과를 시각화하여 나타내면 다음과 같다.
+
+```{r}
+#그림 7.4
+#시각화
+mmcplot(turkey.mmc, type="lmat", style="confint", axis.right=2.3)
+
+#그림 7.5
+mmcplot(turkey.mmc, style="both") #모든 그룹 기준
+
+#그림 7.6
+#대비 기준 - type='lmat' 지정
+mmcplot(turkey.mmc, type="lmat", style="both")
+turkey.mmc
+```
+
+- type="lmat": 설정한 contrast matrix에 대한 차이의 그림
+- style="both": MMC Plot + Tiebreaker
+- style="confint": 신뢰구간(Tiebreaker)에 대한 그림만 나옴
+
+각 옵션에 맞게 *mmcplot* 함수를 사용하여 원하는 그림을 그릴 수 있다.
+
+## 7.2 The Mean-Mean Multiple Comparisons Display (MMC Plot)
+### 7.2.1 Difficulties with Standard Displays
+```{r}
+#데이터 로드
+data("catalystm")
+
+#Anova 적용
+catalystm1.aov <- aov(concent ~ catalyst, data=catalystm)
+summary(catalystm1.aov)
+
+```
+
+해석: 
+
++ 귀무가설: $H_0: catalyst 별 concent 평균의 차이는 없다.$
++ 대립가설: $H_1: catalyst 별 concent 평균의 차이는 있다.$
++ $p-value = 0.00144$
++ 검정통계량 $F-value = 9.916$
++ 유의수준 $0.05 > p-value=0.00144$로 귀무가설 기각. 즉, catalyst 별 concent 평균의 차이는 있다고 할 수 있다.
+
+이제 어디에서 차이가 나타나는지 `tukey`의 사후검정을 진행한다.
+
+```{r}
+#tukey 사후검정
+catalystm.glht <-
+   glht(catalystm1.aov, linfct = mcp(catalyst = "Tukey"))
+confint(catalystm.glht)
+```
+
+해석:
+
+신뢰구간이 0을 포함하는 경우에는 차이가 없다고 해석한다. 즉, D-A와 D-B를 제외한 나머지 조합(pairwise) 비교는 차이가 없다고 나타난다.
+
+```{r}
+#신뢰구간 시각화 - 그림 7.7
+mmcplot(catalystm.glht, order.contrasts=FALSE, estimate.sign=0, focus="catalyst")
+```
+
+```{r}
+#각 그룹(catalyst) 별 박스플롯 - 그림 7.8
+plot(cld(catalystm.glht))
+axis(side="3", at=1:4, labels= signif(model.tables(catalystm1.aov, "means")[[1]]$catalyst, 4) )
+segments(c(.5, 2.5), c(62.1, 63.7), c(3.5, 4.5), c(62.1, 63.7), xpd=NA, lty=3, lwd=2)
+```
+
+`multcomp` 패키지에서 제공하는 *cld*를 사용하면 쌍별 비교 결과를 박스플롯으로 간단하게 시각화가 가능하다.
+
+쌍별 비교시 제공되는 그룹도 나타내주어 차이가 나는 그룹을 눈으로 쉽게 확인할 수 있다는 장점이 있다.
+본 그림에서는 D-A, D-B에서 차이가 나타나는 것을 확인할 수 있고, 위에서 실시했던 신뢰구간을 통한 해석과 동일한 결과이다.
+
+```{r}
+#mmc 적용
+catalystm.mmc <-
+   mmc(catalystm1.aov, linfct = mcp(catalyst = "Tukey"))
+mmcplot(catalystm.mmc)
+```
+
+위의 glht 함수를 적용한 것과 동일하게 D-A, D-B에서 차이가 나타났다.
+
+
+
+`Tukey` 방법은 집단별 샘플수가 동일해야 해당 방법을 적용했을 때의 최적의 결과를 도출한다. 예시로 A, D 그룹의 표본 크기를 5로 지정하고 B, C 그룹의 표본 크기를 100으로 임의 설정하여 `Tukey` 사후검정 결과를 비교해보겠다.
+
+*aovSufficient* 함수는 `HH` 패키지에서 제공하는 함수로 임의로 각 그룹의 표본 크기, 표본 평균와 그룹 내 표준 편차를 지정하여 ANOVA를 시행할 수 있게 해준다. 
+
+```{r}
+group <- factor(LETTERS[1:4]) #A-D까지
+n <- c(5,100,100,5) #각 그룹 표본 크기 지정
+ybar <- c(2,2.1,2.8,3) #각 그룹의 표본 평균 지정
+inconsistent.aov <- aovSufficient(ybar ~ group, weight=n, sd=.8) #sd-그룹 내 표준 편차
+anova(inconsistent.aov)
+```
+
+임의 설정한 데이터의 ANOVA 결과, 적어도 한 그룹 이상에서 유의한 차이를 보인다고 할 수 있다.(p-value < 0.05)
+
+`Tukey` 사후 검정을 실시한다.
+
+```{r}
+#Tukey 사후검정 적용
+inconsistent.glht <-
+  glht(inconsistent.aov, linfct=mcp(group="Tukey"),
+       vcov.=vcovSufficient, df=inconsistent.aov$df.residual)
+
+#qtukey - tukey Comparision-wise 구하기(p,그룹 수, df)
+crit.point <- qtukey(.95,4,206)/sqrt(2)
+crit.point #2.590125
+
+#사후검정 신뢰구간 결과(calpha - Comparision-wise 지정)
+confint(inconsistent.glht, calpha=crit.point)
+```
+
+신뢰구간을 살펴보면 C-B에서만 0을 포함하지 않아 차이가 있다고 해석할 수 있다.
+
+```{r}
+#각 그룹 별 박스플롯 - 그림 7.9
+plot(cld(inconsistent.glht))
+axis(side="3", at=1:4, labels=format(ybar,1))
+segments(c(.5, .5), c(3.43, 3.61), c(4.5, 4.5), c(3.43, 3.61), xpd=NA, lty=3, lwd=2)
+```
+
+각 그룹 별 평균 그림을 보면 사후검정에서 차이가 있다고 나타난 B-C의 평균 차이보다 A-D의 평균 차이가 커보인다. 그럼에도 A-D에서는 차이가 없다고 나타난 것으로 보아 집단 간 표본의 수가 같고 클수록 더 정확한 검정 결과가 도출된다는 것을 확인할 수 있다.
+
+```{r}
+#신뢰구간 시각화 - 그림 7.10
+mmcplot(inconsistent.glht, focus="group")
+
+
+#mmc 사용하여 다중비교
+inconsistent.mmc <- mmc(inconsistent.aov,
+                        linfct=mcp(group="Tukey"),
+                        vcov.=vcovSufficient,
+                        df=inconsistent.aov$df.residual,
+                        calpha=qtukey(.95, 4, 206)/sqrt(2))
+
+#각 그룹 별 평균 신뢰구간 시각화 - 그림 7.11
+mmcplot(inconsistent.mmc$none$glht, focus="group")
+```
+
+none을 지정하게 되면 각 그룹에 대한 정보만 확인할 수 있다.
+
+
+본 그림을 보면 표본 크기가 작은 A와 D는 신뢰구간도 크게(보수적으로) 잡히는 것을 확인할 수 있다. 이러한 이유로 표본 크기가 클수록 더 정확한 사후검정 결과가 도출된다.
+
+```{r}
+#mmc 다중비교 시각화 - 그림 7.12
+mmcplot(inconsistent.mmc, style="both")
+```
+
+### 7.2.4 Display of an Orthogonal Basis Set of Contrasts
+
+본 장에서는 catalystm 데이터셋을 사용하여 대비와 직교에 대한 내용을 다룬다.
+
+`contrasts` 함수를 사용하여 대비 계수 확인:
+  + base=1이 기본이기 때문에 base를 따로 지정해주지 않으면 control 그룹이 자동적으로 첫번째 그룹 변수가 된다.
+
+```{r}
+#대비계수 확인
+contrasts(catalystm$catalyst)
+```
+
+base를 지정해주지 않아 A 그룹이 자동적으로 control 그룹으로 지정됨.
+
+```{r}
+catalystm.mmc$mca$glht$linfct
+```
+
+*linfct*는 linear function을 의미하는 것으로 각 행은 해당 contrast matrix의 열 차이다.
+A는 자동적으로 control 그룹으로 지정되어 Intercept열로 나타난다.
+
+`ImatPairwise` 함수를 사용하면 해당 mmc 개체에 내포된 대비를 분리할 수 있다.
+
+```{r}
+catalyst.pairwise <- lmatPairwise(catalystm.mmc)
+catalyst.pairwise
+```
+contrast를 Imat 포맷에 맞춰서 나타나며 각 열의 합은 0이다. 비교 대상으로 지정된(control 그룹 - A) A가 기준이기 때문에 A-B에서 A의 계수가 1, B의 계수가 -1로 열의 합이 0이 되도록 한다.
+
+직교대비는 만약 요인 A가 a개의 수준을 가진다면 이 요인에 대한 직교대비를 a-1개 만들 수 있다.
+
+```{r}
+#직교대비 행렬 만들기
+catalystm.lmat <- cbind("AB-D" =c(1, 1, 0,-2),
+                        "A-B"  =c(1,-1, 0, 0),
+                        "ABD-C"=c(1, 1,-3, 1))
+#행이름 지정(각 그룹명)
+dimnames(catalystm.lmat)[[1]] <- levels(catalystm$catalyst)
+catalystm.lmat
+```
+
+해당 데이터는 4개의 수준을 가지기 때문에 3개의 직교대비를 만들 수 있다. 관심있는 비교에 대한 직교대비를 만들었다.
+
+```{r}
+#crossprod - 내적 계산 함수
+crossprod(catalystm.lmat) #rank=3
+
+resid(lm(catalystm.lmat ~ catalyst.pairwise))
+```
+
+관심있는 직교대비을 사용하여 `Tukey`의 사후검정을 진행한다.
+
+```{r}
+catalystm.mmc <-
+  mmc(catalystm1.aov,linfct=mcp(catalyst="Tukey"),
+      focus.lmat=catalystm.lmat)
+catalystm.mmc
+```
+$imat의 결과를 보면 AB-D의 신뢰구간이 0을 포함하지 않기 때문에 A,B와 D간 차이가 발생한다고 해석할 수 있다.
+
+
+```{r}
+#직교 대비 사후검정 시각화 - 그림7.17
+mmcplot(catalystm.mmc, type="lmat", style="both")
+```
+
+
+### 7.2.5 Hsu and Peruggia’s Pulmonary Example
+본 장에서는 Hsu와 Peruggia가 다중비교그림을 도입하기 위해 사용한 폐활량 관련 데이터를 사용한다.
+
+데이터명은 pulmonary로 반응변수는 FVC로 노력성 폐활량을 의미한다. 각 그룹은 아래의 기준에 따라 나눠진 것으로 6개의 그룹으로 이루어져있다.
+
+- NS: 비흡연자
+- PS: 간접흡연자
+- NI: 흡입담배를 피지않는 흡연자
+- LS: 가벼운 흡연자-지난 20년동안, 하루에 핀 담배의 개수가 1~10개비인 흡연자
+- MS: 중간 흡연자-지난 20년동안, 하루에 핀 담배의 개수가 11~39개비인 흡연자
+- HS: 심한 흡연자-지난 20년동안, 하루에 핀 담배의 개수가 40개비이상인 흡연자
+
+n은 각 그룹에 속하는 사람의 수이고 s는 그룹 내 표준 편차를 의미한다.
+
+*aovSufficient* 함수를 이용하여 ANOVA를 실시한다.
+
+```{r}
+#데이터 호출
+data("pulmonary")
+
+#Anova
+pulmonary.aov <-
+  aovSufficient(FVC ~ smoker, data=pulmonary,
+                weights=pulmonary$n, sd=pulmonary$s)
+summary(pulmonary.aov)
+```
+
+해석: 
+
++ 귀무가설: $H_0: 흡연자 유형 별 FVC 평균의 차이는 없다.$
++ 대립가설: $H_1: 흡연자 유형 별 FVC 평균의 차이는 있다.$
++ $p-value = <2e-16$
++ 검정통계량 $F-value = 83.93$
++ 유의수준 $0.05 > p-value<2e-16 $로 귀무가설 기각. 즉, 흡연자 유형 별 FVC 평균의 차이는 있다고 할 수 있다.
+
+이제 어디에서 차이가 나타나는지 `tukey`의 사후검정을 진행한다. - 쌍별 비교를 위해
+
+```{r}
+#Tukey 사후검정 적용
+pulmonary.glht <-
+  glht(pulmonary.aov, linfct=mcp(smoker="Tukey"),
+       vcov.=vcovSufficient, df=pulmonary.aov$df.residual)
+pulmonary.glht
+
+#qtukey - tukey Comparision-wise 구하기(p,그룹 수, residual-df)
+crit.point <- qtukey(.95,6,1044)/sqrt(2)
+crit.point #2.855016
+
+#사후검정 신뢰구간 결과(calpha - Comparision-wise 지정)
+confint(pulmonary.glht, calpha=crit.point)
+
+#신뢰구간 시각화
+mmcplot(pulmonary.glht, focus="smoker")
+```
+
+
+
+신뢰구간에 0을 포함하지 않는 것은 총 10개의 비교이다.
+
+관심있는 비교를 위해 직교 대비 행렬을 5개(6-1) 생성하고, 다중 비교를 진행했다. mmc를 적용하여 mmcplot으로 시각화해보았다.
+
+```{r}
+#직교 대비 행렬 생성
+pulm.lmat <- cbind("npnl-mh"=c( 1, 1, 1, 1,-2,-2), ## not.much vs lots
+                   "n-pnl"  =c( 3,-1,-1,-1, 0, 0), ## none vs light
+                   "p-nl"   =c( 0, 2,-1,-1, 0, 0), ## {} arbitrary 2 df
+                   "n-l"    =c( 0, 0, 1,-1, 0, 0), ## {} for 3 types of light
+                   "m-h"    =c( 0, 0, 0, 0, 1,-1)) ## moderate vs heavy
+dimnames(pulm.lmat)[[1]] <- row.names(pulmonary)
+
+#mmc 적용
+pulmonary.mmc <-
+  mmc(pulmonary.aov,
+      linfct=mcp(smoker="Tukey"),
+      df=pulmonary.aov$df.residual,
+      vcov.=vcovSufficient,
+      focus.lmat=pulm.lmat)
+
+#pairwise 시각화 - 그림 7.18
+mmcplot(pulmonary.mmc, style="both")
+
+#직교 대비 행렬 비교 시각화 - 그림 7.19
+mmcplot(pulmonary.mmc, type="lmat", style="both")
+```
+
+
+차이가 나타난 관심비교 항목은 
+
++ none(비흡연자)와 약한 흡연자들(간접, 전자, 약한)과의 차이
++ 비흡연자&약한 흡연자들과 중간&심한 흡연자와의 차이
++ 중간 흡연자와 강한 흡연자와의 차이
+
+이다.
+
+
+<br>
+
+# References {-}
+
+[R tutorial](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)
+
+
+--------------------------------------------------------------------------------------------------
+
+ⓒ Statistical Methods, Gachon University
+
+--------------------------------------------------------------------------------------------------

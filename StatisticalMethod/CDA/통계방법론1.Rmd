@@ -82,6 +82,7 @@ knitr::opts_chunk$set(echo = TRUE)
 -   연속형일 때는 측정 단위가 매우 중요하다 -> 표준화 적용
 -   다변량에서 차원 축소를 진행할 때 y값을 다 표준화하는 게 추세이다.
 -   쌍체 검정은 쌍별 차이를 고려하기 때문에 개체 내의 변동성은 제거하고 측정값 간의 차이에만 집중을 할 수 있다.
+-   개선 활동의 검증에는 일반적으로 **[방향성 가설]{style="color: red;"}**이 적절하다.
 
 # ML 적용 과정 생각하기
 
@@ -1581,11 +1582,120 @@ c(mean, mean_by_trans)
 
 ## 실습 14. 신제품 인증 시험 검증, touch.ms.csv
 
+-   신제품 인증 시험에서는 Touch 반응의 평균값의 230(ms)보다 작아야 한다.
+    -   개선 활동의 검증에는 일반적으로 방향성 가설이 적절하다.
 
+---
+
+-   데이터 불러오기 및 구조 확인
+
+```{r}
+touch <- read.csv(paste0(data_path, "touch.ms.csv"))
+str(touch)
+```
+-   기초 통계량 확인
+
+```{r}
+c(mean = mean(touch$ms), stdDev = sd(touch$ms), max = max(touch$ms))
+```
+
+-   정규성 검정
+
+```{r}
+ms <- touch$ms
+test <- c(ad = ad.test(ms)$p.value, pearson = pearson.test(ms)$p.value)
+round(test, 3)
+```
+
+```{r}
+touch %>% 
+  ggplot(aes(ms, y = ..density..)) +
+  geom_histogram(color = "white", fill = "gray") +
+  geom_density(color = lre) +
+  geom_density(color = sbl, adjust = 2) +
+  geom_density(color = ngr, adjust = 0.5) +
+  theme_bw()
+```
+
+-   가설 검정 진행
+
+```{r}
+t.test(touch$ms, mu = 230, alternative = "less")
+```
+-   $\alpha$값은 휴리스틱에 의해 0.05로 설정한다.
+-   p-value = 0.07 > $\alpha$이므로 $H_{0}$기각할 수가 없다.
+    -   결과를 살펴보면 표본 평균은 229로 나오지만, 모평균 $\mu$는 최대 230(ms)일 수 있다.
+    -   따라서 기존 가설을 유지한다.
 
 ---
 
 ## 실습 15. 소음 개선 후 Pilot Sample 개선 검증, noise.db.csv
+
+-   제품의 소음(noise) 개선 전(old)/후(new)를 비교하여 개선 정도를 확인하고자 한다.
+
+---
+
+-   데이터 불러오기 및 구조 확인
+
+```{r}
+noise <- read.csv(paste0(data_path, "noise.db.csv"))
+str(noise)
+```
+
+-   표본 평균과 표본 표준편차 확인
+
+```{r}
+c(old = mean(noise$old),
+  new = mean(noise$new, na.rm = TRUE))
+
+c(old = sd(noise$old),
+  new = sd(noise$new, na.rm = TRUE))
+
+```
+-   정규성 확인
+
+```{r}
+c(old = ad.test(noise$old)$p.value,
+  new = ad.test(noise$new)$p.value)
+```
+
+-   등분산성 확인
+  
+```{r}
+var.test(noise$old, noise$new)
+```
+
+-   t.test 진행
+
+```{r}
+t.test(noise$new, noise$old, alternative = "less", var.equal = TRUE)
+```
+
+-   $\alpha$값은 휴리스틱에 의해 0.05로 설정한다.
+-   p-value = 0.0000000000000002 < $\alpha$=0.05이므로 $H_{0}$기각한다.
+
+
+---
+
+-   어느 정도로 성능이 개선되었느지 확인 진행
+
+```{r}
+alpha <- 0.05
+for(Delta in seq(1, 30, by =1)){
+  t.test_result <- t.test(noise$new + Delta,
+                          noise$old,
+                          alternative = "less",
+                          var.equal =TRUE)
+  if(t.test_result$p.value > alpha){
+    cat("Delta = ", Delta, "에서 최초로 H_0를 기각하지 못한다.
+        이때 p-value=", t.test_result$p.value, "\n")
+    break
+  }
+}
+```
+
+-   평균 소음은 최대 약 19.6(db) 정도 개선되었다.
+    -   이렇게 분석을 진행하는 것이 방향성 가설이다.
 
 ---
 
