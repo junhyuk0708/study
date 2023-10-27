@@ -1102,6 +1102,8 @@ $$r_{ij} = \frac{O_{ij} - E_{ij}}{\sqrt{E_{ij}}}, \forall i,j$$
 
 ### 3.2.4. 쌍체 집단 차이의 모평균 비교 paired-t Test
 
+
+
 ### 3.2.5. 두 개 이상의 모평균 비교 Analysis of Variance
 
 ---
@@ -1701,6 +1703,8 @@ for(Delta in seq(1, 30, by =1)){
 
 ## 실습 16. 쌍체 데이터의 차이의 모평균 비교, exposure.con.csv
 
+
+
 ---
 
 ## 실습 17. 분산 분석, depth.etch.csv
@@ -1952,3 +1956,5 @@ summary(cem_model)$coef
 ```{r}
 
 ```
+
+
