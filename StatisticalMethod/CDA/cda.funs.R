@@ -267,49 +267,43 @@ hist_density <- function(df, var) {
 }
 
 m_residuals <- function(df){
- style_m <- theme_bw() + 
-  theme(axis.text.x = element_text(size = 6),
-        axis.title.x = element_text(size = 6),
-        axis.title.y = element_text(size = 6)
-  )
- #
- 
- m1 <- df %>%
-  ggplot(aes(sample = rsd)) +
-  stat_qq(color = "blue", size = 0.7) +
-  stat_qq_line(color = bre) +
-  labs(x = "표준화 잔차", 
-       y = "표준 정규 변수"
-  ) + style_m
- #
- m2 <- df %>% 
-  ggplot(aes(x = fit, y = rsd))  +
-  geom_point(color = "blue", size = 0.7) +
-  geom_hline(yintercept = 0, color = bre) + 
-  geom_hline(yintercept = c(-2,2), color = bre, lty = "dashed") +
-  labs(x = "적합치", 
-       y = "표준화 잔차" 
-  ) + style_m
- #
- 
- m3 <- df  %>% 
-  ggplot(aes(x = rsd))  +
-  geom_histogram(fill = "blue", color = "white") +
-  geom_vline(xintercept = 0, color = bre) +
-  labs(x = "표준화 잔차", 
-       y = "빈도"
-  ) + style_m
- #
- m4 <- df  %>% 
-  ggplot(aes(x = as.numeric(row.names(df)), y =rsd))  +
-  geom_line(color = "gray") +
-  geom_point(color = "blue", size = 0.7) +
-  geom_hline(yintercept = 0, color = "red") +
-  labs(x = "순서", 
-       y = "표준화 잔차" 
-  ) + style_m
- #
- (m1 | m2)/(m3 | m4)
+  style_m <- theme_bw() +
+    theme(axis.text.x = element_text(size = 6),
+          axis.title.x = element_text(size = 6),
+          axis.title.y = element_text(size = 6))
+
+  m1 <- df %>% 
+    ggplot(aes(sample = rsd)) +
+    stat_qq(color = sbl, size = 0.7) +
+    stat_qq_line(color = lre) +
+    labs(x = "표준화 잔차", y = "표준 정규 변수") +
+    style_m
+
+  m2 <- df %>% 
+    ggplot(aes(x = fit, y = rsd)) +
+    geom_point(color = sbl, size = 0.7) +
+    geom_hline(yintercept = 0, color = lre) +
+    geom_hline(yintercept = c(-2,2),
+               color = sbl, linetype = "dashed") +
+    labs(x = "적합치", y = "표준화 잔차") +
+    style_m
+
+  m3 <- df %>% 
+    ggplot(aes(x = rsd)) +
+    geom_histogram(fill = sbl, color = "white") +
+    geom_vline(xintercept = 0, color = lre) +
+    labs(x = "표본화 잔차", y = "빈도") +
+    style_m
+
+  m4 <- df %>% 
+    ggplot(aes(x = as.numeric(row.names(df)), y = rsd)) +
+    geom_line(color = "gray") +
+    geom_point(color = sbl, size = 0.7) +
+    geom_hline(yintercept = 0, color = lre) +
+    labs(x = "순서", y = "표준화 잔차") +
+    style_m
+
+  gridExtra::grid.arrange(m1, m2, m3, m4, nrow = 2, ncol = 2)
 }
 
 

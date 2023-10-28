@@ -10,7 +10,8 @@ cda.pkgs <- c("knitr", "markdown",
               "stringr", "forcats", "reshape2", "tidytext", "ggplot2", 
               "rlang", "ggpubr", "GGally", "ggrepel", "scico", "patchwork", 
               "lvplot", "vcd", "vcdExtra", "aplpack", "HH", 
-              "nortest", "car", "gridExtra", "knitr"
+              "nortest", "car", "gridExtra", "knitr",
+              "ggfortify", "ggthemes" #시각화 관련
               )
 lp <- function(pkg){
  new.pkg <- pkg[!(pkg %in% utils::installed.packages()[, "Package"])]
