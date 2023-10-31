@@ -1,0 +1,431 @@
+---
+title: "수리통계학 Ⅱ - chap 5 실습"
+author: "이하늘, 가천대학교 응용통계학과 202340339"
+date: 2023-04-15(SAT)
+output:
+  html_document:
+    code_folding: show
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 10
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+  }
+  h1{
+    font-size: 22pt;
+  }
+  h2{
+    font-size: 20pt;
+  }
+  h3{
+    font-size: 18pt;
+  }
+</style>
+
+<br>
+
+```{r}
+library(ggplot2)
+```
+
+# 1. \(\theta\)의 사전분포가 Beta(1,1)일 때, \(\theta\)의 95% 최대사후구간을 구하라.
+
+```{r}
+HPDgrid <- function(prob,level=0.95){
+  prob.sort=sort(prob,decreasing = T)
+  M=min(which(cumsum(prob.sort)>=level))
+  height=prob.sort[M]
+  HPD.index=which(prob>=height)
+  HPD.level=sum(prob[HPD.index])
+  res=list(index=HPD.index, level=HPD.level)
+  return(res)
+}
+
+a=1; b=1
+x=17; n=22
+theta=seq(0,1,length=1001)
+ftheta=dbeta(theta,a+x,n-x+b)
+prob=ftheta/sum(ftheta)
+HPD=HPDgrid(prob,0.95)
+HPD.grid=c(min(theta[HPD$index]),max(theta[HPD$index]))
+HPD.grid #[1] 0.579 0.909
+```
+
+# 2. MP3를 생산하는 공장에서 그동안 불량률의 평균이 0.2, 분산이 0.05. 최근 10개 중 2개가 불량
+
+## 2-(1). 불량률에 대한 사전분포로 베타 분포를 가정할 때 예전 정보를 이용하여 모수 정하고 \(\theta\)의 사후분포
+
+
+\[ \mu = \frac{\alpha}{\alpha+\beta} = 0.2 \\ 
+\sigma^2 = \frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)} = 0.05\\
+\alpha=3.0742, \beta=12.1053
+\]
+
+```{r}
+a=3.0742
+b=12.1053
+a2=a+2
+b2=b+8
+a2;b2 #[1] 5.0742, [1] 20.1053
+```
+\[ 
+사후분포\\
+\pi(\theta|x_1,\cdots,x_n)\sim Beta(5.0742, 20.1053)
+\]
+
+
+## 2-(2). 사전밀도함수와 사후밀도함수를 겹쳐 그리고 해석하라.
+
+```{r}
+theta=seq(0,1,length=1001)
+plot(theta, dbeta(theta,a2,b2), ylab='posterior',type='n')
+lines(theta, dbeta(theta,a,b),lty=1, col = "blue")
+lines(theta, dbeta(theta,a2,b2), lty=2)
+legend(0.3,3, legend = c("Beta(3.0742, 12.1053)", "Beta(5.0742, 20.1053)"), lty=c(1,2), col=c("blue","black"))
+```
+
+자료가 관측된 후 평균이 오른쪽으로 이동하였다. 이는 관측치의 정보 \( 2/10 = 0.2 \)의 영향 때문이다.
+
+## 2-(3). \(\theta\)의 사후 표본을 생성하고 이를 이용하여 \(\theta\)의 95% 최대사후구간을 구하라.
+
+```{r}
+theta=seq(0,1,length=1001)
+ftheta=dbeta(theta,a2,b2)
+prob=ftheta/sum(ftheta)
+HPD=HPDgrid(prob,0.95)
+HPD.grid=c(min(theta[HPD$index]),max(theta[HPD$index]))
+HPD.grid #[1] 0.061 0.356
+```
+## 2-(4). \(\theta\)의 사전 표본과 사후 표본을 생성하고 이를 이용하여 오즈비 \(\eta = log(\theta/(1-\theta))\)의 사전밀도함수, 사후밀도함수, 그리고 95% 최대사후구간을 구하고 그림 위에 표시
+
+```{r}
+HPDsample <- function(theta,level=0.95){
+  N=length(theta)
+  theta.sort=sort(theta)
+  M=ceiling(N*level)
+  nCI=N-M
+  CI.width=rep(0,nCI)
+  for(i in 1:nCI) CI.width[i]=theta.sort[i+M]-theta.sort[i]
+  index=which.min(CI.width)
+  HPD=c(theta.sort[index], theta.sort[index+M])
+  return(HPD)
+}
+N=10000
+theta1=rbeta(N,a,b)
+theta2=rbeta(N,a2,b2)
+
+eta1=log(theta1/(1-theta1))
+eta2=log(theta2/(1-theta2))
+
+HPD=HPDsample(eta2) #95% 최대사후구간
+
+plot(density(eta2),type='n',main='오즈비')
+lines(density(eta1), lty=1, col="blue")
+lines(density(eta2), lty=2)
+abline(v=HPD,lty=3, col = "red")
+legend(-3.2,0.4, legend = c("사전밀도함수", "사후밀도함수", "95% 최대사후구간"), 
+       lty=c(1,2,3), col=c("blue","black","red"))
+```
+
+
+# 3. 불법 낙태에 대하여 찬성하는 사람들의 비율 \(\theta\)를 알고자 한다.
+
+## 3-(1). 초기에 \(\theta\)의 분포는 \(Beta(\alpha,\beta)\)이고, 첫 번째 사람이 찬성한 다음에는 \(Beta(\alpha+1,\beta)\)
+
+\[ \mu_1 = \frac{\alpha}{\alpha+\beta} = 0.4 \\ 
+\mu_2 = \frac{\alpha+1}{\alpha+1+\beta} = 0.45\\
+\]
+
+```{r}
+func <- function(x){
+  alpha <- x[1]
+  beta <- x[2]
+  f1 <- alpha / (alpha + beta) - 0.4
+  f2 <- (alpha + 1) / ((alpha + 1) + beta ) - 0.45
+  return(c(f1, f2))
+}
+
+# multiroot 함수를 사용하여 해 찾기
+library(rootSolve)
+sol <- multiroot(func, start=c(1, 1))
+
+a = sol$root[1]
+b = sol$root[2]
+a;b #[1] 4.399985 6.599955
+
+```
+\[\alpha=4.4, \beta=6.6 \]
+
+## 3-(2). 실제로 10명을 랜덤 추출한 결과 3명 찬성, 7명 반대 사전분포와 합성하여 사후분포 구하라.
+
+```{r}
+a=4.4
+b=6.6
+x=3
+n=10
+
+a2=a+x
+b2=n-x+b
+a2;b2 #[1] 7.4, [1] 13.6
+```
+
+\[ 
+사후분포\\
+\pi(\theta|x_1,\cdots,x_n)\sim Beta(7.4,13.6)
+\]
+
+## 3-(3). 새롭게 10명 추출 조사 예정. 새로운 표본에서 낙태에 찬성하는 사람들의 수에 대한 예측 분포
+
+```{r}
+m=10
+z=c(0:10)
+pred.z=gamma(m+1)/gamma(z+1)/gamma(m-z+1)*beta(a+z+x,b+n-x+m-z)/beta(a+x,b+n-x)
+plot(z,pred.z,type = "h")
+
+#몬테칼로 기법
+m=10
+N=10000
+theta=rbeta(N,a+x,b+n-x)
+pred.z=c(1:(m+a))*0
+for(z in c(0:m)) pred.z[z+1]=mean(dbinom(z,m,theta))
+z=rbinom(N,m,theta)
+plot(table(z)/N, type="h", xlab="z", ylab="predictive density", main="")
+mean(z) #예측 평균: [1] 3.5131
+var(z) #예측 분산: [1] 3.210549
+```
+
+# 4. 협심증 환자 12명을 대상으로 조사한 결과, 3명이 가슴통증 등 후유증을 보였다. 후유증 비율 \(\theta\)에 대한 사전 정보가 전혀 없다고 할 때, 13번째 환자가 후유증을 보일 예측 확률을 구하라.
+
+\(\alpha\)와 \(\beta\)는 사전분포의 파라미터 (사전 정보가 없으므로 \(\alpha=\beta=1\)), s는 성공 횟수 (여기서는 후유증을 보인 환자 수 3명), n은 시도 횟수 (환자 수 12명)
+
+\[ 
+사후분포\\
+Beta(\alpha + s(successes), \beta + n - s) \\
+Beta(1+3,1+12-3) = Beta(4,10)
+\]
+
+\[
+E[\theta|data] = \alpha / (\alpha + \beta) = \\
+4 / (4 + 10) = 0.2857
+\]
+
+```{r}
+# Prior parameters
+alpha_prior <- 1
+beta_prior <- 1
+
+# Observed data
+successes <- 3
+trials <- 12
+
+# Posterior parameters
+alpha_posterior <- alpha_prior + successes
+beta_posterior <- beta_prior + trials - successes
+
+# Predicted probability for the next patient showing symptoms
+predicted_probability <- alpha_posterior / (alpha_posterior + beta_posterior)
+print(predicted_probability) #[1] 0.2857143
+```
+
+
+
+# 5. 온라인 쇼핑몰 경품행사 실시, 사랑이는 열흘동안 매일 응모했지만 한 번도 당첨되지 못하였다. 쇼핑몰 관계자는 경품에 당첨될 확률이 1/10이라고 하였다.
+
+## 5-(1). 경품의 당첨확률 \(\theta\)의 최우추정치는 얼마인가?
+
+고전적 최우추정법에 의한 예측
+
+사랑이가 10일 동안 매일 응모했지만 한 번도 당첨되지 않았다는 정보가 주어져 있습니다. 
+따라서 성공 횟수(successes)는 0회, 시도 횟수(trials)는 10회
+
+이항 분포에서의 최우추정치 MLE는 다음과 같이 계산됩니다:
+
+\[
+\hat{\theta} = \frac{성공 횟수}{시도 횟수} \\
+\hat{\theta} = \frac{0}{10} = 0
+\]
+
+
+즉, 사랑이의 경험을 바탕으로 할 때, 경품 당첨 확률의 최우추정치는 0입니다.
+
+
+
+## 5-(2). (1)에서 구한 최우 추정치가 실제 \(\theta\)라고 가정할 때, 앞으로 사랑이가 20번 더 응모를 한다면 경품에 최소한 한번 이상 당첨될 확률은 얼마인가?
+
+사랑이가 앞으로 20번 더 응모를 하면서 경품에 최소한 한 번 이상 당첨될 확률을 구하는 것은 
+"20번 중에 한 번도 당첨되지 않을 확률"을 구하고 그것을 1에서 빼주는 것
+
+"20번 중에 한 번도 당첨되지 않을 확률": \((1)^{20}\) (왜냐하면 각각의 응모가 독립적이며 각각의 실패 확률이 1 )
+
+따라서 "경품에 최소한 한 번 이상 당첨될 확률"은
+\[
+1 - (1)^{20} = 1 - 1 = 0
+\]
+
+0%이다.
+
+```{r}
+1 - 1^20 #0
+```
+
+
+## 5-(3). 쇼핑몰 관계자의 말을 사전정보로 간주하고 \(\theta\)에 대하여  \(Beta(0.1,1)\) 사전분포를 가정하고 베이지안 추론을 수행. 사랑이가 20번 더 응모를 한다면 경품에 최소한 한 번 이상 당첨될 확률은 얼마인가? 사후분포로부터 \(\theta\) 표본을 생성하고 이를 이용하여 확률을 추정하라.
+
+\(\alpha\)와 \(\beta\)는 사전분포의 파라미터 (\(\alpha=0.1, \beta=1\)), s는 성공 횟수 (여기서는 당첨된 환자 수 0명), n은 시도 횟수 (응모한 일수 10일)
+
+\[ 
+사후분포\\
+Beta(\alpha + s(successes), \beta + n - s) \\
+Beta(0.1+0,1+10-0) = Beta(0.1,11)
+\]
+
+사전정보와 기존 경과로부터 업데이트된 \(\theta\)값인 \(Beta(0.1,11)\)의 기대값 \(E[\theta|data] = \alpha / (\alpha + \beta)\)를 사용하여 
+"20번 중에 한 번도 당첨되지 않을 확률"은 \((1-(\alpha / (\alpha+\beta)))^{20}\)
+
+따라서 "경품에 최소한 한 번 이상 당첨될 확률"은
+
+\[
+1 - (1-(\frac{\alpha}{\alpha+\beta}))^{20} =\\
+1 - (1-(\frac{0.1}{0.1+11}))^{20} = 1 - 0.8344381 = 0.1655619
+\]
+
+약 16.5%이다.
+
+```{r}
+# Prior parameters
+alpha_prior <- 0.1
+beta_prior <- 1
+
+# Observed data
+successes <- 0
+trials <- 10
+
+# Posterior parameters
+alpha_posterior <- alpha_prior + successes
+beta_posterior <- beta_prior + trials - successes
+
+# Predicted probability for the next patient showing symptoms using posterior mean as theta_hat.
+theta_hat <- alpha_posterior / (alpha_posterior + beta_posterior)
+predicted_probability_not_win_once_in_20_times <- (1 - theta_hat)^20
+predicted_probability_at_least_one_win_in_20_times <- 1 - predicted_probability_not_win_once_in_20_times
+
+# Print the probability
+print(predicted_probability_at_least_one_win_in_20_times) #0.1655619
+
+# Sampling from the posterior distribution of theta
+set.seed(123) # for reproducibility
+samples <- rbeta(10000, alpha_posterior, beta_posterior)
+
+# Estimating the probability of winning at least once in 20 tries using the samples.
+estimated_probability <- mean(1 - (1 - samples)^20)
+print(estimated_probability) #0.1036147
+
+```
+
+
+# 6. 몬데칼로 방법을 이용하여 로그오즈비의 추정치와 표준오차를 구하고, 사후밀도함수와 95% 최대사후구간을 그림으로 표시하라. 사전분포로는 Beta(1,1) 사용
+
+\(\alpha\)와 \(\beta\)는 사전분포의 파라미터 (\(\alpha=1, \beta=1\)),
+s1,s2(20분 이내에 잠든 사람 \(s1 = 10, s2 = 14\)), n1, n2은 시도 횟수 (\(n1 = n2 = 20\))
+
+\[ 
+사후분포\\
+Beta(\alpha + s(successes), \beta + n - s) \\
+\theta_1|x_1\sim Beta(1+10, 1+20-10) = Beta(11,11) \\
+\theta_2|x_2\sim Beta(1+14, 1+20-14) = Beta(15,7)
+\]
+
+```{r}
+#로그 오즈비 추정 및 표준오차
+library(tidyverse)
+
+# observed data
+data <- tibble(
+  group = rep(c("group1", "group2"), each = 20),
+  success = c(rep(c(1,0), times = c(10,10)), rep(c(1,0), times = c(14,6)))
+)
+
+# fit logistic regression model
+fit <- glm(success ~ group, data = data, family = binomial(link="logit"))
+
+# get log odds ratio and standard error
+log_odds_ratio <- coef(fit)["groupgroup2"]
+standard_error <- summary(fit)$coefficients["groupgroup2", "Std. Error"]
+
+print(log_odds_ratio) #0.8472979 
+print(standard_error) # 0.6618875
+
+#사후밀도함수 95% 최대사후구간
+HPDsample <- function(theta,level=0.95){
+  N=length(theta)
+  theta.sort=sort(theta)
+  M=ceiling(N*level)
+  nCI=N-M
+  CI.width=rep(0,nCI)
+  for(i in 1:nCI) CI.width[i]=theta.sort[i+M]-theta.sort[i]
+  index=which.min(CI.width)
+  HPD=c(theta.sort[index], theta.sort[index+M])
+  return(HPD)
+}
+
+a=b=1
+n1=20; x1=10 ; n2=20; x2=14
+
+theta1=rbeta(10000,a+x1, b+n1-x1)
+theta2=rbeta(10000,a+x2, b+n2-x2)
+
+eta=log(theta1/theta2)
+xi=log( (theta1/(1-theta1)) /( theta2/(1-theta2)) )
+
+
+HPD=HPDsample(xi)
+
+par(mfrow=c(1,1))
+plot(density(xi),type="l", xlab="로그 오즈비 ",ylab="posterior density", main="")
+abline(v=HPD, lty=2)
+text(mean(xi),0.06, "95% HPD interval" )
+```
+
+
+<br>
+  
+  
+  
+# References {-}s
+  
+[R tutorial](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)
+
+
+--------------------------------------------------------------------------------------------------
+  
+  ⓒ Statistical Methods, Gachon University
+
+--------------------------------------------------------------------------------------------------
+  
+
