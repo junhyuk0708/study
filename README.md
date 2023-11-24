@@ -9,3 +9,6 @@
 괄호안의 내용 전체선택	Ctrl + Shift + M <br>	
 대문자로 변경	Ctrl + K + U	<br>
 소문자로 변경	Ctrl + K + L	<br>
+
+# RStudio <br>
+전체 주석 ctrl + shift + c <br>
