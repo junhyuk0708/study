@@ -1,0 +1,309 @@
+---
+title: "수리통계학 Ⅱ - chap 8 실습"
+author: "이하늘, 가천대학교 응용통계학과 202340339"
+date: 2023-11-10(SAT)
+output:
+  html_document:
+    code_folding: show
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 10
+    highlight: haddock
+    self_contained: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<style type="text/css">
+  body, td {
+     font-size: 16px;
+     font-family: 맑은 고딕
+  }
+  code.r{
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 맑은 고딕
+  }
+  pre {
+    font-size: 14px
+    font-family: 맑은 고딕
+  }
+  h1,h2,h3,h4,h5,h6{
+    font-family: 맑은 고딕;
+  }
+  h1{
+    font-size: 22pt;
+  }
+  h2{
+    font-size: 20pt;
+  }
+  h3{
+    font-size: 18pt;
+  }
+</style>
+
+<br>
+
+# 1. 12그루의 소나무 \(\sim N(\theta, 10^2)\), \(H_0: \theta > 102\)?
+
+
+\[
+H_0: \theta \geq 102\\
+H_1: \theta < 102\\
+\pi(\theta) = 1 \\
+\pi(\theta|x_1, ..., x_{12}, \sigma^2) \sim N(\bar{x},\sigma^2/n)
+\]
+
+
+```{r}
+tree <- c(105,109,126,92,101,108,102,118,99,90,86,102)
+
+n <- length(tree)
+sigma <- 10^2
+x_bar <- mean(tree)
+x_bar
+s <- sigma/n
+s
+```
+
+
+\[
+\pi(\theta|x_1, ..., x_{12}, \sigma^2) \sim N(\bar{x},\sigma^2/n) \\
+= N(103.1667, 8.3333) \\
+p_0 = \Phi(\frac{102 - 103.1667}{\sqrt{8.3333}})
+\]
+
+```{r}
+# 표본 평균에 대한 z 점수 계산
+z_score <- (102 - x_bar) / sqrt(s)
+
+# p 값 계산: 귀무 가설 하에서 표본 평균이 관찰된 평균 이상일 확률
+p0 <- pnorm(z_score, lower.tail = FALSE)
+p0
+
+```
+
+\[
+p_0 = 0.656947 > 0.5 
+\]
+
+귀무가설 채택
+
+# 2. 손님의 수 \(\theta\)의 사전분포 Gamma(2, 0.1)
+
+## 2-(1). \(H_0: \theta > 20\)일 사후확률
+
+\[
+H_0: \theta > 20\\
+\pi(\theta|x) \sim Gamma(\alpha+x, \beta+n) \\
+\alpha = 2, \beta = 0.1\\
+\pi(\theta|x) \sim Gamma(2+216,0.1+10) = Gamma(218,10.1) \\
+\]
+
+
+```{r}
+a <- 2;b <- 0.1
+x <- 216; n <- 10
+a2 <- a+x; b2 <- b+n
+p0 <- 1-pgamma(20,a2,b2)
+p0 #0.8618447
+
+```
+
+\[
+p_0 = 0.8618447 > 0.5 
+\]
+
+
+
+
+## 2-(2). 베이즈상수
+\[
+B_{01} = \frac{p_0/p_1}{\pi_0/\pi_1}
+\]
+
+```{r}
+
+p1 <- 1-p0
+
+pi0 <- 1-pgamma(20,a,b)
+pi1 <- 1-pi0
+
+B_01 <- (p0/p1)/(pi0/pi1)
+B_01
+```
+
+\[
+B_{01} = 9.126649
+\]
+
+## 2-(3). 사전분포 Gamma(15,1)
+
+```{r}
+new_p0 <- 1-pgamma(20,15,1)
+new_p1 <- 1-new_p0
+
+B_01*(new_p0/new_p1) #1.069178
+```
+
+
+
+# 3. \(X|\theta \sim B(30,\theta)\)
+
+
+\[
+H_0: \theta = \frac{3}{16}\\
+H_1: \theta \neq \frac{3}{16}\\
+\pi(\theta) = Beta(1,1) \\
+\]
+
+```{r}
+a <- 1; b <- 1
+n <- 30; x <- 5
+theta_0 <- 3/16
+m1 <- choose(n,x)*(gamma(a+b)/(gamma(a)*gamma(b)))*((gamma(a+x)*gamma(b+n-x))/gamma(a+b+n))
+m1
+
+B_01 <- (choose(n,x)*theta_0^x*(1-theta_0)^(n-x)) / m1
+p0 <- (1+B_01^(-1))^(-1)
+p0
+```
+
+\[
+p_0 = 0.8507201 > 0.5 
+\]
+
+귀무가설 채택
+
+# 4. \(X|\theta \sim N(\theta,1)\)
+
+## 4-(1). 고전적 유의확률
+
+
+\[
+z = \frac{\bar{x}-\theta_0}{1/\sqrt{n}}
+\]
+
+```{r}
+x_bar <- 0.25; n <- 100
+theta_0 <- 0
+z <- (x_bar-theta_0)/(1/sqrt(n))
+z #2.5
+
+1 - pnorm(z) #0.006209665
+```
+
+\[
+고전적 유의확률 \\
+p = 0.006209665
+\]
+
+## 4-(2).\(g(\theta) \sim N(0,1)\)의 사후분포, 베이즈 추정치
+
+\[
+p_0 = P(H_0|\bar{x}) = \pi_0f(\bar{x}|\theta_0)/m(\bar{x})
+\]
+
+
+```{r}
+pi0 <- 0.5; pi1 <- 1-pi0
+s <- 1
+theta_0 <- 0; sigma_0 <- 1
+m1 <- 1/sqrt(2*pi*(s+sigma_0))*exp(-(x_bar - theta_0)^2/(2*(s+sigma_0)))
+B_01 <- sqrt(1+n)*exp(-(1/2)*z^2*(n/(n+1)))
+p0 <- (1+B_01^(-1))^(-1)
+p0
+p1 <- 1-p0
+p1
+```
+
+\[
+p_0 = 0.3129209 < 0.5 \\
+p_1 = 0.6870791
+\]
+
+
+
+# 5. 왼손잡이의 비율 \(\theta\)
+
+## 5-(1).\(\theta\)의 사전분포 Beta(0.1,0.9), 베이즈 상수
+
+
+\[
+H_0: \theta < 0.1\\
+H_1: \theta \geq 0.1\\
+\pi(\theta) = Beta(0.1,0.9) \\
+\pi(\theta|x) = Beta(0.1+2,0.9+10-2) = Beta(2.1,8.9)
+\]
+
+```{r}
+a <- 0.1; b <- 0.9
+n <- 10; x <- 2
+theta_0 <- 0.1
+p0 <- pbeta(theta_0,a+x,b+n-x)
+p0
+p1 <- 1-p0
+p1
+p0/p1
+pi0 <- pbeta(theta_0,a,b)
+pi1 <- 1-pi0
+
+B_01 <- (p0/p1)/(pi0/pi1)
+B_01
+```
+
+\[
+사후비 \frac{p0}{p1} = 0.3078409\\
+B_{01} = 0.08578824
+\]
+
+
+## 5-(2).양측검정
+
+```{r}
+m1 <- choose(n,x)*(gamma(a+b)/(gamma(a)*gamma(b)))*((gamma(a+x)*gamma(b+n-x))/gamma(a+b+n))
+m1
+
+B_01 <- (choose(n,x)*theta_0^x*(1-theta_0)^(n-x)) / m1
+B_01
+p0 <- ((1+pi1)/(pi0*(B_01)^(-1)))^(-1)
+p0
+p1 <- 1-p0
+p0/p1
+
+```
+
+\[
+p0 = 0.1378114 < 0.5\\
+귀무가설 기각 \\
+사후비 \frac{p0}{p1} = 0.159839\\
+B_{01} = 4.659373
+\]
+
+
+
+
+
+
+<br>
+  
+  
+  
+# References {-}s
+  
+[R tutorial](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)
+
+
+--------------------------------------------------------------------------------------------------
+  
+  ⓒ Statistical Methods, Gachon University
+
+--------------------------------------------------------------------------------------------------
+  
+
