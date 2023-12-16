@@ -1,0 +1,172 @@
+# Q1
+
+## (1)
+$$
+f_{\theta_1,\theta_2}(x,y)={1 \over 2\pi\sigma_{\theta_1}\sigma_{\theta_2}\sqrt{1-\rho^2}}e^{{-1\over 2(1-\rho^2)}[({x-\mu_{\theta_1} \over \sigma_{\theta_1}})^2-2\rho({x-\mu_{\theta_1} \over \sigma_{\theta_1}})({y-\mu_{\theta_2} \over \sigma_{\theta_2}})+({y-\mu_{\theta_2} \over \sigma_{\theta_2}})^2]}
+$$
+$$
+where ~ \mu_{\theta_1}=0.3 ~~ \mu_{\theta_2}=0.58 ~~ \sigma_{\theta_1}=\sqrt{1/30} ~~ \sigma_{\theta_2}=\sqrt{1/30} ~~ \rho=0.5
+$$
+
+```{r}
+library(mvtnorm)
+
+x <- seq(0.3-0.5,0.3+0.5,0.01)
+y <- seq(0.58-0.5,0.58+0.5,0.01)
+sig=matrix(c(1,0.5,0.5,1),nrow = 2)/30
+
+f <- function(x,y){dmvnorm(cbind(x,y),c(0.3,0.58),sig)}
+
+contour(x,y,outer(x,y,f))
+```
+$$
+f_{\theta_1} (x)={1\over\sqrt{2\pi}\sigma_{\theta_1}}e^{-{1\over2}{(x-\mu_{\theta_1})^2\over\sigma_{\theta_1}^2}}~~~~~~where~\mu_{\theta_1}=0.3,~ \sigma_{\theta_1}=\sqrt{1/30}
+$$
+```{r}
+plot(x,dnorm(x,0.3,sqrt(1/30)),type = 'l')
+```
+
+$$
+f_{\theta_2}(y)={1\over\sqrt{2\pi}\sigma_{\theta_2}}e^{-{1\over2}{(y-\mu_{\theta_2})^2\over\sigma_{\theta_2}^2}}~~~~~~where~\mu_{\theta_2}=0.58,~ \sigma_{\theta_2}=\sqrt{1/30}
+$$
+```{r}
+plot(y,dnorm(y,0.58,sqrt(1/30)),type = 'l')
+```
+
+## (2)
+$$
+f_{\theta_2|\theta_1}(y|x) = \frac{1}{{\sqrt{2\pi\sigma_{\theta_2|\theta_1}^2}}} \exp\left(-\frac{{(y - \mu_{\theta_2|\theta_1})^2}}{{2\sigma_{\theta_2|\theta_1}^2}}\right)
+$$
+$$
+\mu_{\theta_2|\theta_1} = \mu_{\theta_2} + \rho \frac{{\sigma_{\theta_2}}}{{\sigma_{\theta_1}}} (\theta_1^{(0)} - \mu_{\theta_1}) = 0.58+0.5*{\sqrt{1/30}\over\sqrt{1/30}}(0-0.3) = 0.58-0.15 = 0.43 \\
+\sigma_{\theta_2|\theta_1}^2 = (1 - \rho^2) \sigma_{\theta_2}^2 = (1-0.5^2){1\over30} = 0.75/30
+$$
+
+$$
+f_{\theta_1|\theta_2}(y|x) = \frac{1}{{\sqrt{2\pi\sigma_{\theta_1|\theta_2}^2}}} \exp\left(-\frac{{(y - \mu_{\theta_1|\theta_2})^2}}{{2\sigma_{\theta_1|\theta_2}^2}}\right)
+$$
+$$
+\mu_{\theta_1|\theta_2} = \mu_{\theta_1} + \rho \frac{{\sigma_{\theta_1}}}{{\sigma_{\theta_2}}} (\theta_2^{(0)} - \mu_{\theta_2}) = 0.3+0.5*{\sqrt{1/30}\over\sqrt{1/30}}(0-0.58) = 0.3-0.29 = 0.01 \\
+\sigma_{\theta_1|\theta_2}^2 = (1 - \rho^2) \sigma_{\theta_1}^2 = (1-0.5^2){1\over30} = 0.75/30
+$$
+
+## (3)
+```{r}
+M=3000 ; m=500
+xbar=0.3 ; ybar=0.58
+sig1=sqrt(1/30) ; sig2=sqrt(1/30) ; rho=0.5
+
+THETA=matrix(nrow=M, ncol=2)
+
+#initial value
+mu1=0 ; mu2=0
+
+for(i in 1:M){
+  condpost.theta1=xbar+rho*sig1/sig2*(mu2-ybar)
+  condpost.var1=(1-rho^2)*sig1^2
+  mu1=rnorm(1,condpost.theta1,sqrt(condpost.var1))
+  
+  condpost.theta2=ybar+rho*sig2/sig1*(mu1-xbar)
+  condpost.var2=(1-rho^2)*sig2^2
+  mu2=rnorm(1,condpost.theta2,sqrt(condpost.var2))
+  
+  THETA[i,]=c(mu1,mu2)
+}
+
+THETA=THETA[m:M,]
+
+# theta1 사후 기대치, 사후 분산
+mean(THETA[,1])
+var(THETA[,1])
+
+# theta2 사후 기대치, 사후 분산
+mean(THETA[,2])
+var(THETA[,2])
+
+# 상관계수
+cor(THETA[,1], THETA[,2])
+```
+
+## (4)
+```{r}
+plot(THETA[,1],THETA[,2])
+
+plot(density(THETA[,1]))
+plot(density(THETA[,2]))
+```
+
+## (5)
+거의 같은 결과를 같는다.
+
+# Q2
+
+## (1)
+$$
+f_{\theta_1,\theta_2}(x,y)={1 \over 2\pi\sigma_{\theta_1}\sigma_{\theta_2}\sqrt{1-\rho^2}}e^{{-1\over 2(1-\rho^2)}[({x-\mu_{\theta_1} \over \sigma_{\theta_1}})^2-2\rho({x-\mu_{\theta_1} \over \sigma_{\theta_1}})({y-\mu_{\theta_2} \over \sigma_{\theta_2}})+({y-\mu_{\theta_2} \over \sigma_{\theta_2}})^2]}I(\theta_1<\theta_2)
+$$
+주변 사후밀도함수식은 수리적으로 구할 수 없다.
+## (2)
+$$
+f_{\theta_2|\theta_1}(y|x) = \frac{1}{{\sqrt{2\pi\sigma_{\theta_2|\theta_1}^2}}} \exp\left(-\frac{{(y - \mu_{\theta_2|\theta_1})^2}}{{2\sigma_{\theta_2|\theta_1}^2}}\right)I(\theta_1<\theta_2)
+$$
+
+$$
+f_{\theta_1|\theta_2}(y|x) = \frac{1}{{\sqrt{2\pi\sigma_{\theta_1|\theta_2}^2}}} \exp\left(-\frac{{(y - \mu_{\theta_1|\theta_2})^2}}{{2\sigma_{\theta_1|\theta_2}^2}}\right)I(\theta_1<\theta_2)
+$$
+## (3)
+```{r}
+M=3000 ; m=500
+xbar=0.3 ; ybar=0.58
+sig1=sqrt(1/30) ; sig2=sqrt(1/30) ; rho=0.5
+
+THETA=matrix(nrow=M, ncol=2)
+
+#initial value
+mu1=0 ; mu2=0
+
+for(i in 1:M){
+  condpost.theta1=xbar+rho*sig1/sig2*(mu2-ybar)
+  condpost.var1=(1-rho^2)*sig1^2
+  mu1=rnorm(1,condpost.theta1,sqrt(condpost.var1))
+  if(mu1>=mu2){
+    mu1=0
+  }
+  
+  condpost.theta2=ybar+rho*sig2/sig1*(mu1-xbar)
+  condpost.var2=(1-rho^2)*sig2^2
+  mu2=rnorm(1,condpost.theta2,sqrt(condpost.var2))
+  if(mu1>=mu2){
+    mu2=0
+  }
+  
+  
+  THETA[i,]=c(mu1,mu2)
+}
+
+THETA=THETA[m:M,]
+
+THETA <- THETA[THETA[,1] != 0 | THETA[,2] != 0,]
+
+THETA <- THETA[THETA[,1]!=0,]
+THETA <- THETA[THETA[,2]!=0,]
+
+# theta1 사후 기대치, 사후 분산
+mean(THETA[,1])
+var(THETA[,1])
+
+# theta2 사후 기대치, 사후 분산
+mean(THETA[,2])
+var(THETA[,2])
+
+# 상관계수
+cor(THETA[,1], THETA[,2])
+```
+
+## (4)
+```{r}
+plot(THETA[,1],THETA[,2])
+
+plot(density(THETA[,1]))
+plot(density(THETA[,2]))
+```
+
